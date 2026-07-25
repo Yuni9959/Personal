@@ -60,6 +60,25 @@ function createSchema(database) {
   }
 }
 
+function putSessionIfNewer(store, session) {
+  const request = store.get(session.sessionId);
+  request.addEventListener("success", () => {
+    const existing = request.result;
+    const incomingRevision = Number(session.sessionRevision || 0);
+    const existingRevision = Number(existing?.sessionRevision || 0);
+    const incomingUpdatedAt = Number(session.updatedAt || 0);
+    const existingUpdatedAt = Number(existing?.updatedAt || 0);
+    const isNewer =
+      !existing ||
+      incomingRevision > existingRevision ||
+      (
+        incomingRevision === existingRevision &&
+        incomingUpdatedAt >= existingUpdatedAt
+      );
+    if (isNewer) store.put(session);
+  }, { once: true });
+}
+
 export async function openTrainingDatabase(
   indexedDbImpl = globalThis.indexedDB
 ) {
@@ -111,8 +130,19 @@ export class IndexedDbTrainingRepository {
 
   async putSession(session) {
     const transaction = this.database.transaction("sessions", "readwrite");
-    transaction.objectStore("sessions").put(session);
+    putSessionIfNewer(transaction.objectStore("sessions"), session);
     await transactionDone(transaction);
+  }
+
+  async getSessionsByStatus(status) {
+    const transaction = this.database.transaction("sessions", "readonly");
+    const request = transaction
+      .objectStore("sessions")
+      .index("byStatus")
+      .getAll(status);
+    const result = await requestResult(request);
+    await transactionDone(transaction);
+    return result;
   }
 
   async commitAttempt({ attempt, session, revision }) {
@@ -121,7 +151,9 @@ export class IndexedDbTrainingRepository {
       "readwrite"
     );
     transaction.objectStore("attempts").put(attempt);
-    if (session) transaction.objectStore("sessions").put(session);
+    if (session) {
+      putSessionIfNewer(transaction.objectStore("sessions"), session);
+    }
     transaction.objectStore("meta").put({ key: "revision", value: revision });
     await transactionDone(transaction);
   }

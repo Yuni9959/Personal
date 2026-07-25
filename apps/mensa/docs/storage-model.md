@@ -34,6 +34,8 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 
   selectedOptionId,
   presentedOptionIds,
+  optionSeed,
+  shuffleVersion,
 
   correct,
   firstPass,
@@ -57,6 +59,29 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 `elapsedMs`는 현재 페이지에서 `performance.now()`의 차이로 측정하고,
 `presentedAt`과 `submittedAt`은 재실행 후에도 비교할 수 있도록 `Date.now()` 값을
 저장합니다.
+
+## 선택지 순서와 세션 복원
+
+- 새 세션마다 문제별 `optionSeed`와 `shuffleVersion`을 생성합니다.
+- 실제 표시한 ID 배열인 `presentedOptionIds`도 함께 저장합니다.
+- 복원할 때는 실제 ID 배열을 우선하고, 배열이 없는 구버전 자료에서만 seed로
+  다시 계산합니다.
+- 셔플 결과가 우연히 원본 순서와 같으면 결정적으로 한 칸 회전해 실제 위치가
+  바뀌도록 합니다.
+- 세션에는 각 문제의 `contentVersion`과 전체 `bankVersion`을 저장합니다.
+- 채점 의미가 바뀌었는지 이중 확인할 수 있도록 문제별
+  `gradingFingerprint`도 저장합니다.
+- `bankVersion`만 바뀌고 모든 문제의 ID·`contentVersion`·보기 집합이 같다면
+  그대로 복원합니다.
+- 문제·정답·보기 구성이 달라졌다면 세션을 `invalidated`로 보관하고 새 내용으로
+  조용히 교체하지 않습니다.
+- 페이지 전환 중 늦게 끝난 저장이 새 상태를 덮지 않도록 세션별
+  `sessionRevision`을 비교하고 더 최신 상태만 원자적으로 저장합니다.
+
+진행 중 문제의 시계는 정밀한 현재 페이지 구간과 누적 시간을 나눠 저장합니다.
+페이지가 숨겨지면 일시정지 상태를 저장하고, 저장 전에 브라우저가 종료된
+경우에는 마지막 `runningSince` 이후 wall-clock 구간을 반영한 뒤 홈의 복원
+대기 화면에서 다시 멈춥니다.
 
 ## 일일 목표와 연속일
 

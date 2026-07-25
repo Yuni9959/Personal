@@ -250,6 +250,21 @@ async function readBrowserStore(client, storeName) {
   })`);
 }
 
+async function waitForBrowserStore(
+  client,
+  storeName,
+  predicate,
+  timeoutMs = 5000
+) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const records = await readBrowserStore(client, storeName);
+    if (predicate(records)) return records;
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  throw new Error(`${storeName} 저장소가 기대 상태가 되지 않았습니다.`);
+}
+
 async function run() {
   const browserPath = findBrowser();
   if (!browserPath) {
@@ -386,6 +401,80 @@ async function run() {
     assert.equal(await evaluate(client, "document.querySelector('#progressText').textContent"), "1 / 10");
     assert.ok(await evaluate(client, "document.querySelectorAll('.option-button').length >= 6"));
 
+    const initialPresentation = await evaluate(client, `(async () => {
+      const questionId = document.querySelector("#options").dataset.questionId;
+      const bank = await fetch("./data/question-bank.json").then(response => response.json());
+      const question = bank.questions.find(item => item.id === questionId);
+      return {
+        questionId,
+        originalOptionIds: question.options.map(option => option.id),
+        presentedOptionIds: [...document.querySelectorAll(".option-button")]
+          .map(button => button.dataset.optionId)
+      };
+    })()`);
+    assert.notDeepEqual(
+      initialPresentation.presentedOptionIds,
+      initialPresentation.originalOptionIds
+    );
+
+    const activeBeforeReload = await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.schemaVersion === 2 &&
+        record.timer?.state === "running"
+      )
+    );
+    const savedBeforeReload = activeBeforeReload.find(
+      record => record.status === "active"
+    );
+    assert.deepEqual(
+      savedBeforeReload.items[0].presentedOptionIds,
+      initialPresentation.presentedOptionIds
+    );
+    assert.equal(savedBeforeReload.items[0].shuffleVersion, 1);
+    assert.equal(typeof savedBeforeReload.items[0].optionSeed, "number");
+
+    await navigate(client, `${baseUrl}/apps/mensa/?restore-smoke=1`);
+    await waitForCondition(
+      client,
+      "!document.querySelector('#resumeNotice').hidden"
+    );
+    const pausedAfterReload = (await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.sessionId === savedBeforeReload.sessionId &&
+        record.timer?.state === "paused"
+      )
+    )).find(record => record.sessionId === savedBeforeReload.sessionId);
+    assert.ok(
+      pausedAfterReload.timer.elapsedMs >= savedBeforeReload.timer.elapsedMs
+    );
+
+    await evaluate(
+      client,
+      "document.querySelector('#resumeSessionBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#quizView').classList.contains('hidden')"
+    );
+    const restoredPresentation = await evaluate(client, `({
+      questionId: document.querySelector("#options").dataset.questionId,
+      presentedOptionIds: [...document.querySelectorAll(".option-button")]
+        .map(button => button.dataset.optionId)
+    })`);
+    assert.equal(
+      restoredPresentation.questionId,
+      initialPresentation.questionId
+    );
+    assert.deepEqual(
+      restoredPresentation.presentedOptionIds,
+      initialPresentation.presentedOptionIds
+    );
+
     const wrongSelection = await evaluate(client, `(async () => {
       const questionId = document.querySelector("#options").dataset.questionId;
       const bank = await fetch("./data/question-bank.json").then(response => response.json());
@@ -417,8 +506,35 @@ async function run() {
     assert.equal(attempts[0].retry, false);
     assert.equal(attempts[0].eligibleForDailyGoal, true);
     assert.equal(attempts[0].eligibleForAbilityStats, true);
-    assert.equal(attempts[0].presentedOptionIds.length >= 6, true);
+    assert.deepEqual(
+      attempts[0].presentedOptionIds,
+      initialPresentation.presentedOptionIds
+    );
+    assert.equal(attempts[0].shuffleVersion, 1);
+    assert.equal(typeof attempts[0].optionSeed, "number");
     assert.equal(attempts[0].elapsedMs >= 0, true);
+
+    await navigate(client, `${baseUrl}/apps/mensa/?feedback-restore=1`);
+    await waitForCondition(
+      client,
+      "!document.querySelector('#resumeNotice').hidden"
+    );
+    await evaluate(
+      client,
+      "document.querySelector('#resumeSessionBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#feedback').classList.contains('hidden')"
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.querySelector('.option-button.selected')?.dataset.optionId"
+      ),
+      wrongSelection.selectedOptionId
+    );
+    assert.equal((await readBrowserStore(client, "attempts")).length, 1);
 
     const currentSummary = await evaluate(
       client,

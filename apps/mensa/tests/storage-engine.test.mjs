@@ -383,6 +383,27 @@ test("데이터 내보내기는 네 저장소와 요약·버전 정보를 함께
   assert.ok(exported.data.meta.some(record => record.key === "legacyBackup"));
 });
 
+test("늦게 도착한 이전 세션 저장은 더 최신 revision을 덮어쓰지 않는다", async () => {
+  const repository = new MemoryTrainingRepository();
+  const latest = makeSession({
+    sessionRevision: 3,
+    status: "active",
+    updatedAt: 3000
+  });
+  const stale = makeSession({
+    sessionRevision: 2,
+    status: "abandoned",
+    updatedAt: 4000
+  });
+
+  await repository.putSession(latest);
+  await repository.putSession(stale);
+
+  const [saved] = await repository.getAll("sessions");
+  assert.equal(saved.sessionRevision, 3);
+  assert.equal(saved.status, "active");
+});
+
 test("기록 초기화 후에는 남아 있던 v1 통계를 다시 가져오지 않는다", async () => {
   const localStorage = new MemoryLocalStorage({
     [LEGACY_STATS_KEY]: JSON.stringify({

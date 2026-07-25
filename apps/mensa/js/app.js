@@ -9,6 +9,16 @@ import {
   createTrainingStore,
   downloadTrainingExport
 } from "./training-store.js";
+import {
+  completeQuestionClock,
+  createQuestionClock,
+  createSessionSnapshot,
+  invalidateSessionSnapshot,
+  pauseQuestionClock,
+  restoreSessionSnapshot,
+  resumeQuestionClock,
+  serializeSession
+} from "./session-engine.js";
 
 const bootStatus = document.querySelector("#bootStatus");
 const appRoot = document.querySelector("#app");
@@ -19,9 +29,10 @@ async function bootstrap() {
     const trainingStore = await createTrainingStore({
       bankVersion: data.bankVersion
     });
+    const activeSessions = await trainingStore.getSessionsByStatus("active");
     bootStatus.hidden = true;
     appRoot.hidden = false;
-    initializeApp(data, trainingStore);
+    initializeApp(data, trainingStore, activeSessions);
   } catch (error) {
     console.error(error);
     bootStatus.classList.add("error");
@@ -35,9 +46,7 @@ async function bootstrap() {
   }
 }
 
-function initializeApp(data, trainingStore) {
-  "use strict";
-
+function initializeApp(data, trainingStore, activeSessions = []) {
   const bank = data.questions;
   const types = data.types;
 
@@ -62,6 +71,12 @@ function initializeApp(data, trainingStore) {
     migrationNotice: $("#migrationNotice"),
     dismissMigrationNoticeBtn: $("#dismissMigrationNoticeBtn"),
     storageNotice: $("#storageNotice"),
+    resumeNotice: $("#resumeNotice"),
+    resumeTitle: $("#resumeTitle"),
+    resumeSummary: $("#resumeSummary"),
+    resumeSessionBtn: $("#resumeSessionBtn"),
+    discardSessionBtn: $("#discardSessionBtn"),
+    sessionNotice: $("#sessionNotice"),
     exportStatsBtn: $("#exportStatsBtn"),
     resetStatsBtn: $("#resetStatsBtn"),
     quitBtn: $("#quitBtn"),
@@ -92,11 +107,22 @@ function initializeApp(data, trainingStore) {
 
   let stats = trainingStore.summary;
   let session = null;
+  let restorableSession = null;
+  let sessionNoticeMessage = "";
   let timerId = null;
   let remaining = 0;
   let overtime = false;
-  let questionPresentedAt = null;
-  let questionPresentedAtPerformance = null;
+  let questionSegmentBaseElapsedMs = 0;
+  let questionSegmentStartedPerformance = null;
+
+  const modeLabels = {
+    daily: "오늘의 10문제",
+    mixed25: "전 유형 25문제",
+    wrong: "오답 다시 풀기",
+    speed: "속도 훈련",
+    type: "유형별 집중훈련",
+    retry: "이번 오답 재도전"
+  };
 
   function showView(name) {
     Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", key !== name));
@@ -126,6 +152,76 @@ function initializeApp(data, trainingStore) {
     return attempts ? Math.round(correct / attempts * 100) : null;
   }
 
+  function compatibilityMessage(reason) {
+    const messages = {
+      "session-schema": "이전 형식의 진행 중 세션은 안전하게 복원할 수 없어 보관만 했습니다.",
+      "session-status": "이미 종료된 세션은 이어서 풀 수 없습니다.",
+      "session-items": "저장된 문제 목록이 없어 진행 중 세션을 복원하지 못했습니다.",
+      "question-missing": "문제은행에서 세션의 문제를 찾을 수 없어 진행 기록을 보관하고 새 세션을 준비했습니다.",
+      "content-version": "문제 내용이나 정답이 업데이트되어 기존 세션을 안전하게 복원할 수 없습니다.",
+      "grading-fingerprint": "정답 의미가 변경된 문제가 있어 기존 세션을 안전하게 복원할 수 없습니다.",
+      "option-set": "문제 보기가 변경되어 기존 표시 순서를 안전하게 복원할 수 없습니다.",
+      "shuffle-version": "지원하지 않는 보기 셔플 형식이라 기존 세션을 복원할 수 없습니다.",
+      "current-index": "저장된 진행 위치가 올바르지 않아 기존 세션을 복원할 수 없습니다."
+    };
+    return messages[reason] ||
+      "진행 중 세션을 안전하게 복원할 수 없어 기록만 보관했습니다.";
+  }
+
+  function prepareRestorableSession() {
+    if (!activeSessions.length) return;
+
+    const [latest, ...older] = activeSessions;
+    const prepared = restoreSessionSnapshot({
+      snapshot: latest,
+      questions: bank,
+      currentBankVersion: data.bankVersion,
+      now: Date.now()
+    });
+
+    for (const oldSession of older) {
+      void trainingStore.saveSession(
+        invalidateSessionSnapshot(oldSession, "superseded-active-session")
+      );
+    }
+
+    if (!prepared.ok) {
+      sessionNoticeMessage = compatibilityMessage(
+        prepared.compatibility.reason
+      );
+      void trainingStore.saveSession(
+        invalidateSessionSnapshot(
+          latest,
+          prepared.compatibility.reason
+        )
+      );
+      return;
+    }
+
+    restorableSession = prepared.session;
+    restorableSession.sessionRevision += 1;
+    restorableSession.updatedAt = Date.now();
+    void trainingStore
+      .saveSession(serializeSession(restorableSession))
+      .then(renderStorageNotices);
+  }
+
+  function renderResumeNotice() {
+    els.resumeNotice.hidden = !restorableSession;
+    if (restorableSession) {
+      const label = modeLabels[restorableSession.mode] ||
+        restorableSession.mode;
+      const answered = restorableSession.answers.length;
+      els.resumeTitle.textContent = `${label}을 이어서 풀 수 있습니다.`;
+      els.resumeSummary.textContent =
+        `${restorableSession.queue.length}문제 중 ${answered}문제를 제출했습니다. ` +
+        `보기 순서와 풀이시간도 그대로 복원됩니다.`;
+    }
+
+    els.sessionNotice.hidden = !sessionNoticeMessage;
+    els.sessionNotice.textContent = sessionNoticeMessage;
+  }
+
   function renderHome() {
     const accuracy = stats.attempts ? Math.round(stats.correct / stats.attempts * 100) : null;
     els.streakBadge.textContent = `🔥 목표 ${stats.completionStreak || 0}일`;
@@ -133,6 +229,7 @@ function initializeApp(data, trainingStore) {
     els.todaySolved.textContent = `${stats.today.goalProgress}/${stats.today.goalTarget}`;
     els.wrongCountLabel.textContent = `저장된 오답 ${allWrongQuestions().length}개`;
     renderStorageNotices();
+    renderResumeNotice();
     renderTypeGrid();
     renderStatsPanel();
   }
@@ -234,29 +331,45 @@ function initializeApp(data, trainingStore) {
   }
 
   function sessionRecord() {
-    return {
-      sessionId: session.sessionId,
-      bankVersion: data.bankVersion,
-      mode: session.mode,
-      typeId: session.typeId,
-      status: session.status,
-      queueQuestionIds: session.queue.map(question => question.id),
-      currentIndex: session.index,
-      score: session.score,
-      answerCount: session.answers.length,
-      startedAt: session.startedAt,
-      updatedAt: session.updatedAt,
-      completedAt: session.completedAt
-    };
+    return serializeSession(session);
+  }
+
+  function touchSession() {
+    session.sessionRevision = Number(session.sessionRevision || 0) + 1;
+    session.updatedAt = Date.now();
+  }
+
+  async function persistSession() {
+    if (!session) return;
+    touchSession();
+    await trainingStore.saveSession(sessionRecord());
+    renderStorageNotices();
   }
 
   async function saveSessionStatus(status) {
     if (!session) return;
+    if (session.phase === "question") pauseCurrentQuestion();
     session.status = status;
-    session.updatedAt = Date.now();
+    touchSession();
     if (status === "completed") session.completedAt = session.updatedAt;
     await trainingStore.saveSession(sessionRecord());
     renderStorageNotices();
+  }
+
+  function abandonRestorableSession(reason = "replaced-by-new-session") {
+    if (!restorableSession) return;
+    const abandoned = {
+      ...restorableSession,
+      status: "abandoned",
+      sessionRevision:
+        Number(restorableSession.sessionRevision || 0) + 1,
+      updatedAt: Date.now(),
+      invalidationReason: reason
+    };
+    restorableSession = null;
+    void trainingStore
+      .saveSession(serializeSession(abandoned))
+      .then(renderStorageNotices);
   }
 
   function startSession(mode, typeId = null, suppliedQueue = null) {
@@ -276,22 +389,36 @@ function initializeApp(data, trainingStore) {
       queue = shuffled(bank.filter(q => q.typeId === typeId), Date.now());
     } else queue = shuffled(bank, Date.now()).slice(0, 10);
 
-    session = {
+    const previousPresentedOptionIdsByQuestion = mode === "retry" && session
+      ? new Map(
+          session.items.map(item => [
+            item.questionId,
+            item.presentedOptionIds
+          ])
+        )
+      : null;
+    abandonRestorableSession();
+    const snapshot = createSessionSnapshot({
       sessionId: createRecordId("session"),
+      bankVersion: data.bankVersion,
       mode,
       typeId,
-      queue,
-      index: 0,
-      score: 0,
-      answers: [],
-      locked: false,
-      speed: mode === "speed",
-      status: "active",
-      startedAt: Date.now(),
-      updatedAt: Date.now(),
-      completedAt: null
-    };
-    void trainingStore.saveSession(sessionRecord()).then(renderStorageNotices);
+      questions: queue,
+      previousPresentedOptionIdsByQuestion,
+      now: Date.now()
+    });
+    const prepared = restoreSessionSnapshot({
+      snapshot,
+      questions: bank,
+      currentBankVersion: data.bankVersion,
+      now: Date.now()
+    });
+    if (!prepared.ok) {
+      throw new Error("새 세션의 보기 순서를 구성하지 못했습니다.");
+    }
+
+    session = prepared.session;
+    session.restored = false;
     showView("quiz");
     renderQuestion();
   }
@@ -301,33 +428,86 @@ function initializeApp(data, trainingStore) {
     timerId = null;
   }
 
-  function startTimer(seconds) {
+  function currentQuestionElapsedMs() {
+    if (!session?.timer) return 0;
+    if (session.timer.state !== "running" ||
+        questionSegmentStartedPerformance == null) {
+      return Math.max(0, Math.round(session.timer.elapsedMs || 0));
+    }
+    return Math.max(
+      0,
+      Math.round(
+        questionSegmentBaseElapsedMs +
+        performance.now() -
+        questionSegmentStartedPerformance
+      )
+    );
+  }
+
+  function startTimer() {
     clearTimer();
-    remaining = seconds;
-    overtime = false;
-    els.timer.classList.remove("overtime");
     updateTimer();
-    timerId = setInterval(() => {
-      remaining -= 1;
-      if (remaining <= 0) {
-        remaining = 0;
-        overtime = true;
-        els.timer.classList.add("overtime");
-        clearTimer();
-      }
-      updateTimer();
-    }, 1000);
+    timerId = setInterval(updateTimer, 250);
   }
 
   function updateTimer() {
+    const elapsedMs = currentQuestionElapsedMs();
+    const limitMs = session?.timer?.limitMs || 45000;
+    remaining = Math.max(0, Math.ceil((limitMs - elapsedMs) / 1000));
+    overtime = elapsedMs > limitMs;
+    els.timer.classList.toggle("overtime", overtime);
     const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
     const ss = String(remaining % 60).padStart(2, "0");
     els.timer.textContent = `${mm}:${ss}`;
   }
 
+  function beginQuestionClock(q) {
+    const now = Date.now();
+    const matchesCurrentQuestion =
+      session.timer?.questionIndex === session.index &&
+      session.timer?.questionId === q.id &&
+      session.timer?.state !== "completed";
+
+    session.timer = matchesCurrentQuestion
+      ? resumeQuestionClock(session.timer, now)
+      : createQuestionClock({
+          questionIndex: session.index,
+          questionId: q.id,
+          limitMs: (q.timeLimitSec || 45) * 1000,
+          now
+        });
+    questionSegmentBaseElapsedMs = session.timer.elapsedMs;
+    questionSegmentStartedPerformance = performance.now();
+    startTimer();
+  }
+
+  function pauseCurrentQuestion({ persist = false } = {}) {
+    if (!session?.timer || session.timer.state !== "running") return;
+    const elapsedMs = currentQuestionElapsedMs();
+    session.timer = pauseQuestionClock(session.timer, {
+      now: Date.now(),
+      elapsedMs
+    });
+    questionSegmentBaseElapsedMs = session.timer.elapsedMs;
+    questionSegmentStartedPerformance = null;
+    clearTimer();
+    updateTimer();
+    if (persist) void persistSession();
+  }
+
+  function resumeCurrentQuestion({ persist = false } = {}) {
+    if (!session?.timer || session.timer.state === "completed") return;
+    session.timer = resumeQuestionClock(session.timer, Date.now());
+    questionSegmentBaseElapsedMs = session.timer.elapsedMs;
+    questionSegmentStartedPerformance = performance.now();
+    startTimer();
+    if (persist) void persistSession();
+  }
+
   function renderQuestion() {
-    session.locked = false;
+    clearTimer();
     const q = session.queue[session.index];
+    session.locked = session.phase === "feedback";
     els.progressText.textContent = `${session.index + 1} / ${session.queue.length}`;
     els.progressBar.style.width = `${session.index / session.queue.length * 100}%`;
     els.sessionScore.textContent = `정답 ${session.score}`;
@@ -356,9 +536,17 @@ function initializeApp(data, trainingStore) {
       els.options.appendChild(button);
     });
 
-    questionPresentedAt = Date.now();
-    questionPresentedAtPerformance = performance.now();
-    startTimer(q.timeLimitSec || 45);
+    if (session.phase === "feedback") {
+      questionSegmentBaseElapsedMs = session.timer?.elapsedMs || 0;
+      questionSegmentStartedPerformance = null;
+      updateTimer();
+      const answer = session.answers.at(-1);
+      if (answer?.id === q.id) renderStoredFeedback(q, answer);
+      return;
+    }
+
+    beginQuestionClock(q);
+    void persistSession();
   }
 
   function escapeHtml(value) {
@@ -377,27 +565,20 @@ function initializeApp(data, trainingStore) {
 
     const q = session.queue[session.index];
     const submittedAt = Date.now();
-    const elapsedMs = Math.max(
-      0,
-      Math.round(performance.now() - questionPresentedAtPerformance)
-    );
-    const wasOvertime =
-      overtime || elapsedMs > (q.timeLimitSec || 45) * 1000;
+    const elapsedMs = currentQuestionElapsedMs();
+    session.timer = completeQuestionClock(session.timer, {
+      now: submittedAt,
+      elapsedMs
+    });
+    questionSegmentBaseElapsedMs = elapsedMs;
+    questionSegmentStartedPerformance = null;
+    const wasOvertime = elapsedMs > (q.timeLimitSec || 45) * 1000;
     clearTimer();
+    updateTimer();
 
     const correctIndex = q.options.findIndex(option => option.id === q.correctOptionId);
     const isCorrect = selectedIndex === correctIndex;
     if (isCorrect) session.score += 1;
-
-    const buttons = $$(".option-button");
-    buttons.forEach((button, index) => {
-      button.disabled = true;
-      if (index === correctIndex) button.classList.add("correct");
-      if (index === selectedIndex) {
-        button.classList.add("selected");
-        if (!isCorrect) button.classList.add("wrong");
-      }
-    });
 
     const retry = session.mode === "retry";
     const eligibility = attemptEligibility({
@@ -408,6 +589,7 @@ function initializeApp(data, trainingStore) {
       skipped: false
     });
     const selectedOptionId = q.options[selectedIndex].id;
+    const sessionItem = session.items[session.index];
     const attempt = {
       attemptId: createRecordId("attempt"),
       sessionId: session.sessionId,
@@ -419,6 +601,8 @@ function initializeApp(data, trainingStore) {
 
       selectedOptionId,
       presentedOptionIds: q.options.map(option => option.id),
+      optionSeed: sessionItem.optionSeed,
+      shuffleVersion: sessionItem.shuffleVersion,
 
       correct: isCorrect,
       firstPass: eligibility.firstPass,
@@ -429,7 +613,7 @@ function initializeApp(data, trainingStore) {
       skipped: false,
 
       inferredErrorTag: null,
-      presentedAt: questionPresentedAt || submittedAt,
+      presentedAt: session.timer?.presentedAt || submittedAt,
       submittedAt,
 
       eligibleForDailyGoal: eligibility.eligibleForDailyGoal,
@@ -445,10 +629,12 @@ function initializeApp(data, trainingStore) {
       overtime: wasOvertime,
       selectedIndex,
       selectedOptionId,
+      presentedOptionIds: q.options.map(option => option.id),
       elapsedMs,
       attemptId: attempt.attemptId
     });
-    session.updatedAt = submittedAt;
+    session.phase = "feedback";
+    touchSession();
 
     try {
       const persistence = await trainingStore.recordAttempt(
@@ -471,11 +657,43 @@ function initializeApp(data, trainingStore) {
       return;
     }
 
+    renderStoredFeedback(q, session.answers.at(-1));
+  }
+
+  function renderStoredFeedback(q, answer) {
+    const correctIndex = q.options.findIndex(
+      option => option.id === q.correctOptionId
+    );
+    const selectedIndex = q.options.findIndex(
+      option => option.id === answer.selectedOptionId
+    );
+    const buttons = $$(".option-button");
+    buttons.forEach((button, index) => {
+      button.disabled = true;
+      if (index === correctIndex) button.classList.add("correct");
+      if (index === selectedIndex) {
+        button.classList.add("selected");
+        if (!answer.correct) button.classList.add("wrong");
+      }
+    });
+
+    const limitMs = (q.timeLimitSec || 45) * 1000;
+    remaining = Math.max(
+      0,
+      Math.ceil((limitMs - answer.elapsedMs) / 1000)
+    );
+    overtime = answer.overtime;
     els.feedback.classList.remove("hidden");
-    els.feedback.classList.add(isCorrect ? "correct-feedback" : "wrong-feedback");
-    els.feedbackIcon.textContent = isCorrect ? "✅" : "🔍";
-    els.feedbackTitle.textContent = isCorrect ? "정답입니다." : "여기서 한 번 더 잡아냅시다.";
-    els.feedbackSubtitle.textContent = wasOvertime ? "제한시간을 넘겼습니다." : `남은 시간 ${remaining}초`;
+    els.feedback.classList.add(
+      answer.correct ? "correct-feedback" : "wrong-feedback"
+    );
+    els.feedbackIcon.textContent = answer.correct ? "✅" : "🔍";
+    els.feedbackTitle.textContent = answer.correct
+      ? "정답입니다."
+      : "여기서 한 번 더 잡아냅시다.";
+    els.feedbackSubtitle.textContent = answer.overtime
+      ? "제한시간을 넘겼습니다."
+      : `남은 시간 ${remaining}초`;
     els.explanation.textContent = q.explanation;
     els.trapBox.textContent = q.trap ? `실전 함정: ${q.trap}` : "정답을 선택한 뒤 개수·위치·방향을 마지막으로 확인하세요.";
     els.nextBtn.textContent = session.index === session.queue.length - 1 ? "결과 보기 →" : "다음 문제 →";
@@ -489,6 +707,11 @@ function initializeApp(data, trainingStore) {
       return;
     }
     session.index += 1;
+    session.currentIndex = session.index;
+    session.phase = "question";
+    session.timer = null;
+    session.locked = false;
+    session.updatedAt = Date.now();
     renderQuestion();
   }
 
@@ -525,6 +748,21 @@ function initializeApp(data, trainingStore) {
     showView("home");
   }
 
+  function resumeSavedSession() {
+    if (!restorableSession) return;
+    session = restorableSession;
+    restorableSession = null;
+    session.status = "active";
+    session.updatedAt = Date.now();
+    showView("quiz");
+
+    if (session.speed && session.phase === "feedback") {
+      nextQuestion();
+      return;
+    }
+    renderQuestion();
+  }
+
   $$(".mode-card").forEach(button => {
     button.addEventListener("click", () => startSession(button.dataset.mode));
   });
@@ -538,8 +776,13 @@ function initializeApp(data, trainingStore) {
   els.retryWrongBtn.addEventListener("click", () => {
     if (!session) return;
     const wrongIds = new Set(session.answers.filter(x => !x.correct).map(x => x.id));
-    const retry = session.queue.filter(q => wrongIds.has(q.id));
+    const retry = bank.filter(q => wrongIds.has(q.id));
     if (retry.length) startSession("retry", null, shuffled(retry, Date.now()));
+  });
+  els.resumeSessionBtn.addEventListener("click", resumeSavedSession);
+  els.discardSessionBtn.addEventListener("click", () => {
+    abandonRestorableSession("discarded-by-user");
+    renderHome();
   });
   els.dismissMigrationNoticeBtn.addEventListener("click", async () => {
     stats = await trainingStore.dismissMigrationNotice();
@@ -583,6 +826,25 @@ function initializeApp(data, trainingStore) {
     }
   });
 
+  document.addEventListener("visibilitychange", () => {
+    if (!session ||
+        views.quiz.classList.contains("hidden") ||
+        session.phase !== "question") {
+      return;
+    }
+    if (document.hidden) {
+      pauseCurrentQuestion({ persist: true });
+    } else {
+      resumeCurrentQuestion({ persist: true });
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    if (session?.phase === "question") {
+      pauseCurrentQuestion({ persist: true });
+    }
+  });
+
+  prepareRestorableSession();
   renderCategoryOptions();
   renderHome();
 }

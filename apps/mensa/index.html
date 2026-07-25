@@ -59,6 +59,19 @@
 
         <aside id="storageNotice" class="data-notice warning" role="alert" hidden></aside>
 
+        <aside id="resumeNotice" class="data-notice resume-notice" hidden>
+          <div>
+            <strong id="resumeTitle">진행 중인 훈련이 있습니다.</strong>
+            <p id="resumeSummary"></p>
+          </div>
+          <div class="notice-actions">
+            <button id="resumeSessionBtn" type="button">이어하기</button>
+            <button id="discardSessionBtn" class="notice-secondary" type="button">새로 시작</button>
+          </div>
+        </aside>
+
+        <aside id="sessionNotice" class="data-notice warning" role="status" hidden></aside>
+
         <div class="mode-grid">
           <button class="mode-card primary" data-mode="daily" type="button">
             <span class="mode-icon">⚡</span>

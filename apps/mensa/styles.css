@@ -230,6 +230,21 @@ main { width: min(1120px, 100%); margin: 0 auto; padding: 30px 18px 80px; }
   color: #8b2632;
   background: #fff0f2;
 }
+.data-notice .notice-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+.data-notice .notice-secondary {
+  border: 1px solid rgba(108, 76, 255, .28);
+  color: var(--accent);
+  background: #fff;
+}
+.resume-notice {
+  border-color: rgba(23, 135, 95, .22);
+  background: #effbf6;
+}
+.resume-notice strong { color: #12694b; }
 
 .mode-grid {
   display: grid;
@@ -442,7 +457,9 @@ select {
   .hero { grid-template-columns: 1fr; padding: 27px 22px; }
   .hero-orb { display: none; }
   .data-notice { align-items: stretch; flex-direction: column; }
-  .data-notice button { align-self: flex-end; }
+  .data-notice .notice-actions { align-self: stretch; }
+  .data-notice .notice-actions button { flex: 1; }
+  .data-notice > button { align-self: flex-end; }
   .mode-grid { gap: 9px; }
   .mode-card { min-height: 128px; padding: 15px; }
   .section-head { align-items: stretch; flex-direction: column; }

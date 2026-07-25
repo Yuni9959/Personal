@@ -33,6 +33,16 @@ function uniqueRecoveryEntries(entries) {
   ).values()];
 }
 
+function sessionIsNewer(incoming, existing) {
+  if (!existing) return true;
+  const incomingRevision = Number(incoming.sessionRevision || 0);
+  const existingRevision = Number(existing.sessionRevision || 0);
+  if (incomingRevision !== existingRevision) {
+    return incomingRevision > existingRevision;
+  }
+  return Number(incoming.updatedAt || 0) >= Number(existing.updatedAt || 0);
+}
+
 export class MemoryTrainingRepository {
   constructor() {
     this.stores = Object.fromEntries(
@@ -59,12 +69,21 @@ export class MemoryTrainingRepository {
   }
 
   async putSession(session) {
-    this.stores.sessions.set(session.sessionId, clone(session));
+    const existing = this.stores.sessions.get(session.sessionId);
+    if (sessionIsNewer(session, existing)) {
+      this.stores.sessions.set(session.sessionId, clone(session));
+    }
+  }
+
+  async getSessionsByStatus(status) {
+    return [...this.stores.sessions.values()]
+      .filter(session => session.status === status)
+      .map(clone);
   }
 
   async commitAttempt({ attempt, session, revision }) {
     this.stores.attempts.set(attempt.attemptId, clone(attempt));
-    if (session) this.stores.sessions.set(session.sessionId, clone(session));
+    if (session) await this.putSession(session);
     this.stores.meta.set("revision", {
       key: "revision",
       value: revision
@@ -392,7 +411,9 @@ export class TrainingStore {
         if (!this.durable) {
           this.queueRecovery({
             kind: "session",
-            entryId: `session:${session.sessionId}:${session.updatedAt}`,
+            entryId:
+              `session:${session.sessionId}:` +
+              `${session.sessionRevision || 0}:${session.updatedAt}`,
             session
           });
         }
@@ -401,12 +422,28 @@ export class TrainingStore {
         this.health.lastError = errorMessage(error);
         this.queueRecovery({
           kind: "session",
-          entryId: `session:${session.sessionId}:${session.updatedAt}`,
+          entryId:
+            `session:${session.sessionId}:` +
+            `${session.sessionRevision || 0}:${session.updatedAt}`,
           session
         });
         return { saved: false, queuedForRecovery: true };
       }
     });
+  }
+
+  async getSessionsByStatus(status) {
+    await this.writeChain;
+    try {
+      const sessions = await this.repository.getSessionsByStatus(status);
+      return sessions.sort(
+        (left, right) =>
+          Number(right.updatedAt || 0) - Number(left.updatedAt || 0)
+      );
+    } catch (error) {
+      this.health.lastError = errorMessage(error);
+      return [];
+    }
   }
 
   async recordAttempt(attempt, session) {

@@ -29,6 +29,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         │   ├── bank-loader.js
         │   ├── indexeddb-repository.js
         │   ├── random.js
+        │   ├── session-engine.js
         │   ├── stats-model.js
         │   └── training-store.js
         ├── data/
@@ -88,6 +89,11 @@ MKAT 98의 상세 응시·세션 기록은 IndexedDB의 `mkat98-training-v2`에 
 기존 `mkat98-stats-v1` 기록은 최초 실행 시 원문 그대로 IndexedDB에 백업하고,
 과거 연습일만 복원합니다. 과거 목표 완주일은 추정하지 않습니다.
 MKAT의 **데이터 내보내기** 버튼으로 상세 기록과 복구 저널을 JSON으로 보관할 수 있습니다.
+
+각 세션은 문제별 실제 보기 순서와 셔플 버전을 함께 저장합니다. 앱을 닫거나
+새로고침해도 호환되는 문제은행이면 같은 문제·보기 순서·풀이시간으로 이어서
+풀 수 있습니다. 문제 내용이나 정답 버전이 달라졌다면 기존 답안은 보관하되
+세션을 조용히 새 문제로 바꾸지 않습니다.
 
 저장소와 이전 규칙의 상세 계약은
 [`apps/mensa/docs/storage-model.md`](./apps/mensa/docs/storage-model.md)에 정리되어 있습니다.
