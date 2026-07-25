@@ -62,13 +62,16 @@ test("MKAT는 JSON과 ES 모듈만 사용하고 v1 실행 파일은 제거됐다
   assert.equal(fs.existsSync(path.join(mensaRoot, "app.js")), false);
 });
 
-test("Service Worker 핵심 자산과 업데이트 정책이 Foundation 규칙을 따른다", () => {
+test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔진을 포함한다", () => {
   const source = read("sw.js");
   const assetBlock = source.match(/const CORE_ASSETS = \[(.*?)\];/s)?.[1] || "";
   const assets = [...assetBlock.matchAll(/"([^"]+)"/g)].map(match => match[1]);
 
   assert.ok(assets.includes("./apps/mensa/data/question-bank.json"));
   assert.ok(assets.includes("./apps/mensa/js/app.js"));
+  assert.ok(assets.includes("./apps/mensa/js/indexeddb-repository.js"));
+  assert.ok(assets.includes("./apps/mensa/js/stats-model.js"));
+  assert.ok(assets.includes("./apps/mensa/js/training-store.js"));
   assert.ok(assets.includes("./pwa-update.js"));
   assert.ok(!assets.some(asset => asset.endsWith("question-bank.js")));
 
@@ -85,4 +88,23 @@ test("Service Worker 핵심 자산과 업데이트 정책이 Foundation 규칙�
   assert.match(source, /url\.origin !== scopeUrl\.origin/);
   assert.match(source, /url\.pathname\.startsWith\(scopeUrl\.pathname\)/);
   assert.match(source, /event\.data\?\.type === "SKIP_WAITING"/);
+});
+
+test("런타임은 IndexedDB를 사실 원본으로 쓰고 v2 요약 캐시를 허브에 제공한다", () => {
+  const appSource = read("apps/mensa/js/app.js");
+  const storeSource = read("apps/mensa/js/training-store.js");
+  const modelSource = read("apps/mensa/js/stats-model.js");
+  const hubSource = read("hub.js");
+  const html = read("apps/mensa/index.html");
+
+  assert.match(appSource, /createTrainingStore/);
+  assert.match(appSource, /presentedOptionIds/);
+  assert.match(appSource, /elapsedMs/);
+  assert.doesNotMatch(appSource, /localStorage\.setItem/);
+  assert.match(storeSource, /openTrainingRepository/);
+  assert.match(modelSource, /mkat98-summary-v2/);
+  assert.match(modelSource, /mkat98-recovery-v2/);
+  assert.match(hubSource, /mkat98-summary-v2/);
+  assert.match(html, /id="exportStatsBtn"/);
+  assert.match(html, /id="migrationNotice"/);
 });

@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.1.0-foundation.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.1.0-storage.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -16,7 +16,10 @@ const CORE_ASSETS = [
   "./apps/mensa/styles.css",
   "./apps/mensa/js/app.js",
   "./apps/mensa/js/bank-loader.js",
+  "./apps/mensa/js/indexeddb-repository.js",
   "./apps/mensa/js/random.js",
+  "./apps/mensa/js/stats-model.js",
+  "./apps/mensa/js/training-store.js",
   "./apps/mensa/data/question-bank.json",
   "./apps/mensa/icons/icon-192.png"
 ];

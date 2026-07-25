@@ -232,6 +232,24 @@ async function navigate(client, url) {
   await loaded;
 }
 
+async function readBrowserStore(client, storeName) {
+  return evaluate(client, `new Promise((resolve, reject) => {
+    const openRequest = indexedDB.open("mkat98-training-v2");
+    openRequest.onerror = () => reject(openRequest.error);
+    openRequest.onsuccess = () => {
+      const database = openRequest.result;
+      const transaction = database.transaction(${JSON.stringify(storeName)}, "readonly");
+      const request = transaction.objectStore(${JSON.stringify(storeName)}).getAll();
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        const result = request.result;
+        database.close();
+        resolve(result);
+      };
+    };
+  })`);
+}
+
 async function run() {
   const browserPath = findBrowser();
   if (!browserPath) {
@@ -287,7 +305,31 @@ async function run() {
       "document.querySelectorAll('.app-card').length === 5"
     );
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
-    await evaluate(client, "localStorage.clear(); true");
+    await evaluate(client, `new Promise((resolve, reject) => {
+      const request = indexedDB.deleteDatabase("mkat98-training-v2");
+      request.onsuccess = () => resolve(true);
+      request.onerror = () => reject(request.error);
+      request.onblocked = () => reject(new Error("IndexedDB delete blocked"));
+    })`);
+    const legacyDate = await evaluate(client, `(() => {
+      localStorage.clear();
+      const date = new Date();
+      date.setDate(date.getDate() - 1);
+      const key = [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0")
+      ].join("-");
+      localStorage.setItem("mkat98-stats-v1", JSON.stringify({
+        attempts: 4,
+        correct: 3,
+        solvedByDate: { [key]: 4 },
+        questions: {},
+        streak: 37,
+        lastActiveDate: key
+      }));
+      return key;
+    })()`);
 
     await navigate(client, `${baseUrl}/apps/mensa/`);
     await waitForCondition(
@@ -302,20 +344,111 @@ async function run() {
     assert.ok(resourceNames.some(name => name.endsWith("/data/question-bank.json")));
     assert.ok(!resourceNames.some(name => name.endsWith("/question-bank.js")));
 
+    const migratedSummary = await evaluate(
+      client,
+      "JSON.parse(localStorage.getItem('mkat98-summary-v2'))"
+    );
+    assert.equal(migratedSummary.schemaVersion, 2);
+    assert.equal(migratedSummary.legacy.legacyStreak, 37);
+    assert.deepEqual(migratedSummary.legacy.practiceDays, [legacyDate]);
+    assert.equal(migratedSummary.completionStreak, 0);
+    assert.equal(migratedSummary.today.goalProgress, 0);
+    assert.equal(
+      await evaluate(
+        client,
+        "JSON.parse(localStorage.getItem('mkat98-stats-v1')).attempts"
+      ),
+      4
+    );
+    assert.equal(
+      await evaluate(client, "!document.querySelector('#migrationNotice').hidden"),
+      true
+    );
+    assert.equal(
+      await evaluate(client, "Boolean(document.querySelector('#exportStatsBtn'))"),
+      true
+    );
+    const metaRecords = await readBrowserStore(client, "meta");
+    assert.ok(metaRecords.some(record => record.key === "migrationState"));
+    assert.ok(metaRecords.some(record => record.key === "legacyBackup"));
+    assert.ok(metaRecords.some(record => record.key === "settings"));
+    await evaluate(
+      client,
+      "document.querySelector('#dismissMigrationNoticeBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "document.querySelector('#migrationNotice').hidden"
+    );
+
     await evaluate(client, "document.querySelector('[data-mode=\"daily\"]').click(); true");
     await waitForCondition(client, "!document.querySelector('#quizView').classList.contains('hidden')");
     assert.equal(await evaluate(client, "document.querySelector('#progressText').textContent"), "1 / 10");
     assert.ok(await evaluate(client, "document.querySelectorAll('.option-button').length >= 6"));
 
-    await evaluate(client, "document.querySelector('.option-button').click(); true");
+    const wrongSelection = await evaluate(client, `(async () => {
+      const questionId = document.querySelector("#options").dataset.questionId;
+      const bank = await fetch("./data/question-bank.json").then(response => response.json());
+      const question = bank.questions.find(item => item.id === questionId);
+      const wrongOption = question.options.find(
+        option => option.id !== question.correctOptionId
+      );
+      document.querySelector(
+        \`.option-button[data-option-id="\${wrongOption.id}"]\`
+      ).click();
+      return {
+        questionId,
+        correctOptionId: question.correctOptionId,
+        selectedOptionId: wrongOption.id,
+        bankVersion: bank.bankVersion
+      };
+    })()`);
     await waitForCondition(client, "!document.querySelector('#feedback').classList.contains('hidden')");
-    assert.equal(
-      await evaluate(client, "JSON.parse(localStorage.getItem('mkat98-stats-v1')).attempts"),
-      1
+
+    const attempts = await readBrowserStore(client, "attempts");
+    assert.equal(attempts.length, 1);
+    assert.equal(attempts[0].questionId, wrongSelection.questionId);
+    assert.equal(attempts[0].selectedOptionId, wrongSelection.selectedOptionId);
+    assert.notEqual(attempts[0].selectedOptionId, wrongSelection.correctOptionId);
+    assert.equal(attempts[0].bankVersion, wrongSelection.bankVersion);
+    assert.equal(attempts[0].contentVersion, 1);
+    assert.equal(attempts[0].correct, false);
+    assert.equal(attempts[0].firstPass, true);
+    assert.equal(attempts[0].retry, false);
+    assert.equal(attempts[0].eligibleForDailyGoal, true);
+    assert.equal(attempts[0].eligibleForAbilityStats, true);
+    assert.equal(attempts[0].presentedOptionIds.length >= 6, true);
+    assert.equal(attempts[0].elapsedMs >= 0, true);
+
+    const currentSummary = await evaluate(
+      client,
+      "JSON.parse(localStorage.getItem('mkat98-summary-v2'))"
     );
+    assert.equal(currentSummary.attempts, 5);
+    assert.equal(currentSummary.v2.attempts, 1);
+    assert.equal(currentSummary.today.goalProgress, 1);
+    assert.equal(currentSummary.completionStreak, 0);
+    assert.equal(currentSummary.migration.noticePending, false);
+    assert.equal((await readBrowserStore(client, "sessions")).length, 1);
+
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
     await waitForCondition(client, "!document.querySelector('#homeView').classList.contains('hidden')");
 
+    await navigate(client, `${baseUrl}/`);
+    await waitForCondition(
+      client,
+      "document.querySelectorAll('.app-card').length === 5"
+    );
+    const mkatMetric = await evaluate(client, `(() => {
+      const card = [...document.querySelectorAll(".app-card")]
+        .find(item => item.textContent.includes("MKAT 98"));
+      return card?.querySelector(".app-metric")?.textContent || "";
+    })()`);
+    assert.match(mkatMetric, /오늘 1\/10/);
+    assert.match(mkatMetric, /목표 0일 연속/);
+
+    await navigate(client, `${baseUrl}/apps/mensa/`);
+    await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
     await evaluate(client, "document.querySelector('[data-mode=\"mixed25\"]').click(); true");
     await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 25'");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
@@ -328,19 +461,6 @@ async function run() {
     await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 5'");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
 
-    await evaluate(client, `(() => {
-      const stats = JSON.parse(localStorage.getItem("mkat98-stats-v1"));
-      stats.attempts += 1;
-      stats.questions["T01-01"] = {
-        attempts: 1,
-        correct: 0,
-        wrong: 1,
-        overtime: 0,
-        lastAnswered: Date.now()
-      };
-      localStorage.setItem("mkat98-stats-v1", JSON.stringify(stats));
-      return true;
-    })()`);
     await navigate(client, `${baseUrl}/apps/mensa/`);
     await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
     await evaluate(client, "document.querySelector('[data-mode=\"wrong\"]').click(); true");
@@ -375,7 +495,8 @@ async function run() {
     assert.deepEqual(browserErrors, []);
     console.log(
       "브라우저 스모크 성공: 허브 5카드, 유형 25개, " +
-      "일일·혼합·속도·유형·오답 모드, v1 통계, 오프라인 로드"
+      "일일·혼합·속도·유형·오답 모드, v1 안전 이전, " +
+      "IndexedDB 응시 이벤트, v2 요약 캐시, 오프라인 로드"
     );
   } finally {
     try {

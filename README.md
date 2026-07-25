@@ -27,7 +27,10 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         ├── js/
         │   ├── app.js
         │   ├── bank-loader.js
-        │   └── random.js
+        │   ├── indexeddb-repository.js
+        │   ├── random.js
+        │   ├── stats-model.js
+        │   └── training-store.js
         ├── data/
         │   ├── question-bank.json
         │   └── answer-key.csv
@@ -74,13 +77,20 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 
 ## MKAT 98 통계 연동
 
-Personal Tap 메인 화면은 MKAT 98이 저장하는 `localStorage`의 `mkat98-stats-v1` 데이터를 읽어 다음 정보를 카드에 표시합니다.
+MKAT 98의 상세 응시·세션 기록은 IndexedDB의 `mkat98-training-v2`에 저장됩니다.
+이 데이터베이스가 사실 원본이며, Personal Tap 허브가 빠르게 읽는
+`mkat98-summary-v2` localStorage 값은 언제든 다시 만들 수 있는 요약 캐시입니다.
 
-- 오늘 푼 문제 수
+- 오늘의 고유 문제 목표 진행도
 - 누적 정확도
-- 연속 학습일
+- v2부터 정확히 집계한 목표 완주 연속일
 
-두 화면이 같은 GitHub Pages 도메인에서 실행되므로 별도의 서버나 데이터베이스가 필요하지 않습니다.
+기존 `mkat98-stats-v1` 기록은 최초 실행 시 원문 그대로 IndexedDB에 백업하고,
+과거 연습일만 복원합니다. 과거 목표 완주일은 추정하지 않습니다.
+MKAT의 **데이터 내보내기** 버튼으로 상세 기록과 복구 저널을 JSON으로 보관할 수 있습니다.
+
+저장소와 이전 규칙의 상세 계약은
+[`apps/mensa/docs/storage-model.md`](./apps/mensa/docs/storage-model.md)에 정리되어 있습니다.
 
 ## 로컬 실행
 
@@ -127,7 +137,8 @@ Foundation 검증은 필수 데이터 오류를 실패로 처리하고, 아직 �
 선택지별 피드백·구조화 해설·다차원 난이도·힌트는 품질 경고로만 표시합니다.
 
 `npm run test:browser`는 Chromium 기반 헤드리스 브라우저에서 기존 훈련 모드,
-v1 통계 저장, JSON 로드와 PWA 오프라인 실행을 함께 확인합니다.
+v1 안전 이전, IndexedDB 응시 이벤트, v2 요약 캐시, JSON 로드와 PWA
+오프라인 실행을 함께 확인합니다.
 
 ## PWA 업데이트
 

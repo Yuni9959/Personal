@@ -3,7 +3,8 @@
 
   const apps = Array.isArray(window.PERSONAL_TAP_APPS) ? window.PERSONAL_TAP_APPS : [];
   const RECENT_KEY = "personal-tap-recent-v1";
-  const MKAT_KEY = "mkat98-stats-v1";
+  const MKAT_SUMMARY_KEY = "mkat98-summary-v2";
+  const MKAT_LEGACY_KEY = "mkat98-stats-v1";
 
   const $ = selector => document.querySelector(selector);
   const els = {
@@ -42,24 +43,90 @@
     els.todayLabel.textContent = formatted;
   }
 
+  function currentStreak(dateKeys) {
+    const dates = [...new Set((dateKeys || []).filter(
+      value => /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ))].sort();
+    if (!dates.length) return 0;
+
+    const today = localDateKey();
+    const last = dates.at(-1);
+    const gap = Math.round(
+      (new Date(`${today}T12:00:00`) - new Date(`${last}T12:00:00`)) /
+      86400000
+    );
+    if (gap < 0 || gap > 1) return 0;
+
+    const available = new Set(dates);
+    let cursor = last;
+    let streak = 0;
+    while (available.has(cursor)) {
+      streak += 1;
+      const previous = new Date(`${cursor}T12:00:00`);
+      previous.setDate(previous.getDate() - 1);
+      cursor = localDateKey(previous);
+    }
+    return streak;
+  }
+
   function readMkatStats() {
     try {
-      const stats = JSON.parse(localStorage.getItem(MKAT_KEY) || "{}");
-      const attempts = Number(stats.attempts || 0);
-      const correct = Number(stats.correct || 0);
-      const streak = Number(stats.streak || 0);
-      const solvedToday = Number(stats.solvedByDate?.[localDateKey()] || 0);
+      const summary = JSON.parse(
+        localStorage.getItem(MKAT_SUMMARY_KEY) || "null"
+      );
+      if (summary?.schemaVersion === 2) {
+        const attempts = Number(summary.attempts || 0);
+        const correct = Number(summary.correct || 0);
+        const goalTarget = Number(summary.goals?.dailyTarget || 10);
+        const goalProgress = summary.today?.localDate === localDateKey()
+          ? Number(summary.today.goalProgress || 0)
+          : 0;
+        const streak = currentStreak(summary.goals?.completedDates);
+        const accuracy = attempts ? Math.round((correct / attempts) * 100) : null;
+        return {
+          attempts,
+          correct,
+          streak,
+          goalProgress,
+          goalTarget,
+          accuracy,
+          migrated: true
+        };
+      }
+
+      const legacy = JSON.parse(
+        localStorage.getItem(MKAT_LEGACY_KEY) || "{}"
+      );
+      const attempts = Number(legacy.attempts || 0);
+      const correct = Number(legacy.correct || 0);
       const accuracy = attempts ? Math.round((correct / attempts) * 100) : null;
-      return { attempts, correct, streak, solvedToday, accuracy };
+      return {
+        attempts,
+        correct,
+        streak: 0,
+        goalProgress: 0,
+        goalTarget: 10,
+        accuracy,
+        migrated: false
+      };
     } catch {
-      return { attempts: 0, correct: 0, streak: 0, solvedToday: 0, accuracy: null };
+      return {
+        attempts: 0,
+        correct: 0,
+        streak: 0,
+        goalProgress: 0,
+        goalTarget: 10,
+        accuracy: null,
+        migrated: false
+      };
     }
   }
 
   function mkatMetricText() {
     const s = readMkatStats();
     if (!s.attempts) return "아직 훈련 기록이 없습니다. 오늘의 10문제로 시작하세요.";
-    return `오늘 ${s.solvedToday}문제 · 누적 정확도 ${s.accuracy}% · ${s.streak}일 연속`;
+    if (!s.migrated) return "기존 기록이 있습니다. MKAT를 열어 v2 기록으로 안전하게 이전하세요.";
+    return `오늘 ${s.goalProgress}/${s.goalTarget} · 누적 정확도 ${s.accuracy}% · 목표 ${s.streak}일 연속`;
   }
 
   function updateFocus() {
@@ -68,10 +135,12 @@
       els.focusSummary.textContent = "오늘 첫 문제를 시작해 보세요.";
       return;
     }
-    if (s.solvedToday > 0) {
-      els.focusSummary.textContent = `오늘 ${s.solvedToday}문제 완료 · 정확도 ${s.accuracy}%`;
+    if (!s.migrated) {
+      els.focusSummary.textContent = "MKAT를 열어 기존 기록을 안전하게 이전해 주세요.";
+    } else if (s.goalProgress > 0) {
+      els.focusSummary.textContent = `오늘 목표 ${s.goalProgress}/${s.goalTarget} · 정확도 ${s.accuracy}%`;
     } else {
-      els.focusSummary.textContent = `${s.streak}일 연속 기록을 오늘도 이어가세요.`;
+      els.focusSummary.textContent = `목표 완주 ${s.streak}일 연속 기록을 이어가세요.`;
     }
   }
 

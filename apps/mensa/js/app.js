@@ -1,5 +1,14 @@
 import { loadQuestionBank } from "./bank-loader.js";
 import { hashString, shuffled } from "./random.js";
+import {
+  attemptEligibility,
+  createRecordId,
+  localDateKey
+} from "./stats-model.js";
+import {
+  createTrainingStore,
+  downloadTrainingExport
+} from "./training-store.js";
 
 const bootStatus = document.querySelector("#bootStatus");
 const appRoot = document.querySelector("#app");
@@ -7,9 +16,12 @@ const appRoot = document.querySelector("#app");
 async function bootstrap() {
   try {
     const data = await loadQuestionBank();
+    const trainingStore = await createTrainingStore({
+      bankVersion: data.bankVersion
+    });
     bootStatus.hidden = true;
     appRoot.hidden = false;
-    initializeApp(data);
+    initializeApp(data, trainingStore);
   } catch (error) {
     console.error(error);
     bootStatus.classList.add("error");
@@ -23,12 +35,11 @@ async function bootstrap() {
   }
 }
 
-function initializeApp(data) {
+function initializeApp(data, trainingStore) {
   "use strict";
 
   const bank = data.questions;
   const types = data.types;
-  const STORAGE_KEY = "mkat98-stats-v1";
 
   const $ = (selector) => document.querySelector(selector);
   const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -48,6 +59,10 @@ function initializeApp(data) {
     categoryFilter: $("#categoryFilter"),
     typeGrid: $("#typeGrid"),
     statsPanel: $("#statsPanel"),
+    migrationNotice: $("#migrationNotice"),
+    dismissMigrationNoticeBtn: $("#dismissMigrationNoticeBtn"),
+    storageNotice: $("#storageNotice"),
+    exportStatsBtn: $("#exportStatsBtn"),
     resetStatsBtn: $("#resetStatsBtn"),
     quitBtn: $("#quitBtn"),
     progressText: $("#progressText"),
@@ -75,56 +90,13 @@ function initializeApp(data) {
     backHomeBtn: $("#backHomeBtn")
   };
 
-  let stats = loadStats();
+  let stats = trainingStore.summary;
   let session = null;
   let timerId = null;
   let remaining = 0;
   let overtime = false;
-
-  function blankStats() {
-    return {
-      attempts: 0,
-      correct: 0,
-      solvedByDate: {},
-      questions: {},
-      streak: 0,
-      lastActiveDate: null
-    };
-  }
-
-  function loadStats() {
-    try {
-      return { ...blankStats(), ...JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}") };
-    } catch {
-      return blankStats();
-    }
-  }
-
-  function saveStats() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(stats));
-  }
-
-  function localDateKey(date = new Date()) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
-  }
-
-  function dayDiff(a, b) {
-    const aa = new Date(`${a}T12:00:00`);
-    const bb = new Date(`${b}T12:00:00`);
-    return Math.round((bb - aa) / 86400000);
-  }
-
-  function markActiveDay() {
-    const today = localDateKey();
-    if (stats.lastActiveDate === today) return;
-    if (!stats.lastActiveDate) stats.streak = 1;
-    else stats.streak = dayDiff(stats.lastActiveDate, today) === 1 ? stats.streak + 1 : 1;
-    stats.lastActiveDate = today;
-    saveStats();
-  }
+  let questionPresentedAt = null;
+  let questionPresentedAtPerformance = null;
 
   function showView(name) {
     Object.entries(views).forEach(([key, el]) => el.classList.toggle("hidden", key !== name));
@@ -155,15 +127,31 @@ function initializeApp(data) {
   }
 
   function renderHome() {
-    markActiveDay();
-    const today = localDateKey();
     const accuracy = stats.attempts ? Math.round(stats.correct / stats.attempts * 100) : null;
-    els.streakBadge.textContent = `🔥 ${stats.streak || 0}일`;
+    els.streakBadge.textContent = `🔥 목표 ${stats.completionStreak || 0}일`;
     els.accuracyBadge.textContent = `정확도 ${accuracy == null ? "—" : `${accuracy}%`}`;
-    els.todaySolved.textContent = stats.solvedByDate[today] || 0;
+    els.todaySolved.textContent = `${stats.today.goalProgress}/${stats.today.goalTarget}`;
     els.wrongCountLabel.textContent = `저장된 오답 ${allWrongQuestions().length}개`;
+    renderStorageNotices();
     renderTypeGrid();
     renderStatsPanel();
+  }
+
+  function renderStorageNotices() {
+    els.migrationNotice.hidden = !stats.migration.noticePending;
+
+    const storage = trainingStore.storageSnapshot();
+    let message = "";
+    if (!storage.durable) {
+      message = "이 브라우저에서 IndexedDB를 사용할 수 없어 기록을 복구 저널에 임시 보관하고 있습니다. 앱을 닫기 전에 데이터를 내보내세요.";
+    } else if (storage.recoveryPending > 0) {
+      message = `저장 실패 기록 ${storage.recoveryPending}건을 복구 대기 중입니다. 다음 실행에서 자동으로 다시 저장합니다.`;
+    } else if (!storage.cacheAvailable) {
+      message = "상세 기록은 안전하지만 허브용 요약 캐시를 갱신하지 못했습니다. MKAT를 다시 열면 IndexedDB에서 재생성합니다.";
+    }
+
+    els.storageNotice.hidden = !message;
+    els.storageNotice.textContent = message;
   }
 
   function renderCategoryOptions() {
@@ -204,7 +192,7 @@ function initializeApp(data) {
     els.statsPanel.innerHTML = `
       <div class="stat-box"><span>누적 풀이</span><strong>${stats.attempts}</strong></div>
       <div class="stat-box"><span>누적 정확도</span><strong>${stats.attempts ? `${accuracy}%` : "—"}</strong></div>
-      <div class="stat-box"><span>경험한 문제</span><strong>${attemptedQuestions}/125</strong></div>
+      <div class="stat-box"><span>경험한 문제</span><strong>${attemptedQuestions}/${bank.length}</strong></div>
       <div class="stat-box"><span>복습할 오답</span><strong>${wrong}</strong></div>
     `;
   }
@@ -245,6 +233,32 @@ function initializeApp(data) {
     return unique;
   }
 
+  function sessionRecord() {
+    return {
+      sessionId: session.sessionId,
+      bankVersion: data.bankVersion,
+      mode: session.mode,
+      typeId: session.typeId,
+      status: session.status,
+      queueQuestionIds: session.queue.map(question => question.id),
+      currentIndex: session.index,
+      score: session.score,
+      answerCount: session.answers.length,
+      startedAt: session.startedAt,
+      updatedAt: session.updatedAt,
+      completedAt: session.completedAt
+    };
+  }
+
+  async function saveSessionStatus(status) {
+    if (!session) return;
+    session.status = status;
+    session.updatedAt = Date.now();
+    if (status === "completed") session.completedAt = session.updatedAt;
+    await trainingStore.saveSession(sessionRecord());
+    renderStorageNotices();
+  }
+
   function startSession(mode, typeId = null, suppliedQueue = null) {
     let queue;
     if (suppliedQueue) queue = suppliedQueue;
@@ -263,14 +277,21 @@ function initializeApp(data) {
     } else queue = shuffled(bank, Date.now()).slice(0, 10);
 
     session = {
+      sessionId: createRecordId("session"),
       mode,
+      typeId,
       queue,
       index: 0,
       score: 0,
       answers: [],
       locked: false,
-      speed: mode === "speed"
+      speed: mode === "speed",
+      status: "active",
+      startedAt: Date.now(),
+      updatedAt: Date.now(),
+      completedAt: null
     };
+    void trainingStore.saveSession(sessionRecord()).then(renderStorageNotices);
     showView("quiz");
     renderQuestion();
   }
@@ -318,21 +339,25 @@ function initializeApp(data) {
     els.feedback.classList.add("hidden");
     els.feedback.classList.remove("correct-feedback", "wrong-feedback");
     els.options.innerHTML = "";
+    els.options.dataset.questionId = q.id;
 
     q.options.forEach((option, index) => {
       const button = document.createElement("button");
       button.type = "button";
       button.className = "option-button";
       button.dataset.index = index;
+      button.dataset.optionId = option.id;
       button.setAttribute("aria-label", `${index + 1}번 보기`);
       let content = `<span class="option-index">${index + 1}</span>`;
       if (option.svg) content += `<span class="option-svg">${option.svg}</span>`;
       if (option.text != null) content += `<span class="option-text">${escapeHtml(option.text)}${option.suffix ? escapeHtml(option.suffix) : ""}</span>`;
       button.innerHTML = content;
-      button.addEventListener("click", () => answerQuestion(index));
+      button.addEventListener("click", () => void answerQuestion(index));
       els.options.appendChild(button);
     });
 
+    questionPresentedAt = Date.now();
+    questionPresentedAtPerformance = performance.now();
     startTimer(q.timeLimitSec || 45);
   }
 
@@ -345,12 +370,21 @@ function initializeApp(data) {
       .replaceAll("'", "&#039;");
   }
 
-  function answerQuestion(selectedIndex) {
+  async function answerQuestion(selectedIndex) {
     if (session.locked) return;
     session.locked = true;
-    clearTimer();
+    const answeredSession = session;
 
     const q = session.queue[session.index];
+    const submittedAt = Date.now();
+    const elapsedMs = Math.max(
+      0,
+      Math.round(performance.now() - questionPresentedAtPerformance)
+    );
+    const wasOvertime =
+      overtime || elapsedMs > (q.timeLimitSec || 45) * 1000;
+    clearTimer();
+
     const correctIndex = q.options.findIndex(option => option.id === q.correctOptionId);
     const isCorrect = selectedIndex === correctIndex;
     if (isCorrect) session.score += 1;
@@ -365,8 +399,72 @@ function initializeApp(data) {
       }
     });
 
-    recordAnswer(q, isCorrect, overtime);
-    session.answers.push({ id: q.id, typeId: q.typeId, correct: isCorrect, overtime, selectedIndex });
+    const retry = session.mode === "retry";
+    const eligibility = attemptEligibility({
+      mode: session.mode,
+      retry,
+      hintUsed: false,
+      overtime: wasOvertime,
+      skipped: false
+    });
+    const selectedOptionId = q.options[selectedIndex].id;
+    const attempt = {
+      attemptId: createRecordId("attempt"),
+      sessionId: session.sessionId,
+      questionId: q.id,
+      contentVersion: q.contentVersion,
+      bankVersion: data.bankVersion,
+      mode: session.mode,
+      localDate: localDateKey(new Date(submittedAt)),
+
+      selectedOptionId,
+      presentedOptionIds: q.options.map(option => option.id),
+
+      correct: isCorrect,
+      firstPass: eligibility.firstPass,
+      retry: eligibility.retry,
+      hintUsed: false,
+      elapsedMs,
+      overtime: wasOvertime,
+      skipped: false,
+
+      inferredErrorTag: null,
+      presentedAt: questionPresentedAt || submittedAt,
+      submittedAt,
+
+      eligibleForDailyGoal: eligibility.eligibleForDailyGoal,
+      eligibleForMastery: eligibility.eligibleForMastery,
+      eligibleForAbilityStats: eligibility.eligibleForAbilityStats,
+      eligibleForSpeedStats: eligibility.eligibleForSpeedStats
+    };
+
+    session.answers.push({
+      id: q.id,
+      typeId: q.typeId,
+      correct: isCorrect,
+      overtime: wasOvertime,
+      selectedIndex,
+      selectedOptionId,
+      elapsedMs,
+      attemptId: attempt.attemptId
+    });
+    session.updatedAt = submittedAt;
+
+    try {
+      const persistence = await trainingStore.recordAttempt(
+        attempt,
+        sessionRecord()
+      );
+      stats = persistence.summary;
+      renderStorageNotices();
+    } catch (error) {
+      console.error(error);
+      els.storageNotice.hidden = false;
+      els.storageNotice.textContent =
+        "응시 기록을 저장하지 못했습니다. 앱을 닫기 전에 데이터를 내보내 주세요.";
+    }
+
+    if (session !== answeredSession) return;
 
     if (session.speed) {
       setTimeout(nextQuestion, 420);
@@ -377,26 +475,11 @@ function initializeApp(data) {
     els.feedback.classList.add(isCorrect ? "correct-feedback" : "wrong-feedback");
     els.feedbackIcon.textContent = isCorrect ? "✅" : "🔍";
     els.feedbackTitle.textContent = isCorrect ? "정답입니다." : "여기서 한 번 더 잡아냅시다.";
-    els.feedbackSubtitle.textContent = overtime ? "제한시간을 넘겼습니다." : `남은 시간 ${remaining}초`;
+    els.feedbackSubtitle.textContent = wasOvertime ? "제한시간을 넘겼습니다." : `남은 시간 ${remaining}초`;
     els.explanation.textContent = q.explanation;
     els.trapBox.textContent = q.trap ? `실전 함정: ${q.trap}` : "정답을 선택한 뒤 개수·위치·방향을 마지막으로 확인하세요.";
     els.nextBtn.textContent = session.index === session.queue.length - 1 ? "결과 보기 →" : "다음 문제 →";
     els.feedback.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function recordAnswer(q, correct, wasOvertime) {
-    const today = localDateKey();
-    stats.attempts += 1;
-    if (correct) stats.correct += 1;
-    stats.solvedByDate[today] = (stats.solvedByDate[today] || 0) + 1;
-    const s = stats.questions[q.id] || { attempts: 0, correct: 0, wrong: 0, overtime: 0 };
-    s.attempts += 1;
-    if (correct) s.correct += 1;
-    else s.wrong += 1;
-    if (wasOvertime) s.overtime += 1;
-    s.lastAnswered = Date.now();
-    stats.questions[q.id] = s;
-    saveStats();
   }
 
   function nextQuestion() {
@@ -411,6 +494,7 @@ function initializeApp(data) {
 
   function showResults() {
     clearTimer();
+    void saveSessionStatus("completed");
     const total = session.queue.length;
     const percent = Math.round(session.score / total * 100);
     const wrong = session.answers.filter(x => !x.correct);
@@ -433,6 +517,9 @@ function initializeApp(data) {
 
   function goHome() {
     clearTimer();
+    if (session?.status === "active") {
+      void saveSessionStatus("abandoned");
+    }
     session = null;
     renderHome();
     showView("home");
@@ -454,11 +541,37 @@ function initializeApp(data) {
     const retry = session.queue.filter(q => wrongIds.has(q.id));
     if (retry.length) startSession("retry", null, shuffled(retry, Date.now()));
   });
-  els.resetStatsBtn.addEventListener("click", () => {
-    if (!confirm("모든 풀이 기록과 오답 기록을 초기화할까요?")) return;
-    stats = blankStats();
-    saveStats();
+  els.dismissMigrationNoticeBtn.addEventListener("click", async () => {
+    stats = await trainingStore.dismissMigrationNotice();
     renderHome();
+  });
+  els.exportStatsBtn.addEventListener("click", async () => {
+    els.exportStatsBtn.disabled = true;
+    const originalLabel = els.exportStatsBtn.textContent;
+    els.exportStatsBtn.textContent = "내보내는 중…";
+    try {
+      const exportData = await trainingStore.exportData();
+      downloadTrainingExport(exportData);
+    } catch (error) {
+      console.error(error);
+      alert("훈련 기록을 내보내지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      els.exportStatsBtn.disabled = false;
+      els.exportStatsBtn.textContent = originalLabel;
+    }
+  });
+  els.resetStatsBtn.addEventListener("click", async () => {
+    if (!confirm("모든 풀이 기록과 오답 기록을 초기화할까요?")) return;
+    els.resetStatsBtn.disabled = true;
+    try {
+      stats = await trainingStore.reset();
+      renderHome();
+    } catch (error) {
+      console.error(error);
+      alert("기록을 초기화하지 못했습니다. 저장 공간을 확인해 주세요.");
+    } finally {
+      els.resetStatsBtn.disabled = false;
+    }
   });
 
   window.addEventListener("keydown", event => {
@@ -466,7 +579,7 @@ function initializeApp(data) {
     const num = Number(event.key);
     if (num >= 1 && num <= 9) {
       const q = session.queue[session.index];
-      if (num <= q.options.length) answerQuestion(num - 1);
+      if (num <= q.options.length) void answerQuestion(num - 1);
     }
   });
 
