@@ -112,6 +112,25 @@ export class MemoryTrainingRepository {
     });
   }
 
+  async commitAttempts({
+    attempts,
+    session,
+    questionProgressRecords,
+    revision
+  }) {
+    attempts.forEach(attempt => {
+      this.stores.attempts.set(attempt.attemptId, clone(attempt));
+    });
+    if (session) await this.putSession(session);
+    questionProgressRecords.forEach(record => {
+      this.stores.questionProgress.set(record.questionId, clone(record));
+    });
+    this.stores.meta.set("revision", {
+      key: "revision",
+      value: revision
+    });
+  }
+
   async reset(metaRecords) {
     STORE_NAMES.forEach(name => this.stores[name].clear());
     await this.putMetaMany(metaRecords);
@@ -172,6 +191,12 @@ export class TrainingStore {
     ]) {
       if (entry.kind === "attempt" && entry.attempt?.attemptId) {
         this.attemptsById.set(entry.attempt.attemptId, entry.attempt);
+      } else if (entry.kind === "attempt-batch") {
+        for (const attempt of entry.attempts || []) {
+          if (attempt?.attemptId) {
+            this.attemptsById.set(attempt.attemptId, attempt);
+          }
+        }
       }
     }
     this.questionProgressById = rebuildQuestionProgress(
@@ -381,6 +406,19 @@ export class TrainingStore {
             attempt: entry.attempt,
             session: entry.session || null,
             questionProgress: entry.questionProgress || null,
+            revision: nextRevision
+          });
+          this.revision = nextRevision;
+        } else if (entry.kind === "attempt-batch") {
+          const attempts = Array.isArray(entry.attempts)
+            ? entry.attempts
+            : [];
+          const nextRevision = this.revision + attempts.length;
+          await this.repository.commitAttempts({
+            attempts,
+            session: entry.session || null,
+            questionProgressRecords:
+              entry.questionProgressRecords || [],
             revision: nextRevision
           });
           this.revision = nextRevision;
@@ -612,6 +650,102 @@ export class TrainingStore {
       return {
         saved,
         queuedForRecovery,
+        summary,
+        storage: this.storageSnapshot()
+      };
+    });
+  }
+
+  async recordAttemptBatch(attempts, session) {
+    return this.enqueue(async () => {
+      const unique = [...new Map(
+        (attempts || [])
+          .filter(attempt => attempt?.attemptId)
+          .map(attempt => [attempt.attemptId, attempt])
+      ).values()];
+      const pending = unique.filter(
+        attempt => !this.attemptsById.has(attempt.attemptId)
+      );
+
+      if (!pending.length) {
+        if (session) await this.repository.putSession(session);
+        return {
+          saved: true,
+          queuedForRecovery: false,
+          duplicate: true,
+          summary: this.summary,
+          storage: this.storageSnapshot()
+        };
+      }
+
+      const progressById = new Map(
+        [...this.questionProgressById.entries()].map(([id, progress]) => [
+          id,
+          clone(progress)
+        ])
+      );
+      for (const attempt of pending) {
+        progressById.set(
+          attempt.questionId,
+          applyAttemptToProgress(
+            progressById.get(attempt.questionId),
+            attempt
+          )
+        );
+      }
+      const affectedQuestionIds = new Set(
+        pending.map(attempt => attempt.questionId)
+      );
+      const questionProgressRecords = [...affectedQuestionIds].map(
+        questionId => progressById.get(questionId)
+      );
+      const nextRevision = this.revision + pending.length;
+      const recovery = {
+        kind: "attempt-batch",
+        entryId:
+          `attempt-batch:${session?.sessionId || "unknown"}:` +
+          pending.map(attempt => attempt.attemptId).join(","),
+        attempts: pending,
+        session,
+        questionProgressRecords
+      };
+      let saved = false;
+      let queuedForRecovery = false;
+
+      try {
+        await this.repository.commitAttempts({
+          attempts: pending,
+          session,
+          questionProgressRecords,
+          revision: nextRevision
+        });
+        this.revision = nextRevision;
+        saved = this.durable;
+        if (!this.durable) {
+          queuedForRecovery = true;
+          this.queueRecovery(recovery);
+        }
+      } catch (error) {
+        this.health.lastError = errorMessage(error);
+        queuedForRecovery = true;
+        this.queueRecovery(recovery);
+      }
+
+      pending.forEach(attempt => {
+        this.attemptsById.set(attempt.attemptId, attempt);
+      });
+      questionProgressRecords.forEach(progress => {
+        this.questionProgressById.set(progress.questionId, progress);
+      });
+      const summary = this.rebuildSummary({
+        writeCache: saved || queuedForRecovery
+      });
+
+      return {
+        saved,
+        queuedForRecovery,
+        duplicate: false,
+        recorded: pending.length,
         summary,
         storage: this.storageSnapshot()
       };

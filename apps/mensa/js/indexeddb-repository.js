@@ -179,6 +179,27 @@ export class IndexedDbTrainingRepository {
     await transactionDone(transaction);
   }
 
+  async commitAttempts({
+    attempts,
+    session,
+    questionProgressRecords,
+    revision
+  }) {
+    const transaction = this.database.transaction(
+      ["attempts", "sessions", "questionProgress", "meta"],
+      "readwrite"
+    );
+    const attemptStore = transaction.objectStore("attempts");
+    const progressStore = transaction.objectStore("questionProgress");
+    attempts.forEach(attempt => attemptStore.put(attempt));
+    if (session) {
+      putSessionIfNewer(transaction.objectStore("sessions"), session);
+    }
+    questionProgressRecords.forEach(record => progressStore.put(record));
+    transaction.objectStore("meta").put({ key: "revision", value: revision });
+    await transactionDone(transaction);
+  }
+
   async reset(metaRecords) {
     const transaction = this.database.transaction(STORE_NAMES, "readwrite");
     STORE_NAMES.forEach(name => transaction.objectStore(name).clear());

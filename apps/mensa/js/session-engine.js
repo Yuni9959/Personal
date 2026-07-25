@@ -63,6 +63,7 @@ export function createSessionSnapshot({
   typeId = null,
   questions,
   previousPresentedOptionIdsByQuestion = null,
+  examEndsAt = null,
   now = Date.now()
 }) {
   if (!sessionId || !Array.isArray(questions) || !questions.length) {
@@ -107,6 +108,13 @@ export function createSessionSnapshot({
     currentIndex: 0,
     score: 0,
     answers: [],
+    responses: {},
+    markedQuestionIds: [],
+    hintUsedQuestionIds: [],
+    questionTimers: {},
+    pendingSelectionId: null,
+    examEndsAt: finiteTimestamp(examEndsAt),
+    finalizedAt: null,
     timer: null,
     sessionRevision: 0,
     startedAt: now,
@@ -307,6 +315,83 @@ function normalizeTimer(timer, currentIndex, now) {
     : normalized;
 }
 
+function normalizedStringArray(value, allowed) {
+  return [...new Set(
+    (Array.isArray(value) ? value : [])
+      .filter(item => typeof item === "string" && allowed.has(item))
+  )];
+}
+
+function normalizeResponses(value, items) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const itemByQuestionId = new Map(
+    items.map(item => [item.questionId, item])
+  );
+  const responses = {};
+  for (const [questionId, response] of Object.entries(value)) {
+    const item = itemByQuestionId.get(questionId);
+    if (!item || !response || typeof response !== "object") continue;
+    const selectedOptionId =
+      typeof response.selectedOptionId === "string" &&
+      item.presentedOptionIds.includes(response.selectedOptionId)
+        ? response.selectedOptionId
+        : null;
+    responses[questionId] = {
+      questionId,
+      selectedOptionId,
+      attemptId:
+        typeof response.attemptId === "string" && response.attemptId
+          ? response.attemptId
+          : null,
+      elapsedMs: Math.max(0, nonNegativeInteger(response.elapsedMs)),
+      overtime: Boolean(response.overtime),
+      skipped: Boolean(response.skipped) || !selectedOptionId,
+      hintUsed: Boolean(response.hintUsed),
+      presentedAt: finiteTimestamp(response.presentedAt),
+      submittedAt: finiteTimestamp(response.submittedAt)
+    };
+  }
+  return responses;
+}
+
+function normalizeQuestionTimers(value, items, currentIndex, now) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  const itemIndexes = new Map(
+    items.map((item, index) => [item.questionId, index])
+  );
+  const timers = {};
+  for (const [questionId, timer] of Object.entries(value)) {
+    const questionIndex = itemIndexes.get(questionId);
+    if (questionIndex == null || !timer || !TIMER_STATES.has(timer.state)) {
+      continue;
+    }
+    const normalized = {
+      ...timer,
+      questionId,
+      questionIndex,
+      elapsedMs: Math.max(0, Number(timer.elapsedMs) || 0),
+      limitMs: Math.max(1, nonNegativeInteger(timer.limitMs, 45000)),
+      presentedAt: finiteTimestamp(timer.presentedAt, now)
+    };
+    timers[questionId] =
+      normalized.state === "running"
+        ? pauseQuestionClock(normalized, { now })
+        : normalized;
+  }
+
+  const currentQuestionId = items[currentIndex]?.questionId;
+  if (currentQuestionId && timers[currentQuestionId]) {
+    timers[currentQuestionId].questionIndex = currentIndex;
+  }
+  return timers;
+}
+
 export function restoreSessionSnapshot({
   snapshot,
   questions,
@@ -339,6 +424,25 @@ export function restoreSessionSnapshot({
     ? snapshot.answers.map(answer => ({ ...answer }))
     : [];
   const currentIndex = nonNegativeInteger(snapshot.currentIndex);
+  const allowedQuestionIds = new Set(items.map(item => item.questionId));
+  const responses = normalizeResponses(snapshot.responses, items);
+  const questionTimers = normalizeQuestionTimers(
+    snapshot.questionTimers,
+    items,
+    currentIndex,
+    now
+  );
+  const timer = normalizeTimer(snapshot.timer, currentIndex, now);
+  if (timer && items[currentIndex]) {
+    questionTimers[items[currentIndex].questionId] = timer;
+  }
+  const pendingSelectionId =
+    typeof snapshot.pendingSelectionId === "string" &&
+    items[currentIndex]?.presentedOptionIds.includes(
+      snapshot.pendingSelectionId
+    )
+      ? snapshot.pendingSelectionId
+      : null;
 
   return {
     ok: true,
@@ -353,10 +457,23 @@ export function restoreSessionSnapshot({
       currentIndex,
       score: nonNegativeInteger(snapshot.score),
       answers,
+      responses,
+      markedQuestionIds: normalizedStringArray(
+        snapshot.markedQuestionIds,
+        allowedQuestionIds
+      ),
+      hintUsedQuestionIds: normalizedStringArray(
+        snapshot.hintUsedQuestionIds,
+        allowedQuestionIds
+      ),
+      questionTimers,
+      pendingSelectionId,
+      examEndsAt: finiteTimestamp(snapshot.examEndsAt),
+      finalizedAt: finiteTimestamp(snapshot.finalizedAt),
       phase: SESSION_PHASES.has(snapshot.phase)
         ? snapshot.phase
         : "question",
-      timer: normalizeTimer(snapshot.timer, currentIndex, now),
+      timer,
       sessionRevision: nonNegativeInteger(snapshot.sessionRevision),
       locked: snapshot.phase === "feedback",
       speed: snapshot.mode === "speed",
@@ -387,6 +504,23 @@ export function serializeSession(session) {
     currentIndex: nonNegativeInteger(session.index),
     score: nonNegativeInteger(session.score),
     answers: session.answers.map(answer => ({ ...answer })),
+    responses: Object.fromEntries(
+      Object.entries(session.responses || {}).map(([questionId, response]) => [
+        questionId,
+        { ...response }
+      ])
+    ),
+    markedQuestionIds: [...new Set(session.markedQuestionIds || [])],
+    hintUsedQuestionIds: [...new Set(session.hintUsedQuestionIds || [])],
+    questionTimers: Object.fromEntries(
+      Object.entries(session.questionTimers || {}).map(([questionId, timer]) => [
+        questionId,
+        { ...timer }
+      ])
+    ),
+    pendingSelectionId: session.pendingSelectionId ?? null,
+    examEndsAt: finiteTimestamp(session.examEndsAt),
+    finalizedAt: finiteTimestamp(session.finalizedAt),
     timer: session.timer ? { ...session.timer } : null,
     sessionRevision: nonNegativeInteger(session.sessionRevision),
     startedAt: session.startedAt,

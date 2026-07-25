@@ -351,6 +351,19 @@ async function run() {
       client,
       "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 25"
     );
+    console.log("[smoke] MKAT 초기화");
+    assert.equal(
+      await evaluate(
+        client,
+        "getComputedStyle(document.querySelector('#bootStatus')).display"
+      ),
+      "none"
+    );
+    await evaluate(client, "window.confirm = () => true; true");
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.mode-card').length"),
+      5
+    );
 
     const resourceNames = await evaluate(
       client,
@@ -395,11 +408,51 @@ async function run() {
       client,
       "document.querySelector('#migrationNotice').hidden"
     );
+    await evaluate(
+      client,
+      "document.querySelector('#viewDetailedStatsBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#statsView').classList.contains('hidden')"
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.analysis-table tbody tr').length"),
+      25
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.analysis-metric').length"),
+      8
+    );
+    await evaluate(client, "document.querySelector('#statsBackBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
 
     await evaluate(client, "document.querySelector('[data-mode=\"daily\"]').click(); true");
     await waitForCondition(client, "!document.querySelector('#quizView').classList.contains('hidden')");
     assert.equal(await evaluate(client, "document.querySelector('#progressText').textContent"), "1 / 10");
     assert.ok(await evaluate(client, "document.querySelectorAll('.option-button').length >= 6"));
+    assert.equal(
+      await evaluate(client, "document.querySelector('#questionMeta').classList.contains('hidden')"),
+      true
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#submitAnswerBtn').disabled"),
+      true
+    );
+    assert.match(
+      await evaluate(client, "document.querySelector('#options').className"),
+      /layout-(?:grid|compact|list)/
+    );
+    await evaluate(client, "document.querySelector('#zoomStimulusBtn').click(); true");
+    await waitForCondition(client, "document.querySelector('#zoomDialog').open");
+    assert.ok(
+      await evaluate(client, "document.querySelector('#zoomContent svg') !== null")
+    );
+    await evaluate(client, "document.querySelector('#closeZoomBtn').click(); true");
+    await waitForCondition(client, "!document.querySelector('#zoomDialog').open");
 
     const initialPresentation = await evaluate(client, `(async () => {
       const questionId = document.querySelector("#options").dataset.questionId;
@@ -460,6 +513,7 @@ async function run() {
 
     await evaluate(
       client,
+      "window.confirm = () => true; " +
       "document.querySelector('#resumeSessionBtn').click(); true"
     );
     await waitForCondition(
@@ -497,7 +551,28 @@ async function run() {
         bankVersion: bank.bankVersion
       };
     })()`);
+    assert.equal(
+      await evaluate(client, "document.querySelector('#feedback').classList.contains('hidden')"),
+      true
+    );
+    assert.equal((await readBrowserStore(client, "attempts")).length, 0);
+    assert.equal(
+      await evaluate(client, "document.querySelector('#submitAnswerBtn').disabled"),
+      false
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.querySelector('.option-button.candidate')?.dataset.optionId"
+      ),
+      wrongSelection.selectedOptionId
+    );
+    await evaluate(
+      client,
+      "document.querySelector('#submitAnswerBtn').click(); true"
+    );
     await waitForCondition(client, "!document.querySelector('#feedback').classList.contains('hidden')");
+    console.log("[smoke] 일일 선택 후 제출");
 
     const attempts = await readBrowserStore(client, "attempts");
     assert.equal(attempts.length, 1);
@@ -535,6 +610,7 @@ async function run() {
     );
     await evaluate(
       client,
+      "window.confirm = () => true; " +
       "document.querySelector('#resumeSessionBtn').click(); true"
     );
     await waitForCondition(
@@ -600,6 +676,7 @@ async function run() {
       restartedDaily.queueQuestionIds,
       dailyQueue.items.map(item => item.questionId)
     );
+    console.log("[smoke] 일일 큐 재사용");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
     await waitForCondition(
       client,
@@ -621,22 +698,223 @@ async function run() {
 
     await navigate(client, `${baseUrl}/apps/mensa/`);
     await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
-    await evaluate(client, "document.querySelector('[data-mode=\"mixed25\"]').click(); true");
+    await evaluate(client, "window.confirm = () => true; true");
+    await evaluate(client, "document.querySelector('[data-mode=\"diagnostic\"]').click(); true");
     await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 25'");
-    await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    assert.equal(
+      await evaluate(client, "document.querySelector('#questionMeta').classList.contains('hidden')"),
+      true
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#questionNavigator').classList.contains('hidden')"),
+      false
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.question-number-button').length"),
+      25
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#timer').textContent"),
+      "00:00"
+    );
+    await evaluate(
+      client,
+      "document.querySelector('.option-button').click(); " +
+      "document.querySelector('#submitAnswerBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "document.querySelector('#progressText').textContent === '2 / 25'"
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#feedback').classList.contains('hidden')"),
+      true
+    );
+    assert.equal((await readBrowserStore(client, "attempts")).length, 1);
+    const diagnosticSession = (await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.mode === "diagnostic" &&
+        Object.keys(record.responses || {}).length === 1
+      )
+    )).find(record =>
+      record.status === "active" && record.mode === "diagnostic"
+    );
+    assert.equal(
+      Object.values(diagnosticSession.responses)[0].attemptId.startsWith("attempt-"),
+      true
+    );
+    console.log("[smoke] 진단 답안 지연 저장");
+
+    await navigate(client, `${baseUrl}/apps/mensa/?diagnostic-restore=1`);
+    await waitForCondition(client, "!document.querySelector('#resumeNotice').hidden");
+    await evaluate(client, "window.confirm = () => true; document.querySelector('#resumeSessionBtn').click(); true");
+    await waitForCondition(
+      client,
+      "document.querySelector('#progressText').textContent === '2 / 25'"
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.question-number-button.answered').length"),
+      1
+    );
+    assert.equal((await readBrowserStore(client, "attempts")).length, 1);
+    await evaluate(
+      client,
+      "document.querySelector('#finishAssessmentBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#resultView').classList.contains('hidden')"
+    );
+    const attemptsAfterDiagnostic = await readBrowserStore(
+      client,
+      "attempts"
+    );
+    assert.equal(attemptsAfterDiagnostic.length, 26);
+    assert.equal(
+      attemptsAfterDiagnostic.filter(attempt =>
+        attempt.sessionId === diagnosticSession.sessionId
+      ).length,
+      25
+    );
+    assert.equal(
+      attemptsAfterDiagnostic.filter(attempt =>
+        attempt.sessionId === diagnosticSession.sessionId &&
+        attempt.skipped
+      ).length,
+      24
+    );
+    assert.match(
+      await evaluate(client, "document.querySelector('#resultRing').style.getPropertyValue('--score-angle')"),
+      /deg/
+    );
+    console.log("[smoke] 진단 일괄 제출");
+    await evaluate(client, "document.querySelector('#backHomeBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
+
+    await evaluate(client, "document.querySelector('[data-mode=\"exam\"]').click(); true");
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 25'");
+    const activeExam = (await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.mode === "exam" &&
+        Number(record.examEndsAt) > Number(record.startedAt)
+      )
+    )).find(record => record.status === "active" && record.mode === "exam");
+    assert.ok(activeExam.examEndsAt - activeExam.startedAt >= 600000);
+    assert.equal(
+      await evaluate(client, "document.querySelector('#assessmentControls').classList.contains('hidden')"),
+      false
+    );
+    await evaluate(client, `new Promise((resolve, reject) => {
+      const openRequest = indexedDB.open("mkat98-training-v2");
+      openRequest.onerror = () => reject(openRequest.error);
+      openRequest.onsuccess = () => {
+        const database = openRequest.result;
+        const transaction = database.transaction("sessions", "readwrite");
+        const store = transaction.objectStore("sessions");
+        const request = store.get(${JSON.stringify(activeExam.sessionId)});
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          const record = request.result;
+          record.examEndsAt = Date.now() - 1000;
+          record.sessionRevision = Number(record.sessionRevision || 0) + 100;
+          record.updatedAt = Date.now();
+          store.put(record);
+        };
+        transaction.oncomplete = () => {
+          database.close();
+          resolve(true);
+        };
+        transaction.onerror = () => reject(transaction.error);
+      };
+    })`);
+    await navigate(client, `${baseUrl}/apps/mensa/?expired-exam=1`);
+    await waitForCondition(
+      client,
+      "!document.querySelector('#resultView').classList.contains('hidden')",
+      10000
+    );
+    await evaluate(client, "window.confirm = () => true; true");
+    assert.match(
+      await evaluate(client, "document.querySelector('#resultTitle').textContent"),
+      /자동 제출/
+    );
+    const examAttempts = (await readBrowserStore(client, "attempts"))
+      .filter(attempt => attempt.sessionId === activeExam.sessionId);
+    assert.equal(examAttempts.length, 25);
+    assert.equal(examAttempts.every(attempt => attempt.skipped), true);
+    console.log("[smoke] 실전 시간 만료 자동 제출");
+    await evaluate(client, "document.querySelector('#backHomeBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
 
     await evaluate(client, "document.querySelector('[data-mode=\"speed\"]').click(); true");
     await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 15'");
+    assert.equal(
+      await evaluate(client, "document.querySelector('#answerActions').classList.contains('hidden')"),
+      true
+    );
+    const attemptsBeforeSpeed = (await readBrowserStore(client, "attempts")).length;
+    await evaluate(client, "document.querySelector('.option-button').click(); true");
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '2 / 15'");
+    assert.equal(
+      (await readBrowserStore(client, "attempts")).length,
+      attemptsBeforeSpeed + 1
+    );
+    console.log("[smoke] 속도 즉시 제출");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
 
     await evaluate(client, "document.querySelector('.type-card').click(); true");
     await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 5'");
+    assert.equal(
+      await evaluate(client, "document.querySelector('#questionMeta').classList.contains('hidden')"),
+      false
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#hintPanel').classList.contains('hidden')"),
+      false
+    );
+    await evaluate(client, "document.querySelector('#hintBtn').click(); true");
+    assert.equal(
+      await evaluate(client, "document.querySelector('#hintText').hidden"),
+      false
+    );
+    console.log("[smoke] 유형 학습 힌트");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
 
     await navigate(client, `${baseUrl}/apps/mensa/`);
     await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
-    await evaluate(client, "document.querySelector('[data-mode=\"wrong\"]').click(); true");
-    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 1'");
+    await evaluate(client, "document.querySelector('[data-mode=\"review\"]').click(); true");
+    await waitForCondition(
+      client,
+      "document.querySelector('#progressText').textContent.startsWith('1 / ')"
+    );
+    assert.ok(
+      Number(
+        (await evaluate(
+          client,
+          "document.querySelector('#progressText').textContent"
+        )).split("/")[1]
+      ) >= 1
+    );
 
     await waitForCondition(
       client,
@@ -667,7 +945,8 @@ async function run() {
     assert.deepEqual(browserErrors, []);
     console.log(
       "브라우저 스모크 성공: 허브 5카드, 유형 25개, " +
-      "일일·혼합·속도·유형·오답 모드, v1 안전 이전, " +
+      "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
+      "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 일일 고정 큐, 세션 복원, " +
       "v2 요약 캐시, 오프라인 로드"
     );

@@ -50,6 +50,21 @@ class FailingAttemptRepository extends MemoryTrainingRepository {
   }
 }
 
+class FailingBatchRepository extends MemoryTrainingRepository {
+  constructor() {
+    super();
+    this.failBatches = 0;
+  }
+
+  async commitAttempts(payload) {
+    if (this.failBatches > 0) {
+      this.failBatches -= 1;
+      throw new Error("simulated batch transaction failure");
+    }
+    return super.commitAttempts(payload);
+  }
+}
+
 function makeAttempt(overrides = {}) {
   return {
     attemptId: "attempt-1",
@@ -486,4 +501,113 @@ test("기록 초기화 후에는 남아 있던 v1 통계를 다시 가져오지 
   });
   assert.equal(reopenedSummary.attempts, 0);
   assert.equal(reopenedSummary.goals.completedDates.length, 0);
+});
+
+test("진단·모의고사 결과는 한 트랜잭션으로 모두 기록한다", async () => {
+  const repository = new MemoryTrainingRepository();
+  const store = new TrainingStore({
+    repository,
+    localStorageImpl: new MemoryLocalStorage(),
+    now: () => Date.parse("2026-07-25T12:00:00")
+  });
+  await store.initialize({ bankVersion: "test-bank" });
+
+  const attempts = [
+    makeAttempt({
+      attemptId: "diagnostic-attempt-1",
+      mode: "diagnostic",
+      questionId: "T01-01",
+      submittedAt: 2200
+    }),
+    makeAttempt({
+      attemptId: "diagnostic-attempt-2",
+      mode: "diagnostic",
+      questionId: "T02-01",
+      selectedOptionId: "T02-01-O2",
+      presentedOptionIds: [
+        "T02-01-O1",
+        "T02-01-O2",
+        "T02-01-O3",
+        "T02-01-O4"
+      ],
+      correct: true,
+      submittedAt: 3200
+    })
+  ];
+  const completed = makeSession({
+    status: "completed",
+    mode: "diagnostic",
+    sessionRevision: 4,
+    updatedAt: 3300,
+    completedAt: 3300
+  });
+
+  const result = await store.recordAttemptBatch(attempts, completed);
+
+  assert.equal(result.saved, true);
+  assert.equal(result.recorded, 2);
+  assert.equal(result.summary.v2.attempts, 2);
+  assert.equal(result.summary.v2.abilityAttempts, 2);
+  assert.equal(result.summary.revision, 2);
+  assert.equal((await repository.getAll("attempts")).length, 2);
+  assert.equal((await repository.getAll("questionProgress")).length, 2);
+  assert.equal((await repository.getAll("sessions"))[0].status, "completed");
+
+  const duplicate = await store.recordAttemptBatch(attempts, completed);
+  assert.equal(duplicate.duplicate, true);
+  assert.equal((await repository.getAll("attempts")).length, 2);
+  assert.equal(store.summary.revision, 2);
+});
+
+test("다건 응시 저장 실패도 한 복구 항목으로 보존해 재생한다", async () => {
+  const repository = new FailingBatchRepository();
+  const localStorage = new MemoryLocalStorage();
+  const store = new TrainingStore({
+    repository,
+    localStorageImpl: localStorage,
+    now: () => Date.parse("2026-07-25T12:00:00")
+  });
+  await store.initialize({ bankVersion: "test-bank" });
+  repository.failBatches = 1;
+
+  const attempts = [
+    makeAttempt({ attemptId: "batch-1", questionId: "T01-01" }),
+    makeAttempt({
+      attemptId: "batch-2",
+      questionId: "T02-01",
+      selectedOptionId: "T02-01-O1",
+      presentedOptionIds: [
+        "T02-01-O1",
+        "T02-01-O2",
+        "T02-01-O3",
+        "T02-01-O4"
+      ]
+    })
+  ];
+  const failed = await store.recordAttemptBatch(
+    attempts,
+    makeSession({ mode: "exam" })
+  );
+
+  assert.equal(failed.saved, false);
+  assert.equal(failed.queuedForRecovery, true);
+  assert.equal(failed.summary.v2.attempts, 2);
+  assert.equal((await repository.getAll("attempts")).length, 0);
+  const journal = JSON.parse(
+    localStorage.getItem(RECOVERY_JOURNAL_KEY)
+  );
+  assert.equal(journal.entries.length, 1);
+  assert.equal(journal.entries[0].kind, "attempt-batch");
+  assert.equal(journal.entries[0].attempts.length, 2);
+
+  const reopened = new TrainingStore({
+    repository,
+    localStorageImpl: localStorage,
+    now: () => Date.parse("2026-07-25T12:10:00")
+  });
+  const summary = await reopened.initialize({ bankVersion: "test-bank" });
+  assert.equal(summary.v2.attempts, 2);
+  assert.equal(summary.revision, 2);
+  assert.equal((await repository.getAll("attempts")).length, 2);
+  assert.equal(localStorage.getItem(RECOVERY_JOURNAL_KEY), null);
 });

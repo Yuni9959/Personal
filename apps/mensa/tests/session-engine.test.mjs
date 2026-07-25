@@ -216,3 +216,115 @@ test("복원 대기 화면에서는 종료 중 흐른 시간을 반영한 뒤 �
   assert.equal(restored.session.timer.state, "paused");
   assert.equal(restored.session.timer.elapsedMs, 3000);
 });
+
+test("평가 모드의 임시 답안·표시·문제별 시간·종료 시각을 복원한다", () => {
+  const first = question();
+  const second = question({
+    id: "T02-01",
+    correctOptionId: "T02-01-O3",
+    gradingFingerprint: "fingerprint-2",
+    options: [
+      { id: "T02-01-O1", text: "1" },
+      { id: "T02-01-O2", text: "2" },
+      { id: "T02-01-O3", text: "3" },
+      { id: "T02-01-O4", text: "4" }
+    ]
+  });
+  const snapshot = createSessionSnapshot({
+    sessionId: "session-exam",
+    bankVersion: "bank-1",
+    mode: "exam",
+    questions: [first, second],
+    examEndsAt: 900000,
+    now: 1000
+  });
+  snapshot.currentIndex = 1;
+  snapshot.responses[first.id] = {
+    questionId: first.id,
+    selectedOptionId: snapshot.items[0].presentedOptionIds[0],
+    elapsedMs: 3500,
+    overtime: false,
+    skipped: false,
+    hintUsed: false,
+    presentedAt: 1000,
+    submittedAt: 5000
+  };
+  snapshot.markedQuestionIds = [first.id, "missing"];
+  snapshot.hintUsedQuestionIds = [first.id];
+  snapshot.questionTimers[first.id] = {
+    ...createQuestionClock({
+      questionIndex: 0,
+      questionId: first.id,
+      limitMs: 45000,
+      now: 1000
+    }),
+    elapsedMs: 3500,
+    runningSince: null,
+    pausedAt: 5000,
+    state: "paused"
+  };
+  snapshot.pendingSelectionId =
+    snapshot.items[1].presentedOptionIds[1];
+
+  const restored = restoreSessionSnapshot({
+    snapshot,
+    questions: [first, second],
+    currentBankVersion: "bank-1",
+    now: 6000
+  });
+  const serialized = serializeSession(restored.session);
+
+  assert.equal(restored.ok, true);
+  assert.equal(
+    restored.session.responses[first.id].selectedOptionId,
+    snapshot.responses[first.id].selectedOptionId
+  );
+  assert.deepEqual(restored.session.markedQuestionIds, [first.id]);
+  assert.deepEqual(restored.session.hintUsedQuestionIds, [first.id]);
+  assert.equal(
+    restored.session.questionTimers[first.id].elapsedMs,
+    3500
+  );
+  assert.equal(
+    restored.session.pendingSelectionId,
+    snapshot.pendingSelectionId
+  );
+  assert.equal(restored.session.examEndsAt, 900000);
+  assert.deepEqual(serialized.responses, restored.session.responses);
+  assert.deepEqual(
+    serialized.questionTimers,
+    restored.session.questionTimers
+  );
+});
+
+test("복원할 때 현재 보기 목록에 없는 임시 선택은 버린다", () => {
+  const source = question();
+  const snapshot = createSessionSnapshot({
+    sessionId: "session-diagnostic",
+    bankVersion: "bank-1",
+    mode: "diagnostic",
+    questions: [source],
+    now: 1000
+  });
+  snapshot.pendingSelectionId = "removed-option";
+  snapshot.responses[source.id] = {
+    questionId: source.id,
+    selectedOptionId: "removed-option",
+    elapsedMs: 100,
+    skipped: false
+  };
+
+  const restored = restoreSessionSnapshot({
+    snapshot,
+    questions: [source],
+    currentBankVersion: "bank-1",
+    now: 2000
+  });
+
+  assert.equal(restored.session.pendingSelectionId, null);
+  assert.equal(
+    restored.session.responses[source.id].selectedOptionId,
+    null
+  );
+  assert.equal(restored.session.responses[source.id].skipped, true);
+});
