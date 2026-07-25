@@ -22,30 +22,49 @@ const baseline = JSON.parse(
   )
 );
 const FOUNDATION_GRADING_SET_SHA256 =
-  "ba9e76f8b9fb2fba64bf12e6ec5bd8e6804c6f6de8e1d7fb1f014792fe4368d3";
+  "7e1c0b077afdb4cfaa4719f494921365e52a1ae78c639d4c0c58d43897425222";
+const activeBaseline = baseline.questions.filter(
+  question => question.typeId !== "T19"
+);
 
-test("v2 문제은행의 전체 수량과 ID가 안정적이다", () => {
+test("v2 활성 문제은행의 652문항·4270보기 ID가 안정적이다", () => {
   assert.equal(bank.schemaVersion, 2);
   assert.equal(bank.types.length, 25);
-  assert.equal(bank.questions.length, 125);
+  assert.equal(bank.questions.length, 652);
   assert.equal(
     bank.questions.reduce((sum, question) => sum + question.options.length, 0),
-    830
+    4270
   );
   assert.equal(
     new Set(bank.questions.flatMap(question =>
       question.options.map(option => option.id)
     )).size,
-    830
+    4270
   );
-  assert.equal(bank.questions.filter(question => "answerIndex" in question).length, 0);
+  assert.equal(
+    bank.questions.filter(question => "answerIndex" in question).length,
+    652
+  );
+  assert.equal(bank.questions.some(question => question.typeId === "T19"), false);
+  assert.equal(bank.questions.filter(
+    question => question.provenance.sourceId === "foundation-v1"
+  ).length, 120);
+  assert.equal(bank.questions.filter(
+    question => question.provenance.sourceId === "advanced-v1"
+  ).length, 232);
+  assert.equal(bank.questions.filter(
+    question => question.provenance.sourceId === "mkat-original-300-v1"
+  ).length, 300);
 });
 
-test("v1에서 v2로 바뀌어도 모든 SVG와 보기 콘텐츠가 동일하다", () => {
-  assert.equal(bank.types.length, baseline.typeCount);
-  assert.equal(bank.questions.length, baseline.questionCount);
+test("T19를 제외한 Foundation 120문항의 SVG·보기·정답은 동일하다", () => {
+  const foundationQuestions = bank.questions.filter(
+    question => question.provenance.sourceId === "foundation-v1"
+  );
+  assert.equal(activeBaseline.length, 120);
+  assert.equal(foundationQuestions.length, activeBaseline.length);
 
-  for (const legacy of baseline.questions) {
+  for (const legacy of activeBaseline) {
     const question = bank.questions.find(item => item.id === legacy.id);
     assert.ok(question, `문제 누락: ${legacy.id}`);
     assert.equal(question.typeId, legacy.typeId);
@@ -72,6 +91,10 @@ test("v1에서 v2로 바뀌어도 모든 SVG와 보기 콘텐츠가 동일하다
       `정답 위치 변환 오류: ${legacy.id}`
     );
   }
+  assert.equal(
+    bank.questions.some(question => question.id.startsWith("T19-")),
+    false
+  );
 });
 
 test("저장된 채점 fingerprint를 다시 계산할 수 있다", () => {
@@ -84,8 +107,9 @@ test("저장된 채점 fingerprint를 다시 계산할 수 있다", () => {
   }
 });
 
-test("Foundation의 125문제 채점 계약 전체가 유지된다", () => {
+test("활성 Foundation 120문제의 채점 계약 전체가 유지된다", () => {
   const gradingSet = bank.questions
+    .filter(question => question.provenance.sourceId === "foundation-v1")
     .map(question => `${question.id}:${question.gradingFingerprint}`)
     .join("\n");
 

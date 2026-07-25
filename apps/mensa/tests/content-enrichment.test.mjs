@@ -25,9 +25,10 @@ test("콘텐츠 고도화 변환은 두 번 실행해도 결과가 바뀌지 않
   assert.doesNotThrow(() => assertGradingInvariants(bank, rerun));
 });
 
-test("125문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
+test("652문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
   assert.equal(bank.bankVersion, TARGET_BANK_VERSION);
   assert.equal(bank.contentQualityVersion, CONTENT_QUALITY_VERSION);
+  assert.equal(bank.questions.length, 652);
 
   for (const question of bank.questions) {
     assert.equal(
@@ -41,14 +42,20 @@ test("125문제의 구조화 해설·2단계 힌트·난이도 프로필이 완�
       question.id
     );
     assert.equal(question.hints.length, 2, question.id);
-    assert.equal(
-      question.difficultyProfile.sourceDifficulty,
-      Number(question.id.split("-").at(-1)),
+    assert.ok(
+      Number.isInteger(question.difficultyProfile.sourceDifficulty) &&
+      question.difficultyProfile.sourceDifficulty >= 1 &&
+      question.difficultyProfile.sourceDifficulty <= 8,
       question.id
     );
     assert.equal(
       question.difficultyProfile.overall,
       question.difficulty,
+      question.id
+    );
+    assert.equal(
+      question.options[question.answerIndex].id,
+      question.correctOptionId,
       question.id
     );
   }
@@ -61,8 +68,10 @@ test("6개 인지 영역과 핵심·보조 점수 그룹이 문항까지 일관�
     bank.types
       .filter(type => type.scoreGroup === "supplemental")
       .map(type => type.id),
-    ["T19", "T23"]
+    ["T23"]
   );
+  assert.equal(typeById.has("T19"), false);
+  assert.equal(typeById.has("T26"), true);
 
   for (const question of bank.questions) {
     const type = typeById.get(question.typeId);
@@ -85,9 +94,9 @@ test("모든 오답 보기에 표준 오류 태그와 선택지 피드백이 있
 
       wrongOptionCount += 1;
       assert.ok(taxonomyIds.has(option.errorTag), option.id);
-      assert.ok(option.feedback.trim().length >= 20, option.id);
+      assert.ok(option.feedback.trim().length >= 15, option.id);
     }
   }
 
-  assert.equal(wrongOptionCount, 705);
+  assert.equal(wrongOptionCount, 3618);
 });

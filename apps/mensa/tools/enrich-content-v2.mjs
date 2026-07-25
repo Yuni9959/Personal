@@ -3,8 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { gradingFingerprint } from "./bank-utils.mjs";
 
-export const CONTENT_QUALITY_VERSION = 1;
-export const TARGET_BANK_VERSION = "2026.07.25-content.1";
+export const CONTENT_QUALITY_VERSION = 2;
+export const TARGET_BANK_VERSION = "2026.07.25-content.2";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const mensaRoot = path.resolve(here, "..");
@@ -37,9 +37,9 @@ export const COGNITIVE_DOMAINS = Object.freeze([
     description: "포함 도형을 체계적으로 세고 방해 자극을 억제합니다."
   },
   {
-    id: "knowledge-memory",
-    label: "지식·기억",
-    description: "학습한 사실을 비슷한 정보와 구분해 회상합니다."
+    id: "verbal-symbolic",
+    label: "언어·기호 추론",
+    description: "문자 위치와 기호 치환 규칙을 귀납해 새로운 입력에 적용합니다."
   }
 ]);
 
@@ -179,10 +179,10 @@ export const ERROR_TAXONOMY = Object.freeze({
     diagnosis: "구한 요소는 비슷하지만 보기의 배열 순서가 다른 선택입니다.",
     action: "구한 순서를 처음부터 끝까지 보기와 한 칸씩 대조하세요."
   },
-  "knowledge-confusion": {
-    label: "유명 도시와 수도 혼동",
-    diagnosis: "널리 알려진 도시를 공식 수도로 떠올린 선택입니다.",
-    action: "국가별 대표 도시와 행정 수도를 한 쌍으로 구분해 복습하세요."
+  "symbol-transformation": {
+    label: "문자·기호 변환 오류",
+    diagnosis: "문자 재배열과 위치별 이동 가운데 일부만 적용한 선택입니다.",
+    action: "위치 순서를 먼저 확정한 뒤 각 자리의 이동값을 차례로 적용하세요."
   },
   "fold-overlap-misread": {
     label: "전개도 면 겹침 오판",
@@ -197,7 +197,7 @@ export const ERROR_TAXONOMY = Object.freeze({
 });
 
 const TYPE_CONFIG = Object.freeze({
-  T01: config("figure-rules",
+  T01: config("quantitative-equivalence",
     "검은 공과 흰 공의 무게를 환산해 위치별로 합친 뒤 좌우 총무게로 기울기를 정합니다.",
     "공의 수와 종류를 먼저 합산하세요.",
     "마지막에는 공의 구성뿐 아니라 어느 쪽이 내려가는지도 대조하세요.",
@@ -263,7 +263,7 @@ const TYPE_CONFIG = Object.freeze({
     "같은 색 안에서 큰 원과 작은 원의 빈도를 비교하세요.",
     "색과 크기가 모두 빠진 조합인지 검산합니다.",
     [3, 4, 3, 3, 4], ["color-only", "shape-only", "count-omission"]),
-  T12: config("figure-rules",
+  T12: config("spatial-reasoning",
     "입체선과 평면무늬를 같은 중심·크기로 정렬해 모든 보이는 선을 합칩니다.",
     "두 그림의 중심과 바깥 경계를 맞추세요.",
     "각 선분을 하나씩 결과 그림에 옮겨 보세요.",
@@ -305,12 +305,6 @@ const TYPE_CONFIG = Object.freeze({
     "남은 등가관계를 한 종류의 도형으로 치환하세요.",
     "선택한 묶음을 원래 저울식에 넣어 균형이 유지되는지 검산합니다.",
     [4, 4, 4, 3, 4], ["equivalence-substitution", "common-element-retained", "calculation"]),
-  T19: config("knowledge-memory",
-    "국가의 가장 유명한 도시와 공식 행정 수도를 구분해 회상합니다.",
-    "관광·경제 중심 도시가 반드시 수도인 것은 아닙니다.",
-    "국가명과 공식 수도를 한 쌍으로 떠올리세요.",
-    "선택한 도시가 공식 수도인지 다시 확인합니다.",
-    [2, 2, 2, 1, 4], ["knowledge-confusion", "condition-misread"], "supplemental"),
   T20: config("quantitative-equivalence",
     "두 사람에게 같은 시간이 더해지므로 나이 차는 유지된다는 방정식을 세웁니다.",
     "현재 두 사람의 나이 차를 먼저 구하세요.",
@@ -346,7 +340,49 @@ const TYPE_CONFIG = Object.freeze({
     "가장 작은 삼각형부터 크기별로 세어 보세요.",
     "밑변 점의 모든 두 점 조합을 빠짐없이 포함하세요.",
     "연속하지 않은 밑변 점으로 만든 큰 삼각형과 중복을 검산합니다.",
-    [3, 3, 4, 4, 4], ["count-omission", "count-duplication", "condition-misread"])
+    [3, 3, 4, 4, 4], ["count-omission", "count-duplication", "condition-misread"]),
+  T26: config("verbal-symbolic",
+    "문자 위치의 재배열과 알파벳 이동값을 분리해 두 예시에 공통인 변환을 찾습니다.",
+    "먼저 입력 글자의 위치가 어떤 순서로 재배열되는지 표시하세요.",
+    "재배열된 각 자리에서 알파벳이 몇 칸 이동했는지 대조하세요.",
+    "찾은 규칙이 두 예시를 모두 만들고 새 문자열에도 같은 방식으로 적용되는지 검산합니다.",
+    [4, 4, 4, 1, 4], ["symbol-transformation", "sequence-offset", "rule-overfit"])
+});
+
+export const SOURCE_ERROR_TAG_MAP = Object.freeze({
+  "age-equation-error": "ratio-time-confusion",
+  "attribute-pair-error": "attribute-incomplete",
+  "back-omitted": "element-omission",
+  "color-size-pair-error": "attribute-incomplete",
+  "count-position-cycle-error": "attribute-incomplete",
+  "counter-rotation-error": "direction-reversal",
+  "cube-edge-union-error": "element-omission",
+  "cube-net-fold-error": "fold-overlap-misread",
+  "double-sequence-error": "attribute-incomplete",
+  "equivalence-substitution-error": "equivalence-substitution",
+  "fan-triangle-count-error": "count-omission",
+  "formula-error": "calculation",
+  "front-not-opaque": "occlusion-misread",
+  "independent-cycle-error": "attribute-incomplete",
+  "layer-order-reversed": "layer-order",
+  "magic-sum-error": "calculation",
+  "matrix-combination-error": "row-only-check",
+  "object-added": "element-excess",
+  "object-omitted": "element-omission",
+  "offset-mirrored": "spatial-alignment",
+  "offset-vertical-error": "spatial-alignment",
+  "one-cycle-missed": "count-cycle-mismatch",
+  "operator-misidentified": "operation-confusion",
+  "polygon-count-error": "rotation-misclassification",
+  "rectangle-count-error": "count-omission",
+  "sequence-attribute-error": "attribute-incomplete",
+  "shape-role-swapped": "layer-order",
+  "sides-swapped": "direction-reversal",
+  "string-transform-error": "symbol-transformation",
+  "stroop-sequence-error": "semantic-interference",
+  "tilt-ignored": "attribute-incomplete",
+  "union-error": "operation-confusion",
+  "xor-error": "operation-confusion"
 });
 
 function config(
@@ -375,8 +411,86 @@ function clampDifficulty(value) {
   return Math.min(5, Math.max(1, Math.round(value)));
 }
 
+function authorDifficultyToRuntime(value) {
+  const level = Number(value);
+  if (level <= 5) return clampDifficulty(level);
+  return level === 6 ? 3 : level === 7 ? 4 : 5;
+}
+
+function validRuntimeProfile(profile) {
+  return profile &&
+    Number.isInteger(profile.overall) &&
+    profile.overall >= 1 &&
+    profile.overall <= 5;
+}
+
+function richDifficultyProfile(question, typeConfig, sourceDifficulty) {
+  const authoring = question.authoringDifficultyProfile;
+  const ruleSteps = clampDifficulty(
+    (Number(authoring.ruleCount) + Number(authoring.inferenceDepth)) / 2
+  );
+  const attributeLoad = clampDifficulty(authoring.independentAttributes);
+  const workingMemory = clampDifficulty(authoring.workingMemory);
+  const visualComplexity = clampDifficulty(authoring.visualLoad);
+  const distractorSimilarity = clampDifficulty(
+    authoring.distractorSimilarity
+  );
+  const transformationComplexity = clampDifficulty(
+    authoring.transformationComplexity
+  );
+  const timePressure = clampDifficulty(
+    2 +
+    (Number(sourceDifficulty) - 3) * 0.45 +
+    ((question.timeLimitSec || 45) <= 40 ? 0.5 : 0)
+  );
+  const metricOverall = clampDifficulty(
+    ruleSteps * 0.2 +
+    attributeLoad * 0.15 +
+    workingMemory * 0.15 +
+    visualComplexity * 0.14 +
+    distractorSimilarity * 0.14 +
+    transformationComplexity * 0.17 +
+    timePressure * 0.05
+  );
+
+  return {
+    sourceDifficulty,
+    sourceScale: "3-8",
+    overall: Number(sourceDifficulty) === 3
+      ? clampDifficulty(metricOverall - 1)
+      : Math.max(
+          authorDifficultyToRuntime(sourceDifficulty),
+          metricOverall
+        ),
+    ruleSteps,
+    attributeLoad,
+    workingMemory,
+    visualComplexity,
+    distractorSimilarity,
+    transformationComplexity,
+    timePressure,
+    rationale: typeConfig.rule
+  };
+}
+
 function difficultyProfile(question, typeConfig, sourceDifficulty) {
-  const modifier = (Number(sourceDifficulty) - 3) * 0.55;
+  if (question.contentQualityVersion === CONTENT_QUALITY_VERSION &&
+      validRuntimeProfile(question.difficultyProfile)) {
+    return question.difficultyProfile;
+  }
+  if (question.provenance?.sourceId === "foundation-v1" &&
+      validRuntimeProfile(question.difficultyProfile)) {
+    return {
+      ...question.difficultyProfile,
+      rationale: typeConfig.rule
+    };
+  }
+  if (question.authoringDifficultyProfile) {
+    return richDifficultyProfile(question, typeConfig, sourceDifficulty);
+  }
+
+  const runtimeSource = authorDifficultyToRuntime(sourceDifficulty);
+  const modifier = (runtimeSource - 3) * 0.55;
   const [
     ruleSteps,
     attributeLoad,
@@ -389,7 +503,7 @@ function difficultyProfile(question, typeConfig, sourceDifficulty) {
   const timePressure = clampDifficulty(
     3 + modifier + ((question.timeLimitSec || 45) <= 40 ? 0.7 : 0)
   );
-  const overall = clampDifficulty(
+  const metricOverall = clampDifficulty(
     ruleSteps * 0.22 +
     attributeLoad * 0.18 +
     workingMemory * 0.2 +
@@ -400,7 +514,8 @@ function difficultyProfile(question, typeConfig, sourceDifficulty) {
 
   return {
     sourceDifficulty,
-    overall,
+    sourceScale: Number(sourceDifficulty) > 5 ? "6-8" : "1-5",
+    overall: Math.max(runtimeSource, metricOverall),
     ruleSteps,
     attributeLoad,
     workingMemory,
@@ -440,8 +555,19 @@ function classifyWrongOption(question, option, correctOption, optionIndex) {
   const configForType = TYPE_CONFIG[question.typeId];
   const optionNumber = numericOptionValue(option);
   const correctNumber = numericOptionValue(correctOption);
+  const sourceTag = option.sourceErrorTag || option.errorTag;
 
-  if (question.typeId === "T19") return "knowledge-confusion";
+  if (sourceTag && ERROR_TAXONOMY[sourceTag]) return sourceTag;
+  if (sourceTag && ["T21", "T22", "T25"].includes(question.typeId) &&
+      optionNumber != null && correctNumber != null) {
+    return optionNumber < correctNumber
+      ? "count-omission"
+      : "count-duplication";
+  }
+  if (sourceTag && SOURCE_ERROR_TAG_MAP[sourceTag]) {
+    return SOURCE_ERROR_TAG_MAP[sourceTag];
+  }
+
   if (question.typeId === "T23") {
     return optionIndex % 2
       ? "option-sequence-mismatch"
@@ -499,9 +625,6 @@ function optionFeedback(
     const direction = optionNumber < correctNumber ? "작습니다" : "큽니다";
     comparison =
       `선택한 값은 정답 계산값보다 ${gap}${option.suffix || ""} ${direction}. `;
-  } else if (question.typeId === "T19" && option.text) {
-    comparison =
-      `선택한 도시 '${option.text}'는 공식 수도와 혼동하기 쉬운 후보입니다. `;
   }
 
   return (
@@ -512,13 +635,24 @@ function optionFeedback(
 }
 
 function structuredExplanation(question, typeConfig) {
+  if (question.explanation &&
+      typeof question.explanation === "object" &&
+      typeof question.explanation.rule === "string" &&
+      typeof question.explanation.application === "string" &&
+      typeof question.explanation.verification === "string") {
+    return question.explanation;
+  }
   const application = typeof question.explanation === "string"
     ? question.explanation
     : question.explanation?.application || "";
+  const verification = Array.isArray(question.explanationSteps) &&
+      question.explanationSteps.length
+    ? question.explanationSteps.at(-1)?.text || typeConfig.verification
+    : typeConfig.verification;
   return {
     rule: typeConfig.rule,
     application,
-    verification: typeConfig.verification
+    verification
   };
 }
 
@@ -526,15 +660,25 @@ export function enrichBank(source) {
   if (source.schemaVersion !== 2) {
     throw new Error(`schemaVersion 2만 고도화할 수 있습니다: ${source.schemaVersion}`);
   }
-  if (source.types.length !== 25 || source.questions.length !== 125) {
-    throw new Error("기준 문제은행 수량이 25개 유형·125문제가 아닙니다.");
+  if (!Array.isArray(source.types) || !Array.isArray(source.questions) ||
+      !source.types.length || !source.questions.length) {
+    throw new Error("고도화할 문제은행 배열이 비어 있습니다.");
+  }
+  if (source.types.some(type => type.id === "T19") ||
+      source.questions.some(question => question.typeId === "T19")) {
+    throw new Error("폐기된 일반지식 유형 T19는 활성 문제은행에 포함할 수 없습니다.");
   }
 
+  const typeCounts = source.questions.reduce((counts, question) => {
+    counts.set(question.typeId, (counts.get(question.typeId) || 0) + 1);
+    return counts;
+  }, new Map());
   const types = source.types.map(type => {
     const typeConfig = TYPE_CONFIG[type.id];
     if (!typeConfig) throw new Error(`유형 설정 누락: ${type.id}`);
     return {
       ...type,
+      count: typeCounts.get(type.id) || 0,
       domainId: typeConfig.domainId,
       scoreGroup: typeConfig.scoreGroup
     };
@@ -552,6 +696,7 @@ export function enrichBank(source) {
     const questionOrdinal = Number(question.id.split("-").at(-1));
     const sourceDifficulty =
       question.difficultyProfile?.sourceDifficulty ||
+      question.authoringDifficultyProfile?.authorLevel ||
       (alreadyEnriched ? questionOrdinal : question.difficulty);
     const profile = difficultyProfile(
       question,
@@ -575,27 +720,42 @@ export function enrichBank(source) {
       return {
         ...option,
         errorTag,
-        feedback: optionFeedback(
-          question,
-          option,
-          correctOption,
-          errorTag
-        )
+        feedback: typeof option.feedback === "string" &&
+            option.feedback.trim()
+          ? option.feedback
+          : optionFeedback(
+              question,
+              option,
+              correctOption,
+              errorTag
+            )
       };
     });
+    const answerIndex = options.findIndex(
+      option => option.id === question.correctOptionId
+    );
+    const sourceAnswerFeedback =
+      typeof correctOption.feedback === "string" &&
+      correctOption.feedback.trim()
+        ? correctOption.feedback
+        : question.answerFeedback || null;
     const enriched = {
       ...question,
       contentVersion: alreadyEnriched
         ? question.contentVersion
-        : question.contentVersion + 1,
+        : (Number(question.contentVersion) || 0) + 1,
       contentQualityVersion: CONTENT_QUALITY_VERSION,
       domainId: typeConfig.domainId,
       scoreGroup: typeConfig.scoreGroup,
       difficulty: profile.overall,
       difficultyProfile: profile,
       options,
+      answerIndex,
+      answerFeedback: sourceAnswerFeedback,
       explanation: structuredExplanation(question, typeConfig),
-      hints: [typeConfig.hint1, typeConfig.hint2]
+      hints: Array.isArray(question.hints) && question.hints.length >= 2
+        ? question.hints.slice(0, 2)
+        : [typeConfig.hint1, typeConfig.hint2]
     };
     return {
       ...enriched,
@@ -618,13 +778,17 @@ export function enrichBank(source) {
 
 export function assertGradingInvariants(source, enriched) {
   const sourceFingerprints = new Map(
-    source.questions.map(question => [
-      question.id,
-      question.gradingFingerprint
-    ])
+    source.questions
+      .filter(question => typeof question.gradingFingerprint === "string")
+      .map(question => [
+        question.id,
+        question.gradingFingerprint
+      ])
   );
   for (const question of enriched.questions) {
-    if (question.gradingFingerprint !== sourceFingerprints.get(question.id)) {
+    const sourceFingerprint = sourceFingerprints.get(question.id);
+    if (sourceFingerprint &&
+        question.gradingFingerprint !== sourceFingerprint) {
       throw new Error(`채점 의미가 변경되었습니다: ${question.id}`);
     }
   }

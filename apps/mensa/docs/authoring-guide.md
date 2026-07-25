@@ -1,9 +1,12 @@
 # 문제 제작 가이드
 
-## 1. JSON 하나만 원본으로 사용한다
+## 1. 소스와 실행용 문제은행을 구분한다
 
-문제와 유형은 `data/question-bank.json`에서만 편집합니다.
-브라우저도 이 JSON을 직접 읽으며, `answer-key.csv`는 생성 도구가 만듭니다.
+브라우저는 `data/question-bank.json`만 읽지만 이 파일은 병합 결과물입니다.
+심화 원본은 `data/advanced-question-bank-v1.json`, 신규 300문항 원본은
+`data/sources/mkat-original-300-v1.json.gz`에 보존하고 manifest의 SHA-256으로
+무결성을 확인합니다. `npm run build:bank`가 소스들을 병합해 실행용 JSON과
+`answer-key.csv`를 만듭니다.
 
 `question-bank.js` 같은 실행용 사본을 별도로 만들지 않습니다.
 
@@ -90,18 +93,20 @@
 `difficulty`는 다차원 프로필의 `overall`과 같아야 합니다. 프로필에는
 `ruleSteps`, `attributeLoad`, `workingMemory`, `visualComplexity`,
 `distractorSimilarity`, `timePressure`를 각각 1~5로 기록합니다.
-기존 1~5 기준은 `sourceDifficulty`에 보존합니다.
+원본 제작 난이도는 `sourceDifficulty`에 그대로 보존합니다. 신규 300문항의
+3~8 제작자 척도도 런타임 1~5 척도로 정규화하되 원본 값은 잃지 않습니다.
 
 ## 8. 인지 영역과 점수 그룹
 
 각 유형과 문항에는 `domainId`와 `scoreGroup`을 함께 둡니다.
 
 - 인지 영역: 도형 규칙, 순서·다중속성, 공간 추론, 수리·등가, 개수·주의,
-  지식·기억
+  문자·기호 추론
 - `core`: 핵심 추론 정확도에 포함
 - `supplemental`: 별도 보조 지표로만 표시
 
-현재 T19 일반지식과 T23 스트룹만 `supplemental`입니다.
+T19 일반지식은 활성 문제은행에서 완전히 제외하며, 현재 T23 스트룹만
+`supplemental`입니다.
 
 ## 9. SVG 안전성
 
@@ -118,13 +123,13 @@
 
 ## 10. 새 문제 또는 기존 문제 수정 절차
 
-1. `data/question-bank.json`을 편집합니다.
-2. 새 옵션에 고유 ID를 부여하고 `correctOptionId`를 지정합니다.
+1. 해당 소스 문제은행을 편집하고 고정된 소스라면 manifest 해시도 갱신합니다.
+2. 새 옵션에 문제 ID를 포함한 전역 고유 ID를 부여하고 `correctOptionId`를 지정합니다.
 3. 문제 내용 변경 시 `contentVersion`을 올립니다.
 4. 배포 단위가 바뀌면 `bankVersion`을 올립니다.
-5. 인지 영역·피드백·해설 생성 규칙을 수정했다면
+5. 프로젝트 루트에서 `npm run build:bank`를 실행합니다.
+6. 인지 영역·피드백·해설 생성 규칙을 수정했다면
    `npm run enrich:content`를 실행합니다.
-6. 프로젝트 루트에서 `npm run sync:bank`를 실행합니다.
 7. `npm test`를 실행합니다.
 8. `npm run test:release`로 실제 Chromium과 오프라인 흐름을 확인합니다.
 9. 모바일 폭 390px와 데스크톱에서 문제와 보기를 확인합니다.

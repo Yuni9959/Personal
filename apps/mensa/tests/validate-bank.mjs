@@ -20,6 +20,24 @@ if (!supportedProfiles.has(profile)) {
 
 const errors = [];
 const warnings = new Map();
+const EXPECTED_TYPE_IDS = [
+  "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
+  "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
+  "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25",
+  "T26"
+];
+const EXPECTED_TYPE_COUNTS = {
+  T01: 27, T02: 27, T03: 24, T04: 27, T05: 27,
+  T06: 27, T07: 27, T08: 26, T09: 27, T10: 27,
+  T11: 27, T12: 27, T13: 27, T14: 27, T15: 27,
+  T16: 27, T17: 27, T18: 23, T20: 27, T21: 27,
+  T22: 27, T23: 27, T24: 27, T25: 27, T26: 12
+};
+const EXPECTED_SOURCE_COUNTS = {
+  "foundation-v1": 120,
+  "advanced-v1": 232,
+  "mkat-original-300-v1": 300
+};
 
 function addWarning(code, id) {
   const items = warnings.get(code) || [];
@@ -77,21 +95,28 @@ if (data.schemaVersion !== 2) {
 if (typeof data.bankVersion !== "string" || !data.bankVersion.trim()) {
   errors.push("bankVersion이 없습니다.");
 }
-if (!Number.isInteger(data.contentQualityVersion) ||
-    data.contentQualityVersion < 1) {
-  addWarning("콘텐츠 품질 버전 미완료", "bank");
+if (data.contentQualityVersion !== 2) {
+  errors.push(`콘텐츠 품질 버전이 2가 아닙니다: ${data.contentQualityVersion}`);
 }
 if (!Array.isArray(data.types) || data.types.length !== 25) {
   errors.push(`유형 수가 25가 아닙니다: ${data.types?.length}`);
 }
-if (!Array.isArray(data.questions) || data.questions.length !== 125) {
-  errors.push(`문제 수가 125가 아닙니다: ${data.questions?.length}`);
+if (!Array.isArray(data.questions) || data.questions.length !== 652) {
+  errors.push(`문제 수가 652가 아닙니다: ${data.questions?.length}`);
 }
 if (!Array.isArray(data.cognitiveDomains) ||
     data.cognitiveDomains.length !== 6) {
   errors.push(
     `인지 영역 수가 6이 아닙니다: ${data.cognitiveDomains?.length}`
   );
+}
+if (data.policy?.generalKnowledgeExcluded !== true ||
+    !data.policy?.retiredTypeIds?.includes("T19")) {
+  errors.push("T19 일반지식 제외 정책 메타데이터가 없습니다.");
+}
+if (!Array.isArray(data.retiredQuestions) ||
+    data.retiredQuestions.length !== 8) {
+  errors.push(`중복 폐기 문항 수 오류: ${data.retiredQuestions?.length}`);
 }
 
 const typeIds = new Set();
@@ -154,27 +179,33 @@ for (const type of data.types || []) {
     errors.push(`유형 점수 그룹 오류: ${type.id} → ${type.scoreGroup}`);
   }
 }
+if ([...typeIds].join(",") !== EXPECTED_TYPE_IDS.join(",")) {
+  errors.push(`활성 유형 ID 불일치: ${[...typeIds].join(",")}`);
+}
 
 const supplementalTypeIds = (data.types || [])
   .filter(type => type.scoreGroup === "supplemental")
   .map(type => type.id)
   .sort();
-if (supplementalTypeIds.join(",") !== "T19,T23") {
+if (supplementalTypeIds.join(",") !== "T23") {
   errors.push(
-    `보조 점수 유형이 T19·T23과 다릅니다: ${supplementalTypeIds.join(",")}`
+    `보조 점수 유형이 T23과 다릅니다: ${supplementalTypeIds.join(",")}`
   );
 }
 
 const questionIds = new Set();
 const optionIds = new Set();
 const answerPositionsByOptionCount = new Map();
+const sourceCounts = new Map();
 
 for (const question of data.questions || []) {
   if (questionIds.has(question.id)) errors.push(`중복 문제 ID: ${question.id}`);
   questionIds.add(question.id);
 
-  if ("answerIndex" in question) {
-    errors.push(`answerIndex가 남아 있습니다: ${question.id}`);
+  if (!Number.isInteger(question.answerIndex) ||
+      question.answerIndex < 0 ||
+      question.answerIndex >= question.options?.length) {
+    errors.push(`answerIndex 오류: ${question.id}`);
   }
   if (!Number.isInteger(question.contentVersion) || question.contentVersion < 1) {
     errors.push(`contentVersion 오류: ${question.id}`);
@@ -186,6 +217,15 @@ for (const question of data.questions || []) {
     errors.push(`알 수 없는 유형 참조: ${question.id} → ${question.typeId}`);
   } else if (typeById.get(question.typeId).title !== question.typeTitle) {
     errors.push(`유형 제목 불일치: ${question.id}`);
+  }
+  if (question.typeId === "T19") {
+    errors.push(`폐기 유형 T19 문항 포함: ${question.id}`);
+  }
+  const sourceId = question.provenance?.sourceId;
+  if (!EXPECTED_SOURCE_COUNTS[sourceId]) {
+    errors.push(`문항 출처 오류: ${question.id} → ${sourceId}`);
+  } else {
+    sourceCounts.set(sourceId, (sourceCounts.get(sourceId) || 0) + 1);
   }
   if (!Number.isInteger(question.difficulty) ||
       question.difficulty < 1 ||
@@ -207,8 +247,7 @@ for (const question of data.questions || []) {
     errors.push(`문항 인지 영역 불일치: ${question.id}`);
   }
   if (!Array.isArray(question.options) ||
-      question.options.length < 6 ||
-      question.options.length > 9) {
+      ![6, 8].includes(question.options.length)) {
     errors.push(`보기 수 오류: ${question.id} (${question.options?.length})`);
     continue;
   }
@@ -255,7 +294,7 @@ for (const question of data.questions || []) {
     typeof difficultyProfile === "object" &&
     Number.isInteger(difficultyProfile.sourceDifficulty) &&
     difficultyProfile.sourceDifficulty >= 1 &&
-    difficultyProfile.sourceDifficulty <= 5 &&
+    difficultyProfile.sourceDifficulty <= 8 &&
     difficultyKeys.every(key =>
       Number.isInteger(difficultyProfile[key]) &&
       difficultyProfile[key] >= 1 &&
@@ -321,6 +360,10 @@ for (const question of data.questions || []) {
   if (!correctOption) {
     errors.push(`정답 옵션 ID 오류: ${question.id} → ${question.correctOptionId}`);
   } else {
+    if (question.options[question.answerIndex]?.id !==
+        question.correctOptionId) {
+      errors.push(`정답 인덱스 불일치: ${question.id}`);
+    }
     const optionCount = question.options.length;
     const positions = answerPositionsByOptionCount.get(optionCount) ||
       Array(optionCount).fill(0);
@@ -356,6 +399,26 @@ for (const type of data.types || []) {
     .length;
   if (actualCount !== type.count) {
     errors.push(`${type.id} 문제 수 불일치: 선언 ${type.count}, 실제 ${actualCount}`);
+  }
+  if (EXPECTED_TYPE_COUNTS[type.id] !== actualCount) {
+    errors.push(
+      `${type.id} 기대 문제 수 불일치: ` +
+      `${EXPECTED_TYPE_COUNTS[type.id]} != ${actualCount}`
+    );
+  }
+}
+
+if (optionIds.size !== 4270) {
+  errors.push(`전체 옵션 수가 4270이 아닙니다: ${optionIds.size}`);
+}
+for (const [sourceId, expectedCount] of Object.entries(
+  EXPECTED_SOURCE_COUNTS
+)) {
+  if (sourceCounts.get(sourceId) !== expectedCount) {
+    errors.push(
+      `${sourceId} 출처 문항 수 불일치: ` +
+      `${sourceCounts.get(sourceId)} != ${expectedCount}`
+    );
   }
 }
 

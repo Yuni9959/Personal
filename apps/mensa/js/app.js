@@ -374,13 +374,14 @@ function initializeApp(data, trainingStore, activeSessions = []) {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "type-card";
+        button.dataset.typeId = type.id;
         button.innerHTML = `
           <span class="type-code">${type.id} · ${type.category}</span>
           <strong>${escapeHtml(type.title)}</strong>
           <span class="type-accuracy">${
             accuracy == null ? "데이터 수집 중" : `${accuracy}%`
           }</span>
-          <small>학습 5문제 →</small>
+          <small>학습 ${type.count}문제 →</small>
         `;
         button.addEventListener("click", () => {
           void startSession("learn", type.id);
@@ -561,7 +562,7 @@ function initializeApp(data, trainingStore, activeSessions = []) {
       </section>
       <section class="analysis-table-card card">
         <h2>핵심 추론 영역</h2>
-        <p>T19 일반지식과 T23 스트룹을 제외한 능력 통계입니다.</p>
+        <p>T23 스트룹을 제외한 핵심 추론 능력 통계입니다.</p>
         <div class="analysis-table-wrap">
           <table class="analysis-table" data-analysis-table="domains">
             <thead>
@@ -597,7 +598,7 @@ function initializeApp(data, trainingStore, activeSessions = []) {
       </section>
       <section class="analysis-table-card card">
         <h2>보조 지표</h2>
-        <p>일반지식과 스트룹은 핵심 추론 점수에 합산하지 않습니다.</p>
+        <p>스트룹은 핵심 추론 점수와 분리해 보조 지표로 봅니다.</p>
         <div class="analysis-table-wrap">
           <table class="analysis-table" data-analysis-table="supplemental">
             <thead>

@@ -380,6 +380,38 @@ async function run() {
       await evaluate(client, "document.querySelectorAll('.mode-card').length"),
       5
     );
+    const bankInventory = await evaluate(client, `(async () => {
+      const bank = await fetch("./data/question-bank.json")
+        .then(response => response.json());
+      const sourceCounts = bank.questions.reduce((counts, question) => {
+        const sourceId = question.provenance?.sourceId || "missing";
+        counts[sourceId] = (counts[sourceId] || 0) + 1;
+        return counts;
+      }, {});
+      return {
+        questionCount: bank.questions.length,
+        typeIds: bank.types.map(type => type.id),
+        sourceCounts,
+        hasRetiredT19: bank.types.some(type => type.id === "T19") ||
+          bank.questions.some(question => question.typeId === "T19")
+      };
+    })()`);
+    assert.equal(bankInventory.questionCount, 652);
+    assert.deepEqual(bankInventory.sourceCounts, {
+      "foundation-v1": 120,
+      "advanced-v1": 232,
+      "mkat-original-300-v1": 300
+    });
+    assert.equal(bankInventory.typeIds.length, 25);
+    assert.equal(bankInventory.typeIds.includes("T26"), true);
+    assert.equal(bankInventory.hasRetiredT19, false);
+    assert.match(
+      await evaluate(
+        client,
+        "document.querySelector('[data-type-id=\"T26\"]').textContent"
+      ),
+      /학습 12문제/
+    );
 
     const resourceNames = await evaluate(
       client,
@@ -444,14 +476,14 @@ async function run() {
         client,
         "document.querySelectorAll('[data-analysis-table=\"domains\"] tbody tr').length"
       ),
-      5
+      6
     );
     assert.equal(
       await evaluate(
         client,
         "document.querySelectorAll('[data-analysis-table=\"supplemental\"] tbody tr').length"
       ),
-      2
+      1
     );
     assert.equal(
       await evaluate(client, "document.querySelectorAll('.difficulty-stat').length"),
@@ -965,8 +997,28 @@ async function run() {
       "!document.querySelector('#homeView').classList.contains('hidden')"
     );
 
-    await evaluate(client, "document.querySelector('.type-card').click(); true");
-    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 5'");
+    await evaluate(
+      client,
+      "document.querySelector('[data-type-id=\"T01\"]').click(); true"
+    );
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 27'");
+    const mixedTypeSession = (await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.mode === "learn" &&
+        record.typeId === "T01"
+      )
+    )).find(record =>
+      record.status === "active" &&
+      record.mode === "learn" &&
+      record.typeId === "T01"
+    );
+    assert.equal(mixedTypeSession.queueQuestionIds.length, 27);
+    assert.equal(mixedTypeSession.queueQuestionIds.includes("T01-01"), true);
+    assert.equal(mixedTypeSession.queueQuestionIds.includes("T01-06"), true);
+    assert.equal(mixedTypeSession.queueQuestionIds.includes("T01-16"), true);
     assert.equal(
       await evaluate(client, "document.querySelector('#questionMeta').classList.contains('hidden')"),
       false
@@ -1013,12 +1065,42 @@ async function run() {
       record.status === "active" && record.mode === "learn"
     );
     assert.equal(hintSession.hintUsedQuestionIds.includes(hintQuestionId), true);
-    console.log("[smoke] 유형 학습 2단계 힌트");
+    console.log("[smoke] 기존·심화·신규 혼합 유형 학습과 2단계 힌트");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
     await waitForCondition(
       client,
       "!document.querySelector('#homeView').classList.contains('hidden')"
     );
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    await evaluate(
+      client,
+      "document.querySelector('[data-type-id=\"T26\"]').click(); true"
+    );
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 12'");
+    assert.match(
+      await evaluate(client, "document.querySelector('#options').dataset.questionId"),
+      /^T26-/
+    );
+    assert.ok(
+      await evaluate(client, "document.querySelectorAll('.option-button').length >= 6")
+    );
+    assert.equal(
+      await evaluate(client, "document.documentElement.scrollWidth <= window.innerWidth"),
+      true
+    );
+    await captureOptionalScreenshot(client, "t26-learning-mobile");
+    await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
+    await client.send("Emulation.clearDeviceMetricsOverride");
+    console.log("[smoke] 신규 T26 390px 모바일 렌더링");
     await evaluate(
       client,
       "document.querySelector('#viewDetailedStatsBtn').click(); true"

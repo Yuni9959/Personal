@@ -7,7 +7,7 @@ import {
 
 const cognitiveDomains = [
   { id: "figures", label: "도형", description: "도형 규칙" },
-  { id: "knowledge", label: "지식", description: "지식 회상" }
+  { id: "attention", label: "주의", description: "선택적 주의" }
 ];
 const types = [
   {
@@ -23,9 +23,9 @@ const types = [
     scoreGroup: "core"
   },
   {
-    id: "T19",
-    title: "수도 지식",
-    domainId: "knowledge",
+    id: "T23",
+    title: "스트룹",
+    domainId: "attention",
     scoreGroup: "supplemental"
   }
 ];
@@ -45,9 +45,9 @@ const questions = [
     difficulty: 4
   },
   {
-    id: "T19-01",
-    typeId: "T19",
-    domainId: "knowledge",
+    id: "T23-01",
+    typeId: "T23",
+    domainId: "attention",
     scoreGroup: "supplemental",
     difficulty: 1
   }
@@ -95,7 +95,9 @@ test("핵심 추론과 보조 유형을 분리하고 유형별 최근 표본을 
         inferredErrorTag: "direction-reversal"
       }),
       attempt({
-        questionId: "T19-01",
+        questionId: "T23-01",
+        domainId: "knowledge-memory",
+        scoreGroup: "core",
         elapsedMs: 2000,
         submittedAt: 3000
       }),
@@ -139,7 +141,7 @@ test("핵심 추론과 보조 유형을 분리하고 유형별 최근 표본을 
 
   assert.equal(analytics.domainRows.length, 1);
   assert.equal(analytics.domainRows[0].id, "figures");
-  assert.equal(analytics.supplementalRows[0].id, "T19");
+  assert.equal(analytics.supplementalRows[0].id, "T23");
   assert.equal(
     analytics.difficultyRows.find(row => row.id === 2).attempts,
     2

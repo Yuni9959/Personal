@@ -43,9 +43,9 @@ function withQuestionContext(attempt, questionById) {
 
   return {
     ...attempt,
-    typeId: attempt.typeId || question.typeId,
-    domainId: attempt.domainId || question.domainId,
-    scoreGroup: attempt.scoreGroup || question.scoreGroup || "core",
+    typeId: question.typeId || attempt.typeId,
+    domainId: question.domainId || attempt.domainId,
+    scoreGroup: question.scoreGroup || attempt.scoreGroup || "core",
     difficulty: Number(attempt.difficulty || question.difficulty || 1)
   };
 }
