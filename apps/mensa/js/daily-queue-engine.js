@@ -74,8 +74,10 @@ function buildQuestionFacts(questions, attempts, progressById) {
 
   for (const question of questions) {
     const progress = progressById.get(question.id);
-    if (progress &&
-        progress.contentVersion !== question.contentVersion) {
+    const compatibleProgress = progress?.gradingFingerprint
+      ? progress.gradingFingerprint === question.gradingFingerprint
+      : progress?.contentVersion === question.contentVersion;
+    if (progress && !compatibleProgress) {
       progressById.delete(question.id);
     }
   }
@@ -120,6 +122,7 @@ function createSelector({
     selected.push({
       questionId: question.id,
       contentVersion: question.contentVersion,
+      gradingFingerprint: question.gradingFingerprint || null,
       reason
     });
     selectedIds.add(question.id);
@@ -374,9 +377,10 @@ export function buildDailyQueue({
 
 function validStoredItem(item, questionById, usedIds) {
   const question = questionById.get(item?.questionId);
-  if (!question ||
-      question.contentVersion !== item.contentVersion ||
-      usedIds.has(question.id)) {
+  const compatibleVersion = item?.gradingFingerprint
+    ? question?.gradingFingerprint === item.gradingFingerprint
+    : question?.contentVersion === item?.contentVersion;
+  if (!question || !compatibleVersion || usedIds.has(question.id)) {
     return false;
   }
   usedIds.add(question.id);

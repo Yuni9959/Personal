@@ -63,12 +63,14 @@ export function masteryDescriptor(level) {
 
 export function blankQuestionProgress(
   questionId,
-  contentVersion = null
+  contentVersion = null,
+  gradingFingerprint = null
 ) {
   return {
     schemaVersion: MASTERY_SCHEMA_VERSION,
     questionId,
     contentVersion,
+    gradingFingerprint,
     level: 0,
     status: "new",
     dueAt: null,
@@ -94,8 +96,17 @@ export function blankQuestionProgress(
   };
 }
 
-function normalizeProgress(value, questionId, contentVersion) {
-  const seed = blankQuestionProgress(questionId, contentVersion);
+function normalizeProgress(
+  value,
+  questionId,
+  contentVersion,
+  gradingFingerprint
+) {
+  const seed = blankQuestionProgress(
+    questionId,
+    contentVersion,
+    gradingFingerprint
+  );
   if (!value || typeof value !== "object") return seed;
 
   const level = boundedLevel(value.level);
@@ -105,6 +116,8 @@ function normalizeProgress(value, questionId, contentVersion) {
     schemaVersion: MASTERY_SCHEMA_VERSION,
     questionId,
     contentVersion: contentVersion ?? value.contentVersion ?? null,
+    gradingFingerprint:
+      gradingFingerprint ?? value.gradingFingerprint ?? null,
     level,
     status: masteryDescriptor(level).status,
     attempts: nonNegativeInteger(value.attempts),
@@ -127,7 +140,8 @@ export function applyAttemptToProgress(previous, attempt) {
   const progress = normalizeProgress(
     previous,
     attempt.questionId,
-    attempt.contentVersion
+    attempt.contentVersion,
+    attempt.gradingFingerprint
   );
   if (attempt.skipped) return progress;
 
@@ -154,6 +168,8 @@ export function applyAttemptToProgress(previous, attempt) {
   }
 
   progress.contentVersion = attempt.contentVersion ?? progress.contentVersion;
+  progress.gradingFingerprint =
+    attempt.gradingFingerprint ?? progress.gradingFingerprint;
   progress.lastResult = correct ? "correct" : "wrong";
   progress.lastMode = attempt.mode || null;
   progress.lastAttemptAt = Number(attempt.submittedAt) || null;

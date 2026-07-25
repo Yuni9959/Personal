@@ -8,6 +8,16 @@ const mensaRoot = path.resolve(here, "..");
 const dataPath = path.join(mensaRoot, "data", "question-bank.json");
 const outputPath = path.join(mensaRoot, "data", "answer-key.csv");
 
+function explanationText(explanation) {
+  if (typeof explanation === "string") return explanation;
+  if (!explanation || typeof explanation !== "object") return "";
+  return [
+    explanation.rule && `규칙: ${explanation.rule}`,
+    explanation.application && `적용: ${explanation.application}`,
+    explanation.verification && `검산: ${explanation.verification}`
+  ].filter(Boolean).join(" ");
+}
+
 export function renderAnswerKey(bank) {
   const header = [
     "id",
@@ -39,7 +49,7 @@ export function renderAnswerKey(bank) {
       question.correctOptionId,
       answerIndex + 1,
       question.gradingFingerprint,
-      question.explanation
+      explanationText(question.explanation)
     ];
   });
 

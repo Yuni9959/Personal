@@ -1,6 +1,10 @@
 import { loadQuestionBank } from "./bank-loader.js";
 import { hashString, shuffled } from "./random.js";
 import {
+  buildDetailedAnalytics,
+  median
+} from "./analytics-model.js";
+import {
   attemptEligibility,
   createRecordId,
   localDateKey
@@ -56,7 +60,12 @@ async function bootstrap() {
 function initializeApp(data, trainingStore, activeSessions = []) {
   const bank = data.questions;
   const types = data.types;
+  const cognitiveDomains = data.cognitiveDomains || [];
+  const errorTaxonomy = data.errorTaxonomy || [];
   const bankById = new Map(bank.map(question => [question.id, question]));
+  const errorTaxonomyById = new Map(
+    errorTaxonomy.map(item => [item.id, item])
+  );
 
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
@@ -124,6 +133,7 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     feedbackIcon: $("#feedbackIcon"),
     feedbackTitle: $("#feedbackTitle"),
     feedbackSubtitle: $("#feedbackSubtitle"),
+    optionFeedback: $("#optionFeedback"),
     explanation: $("#explanation"),
     trapBox: $("#trapBox"),
     nextBtn: $("#nextBtn"),
@@ -401,66 +411,122 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     `;
   }
 
-  function percentLabel(correct, attempts) {
-    return attempts ? `${Math.round(correct / attempts * 100)}%` : "—";
+  function formatPercent(value) {
+    return value == null ? "—" : `${value}%`;
+  }
+
+  function formatSeconds(value) {
+    return value == null ? "—" : `${Math.round(value / 1000)}초`;
   }
 
   function renderDetailedStats() {
-    const attempts = trainingStore.getAllAttempts().filter(
-      attempt => attempt && !attempt.skipped
-    );
-    const firstPass = attempts.filter(attempt => attempt.firstPass);
-    const ability = attempts.filter(
-      attempt => attempt.eligibleForAbilityStats
-    );
-    const timedCorrect = firstPass.filter(
-      attempt => attempt.correct && !attempt.overtime
-    ).length;
-    const overtime = firstPass.filter(attempt => attempt.overtime).length;
-    const firstPassMedian = Math.round(
-      median(firstPass.map(attempt => attempt.elapsedMs || 0)) / 1000
-    );
-    const typeRows = types.map(type => {
-      const samples = ability.filter(attempt =>
-        bankById.get(attempt.questionId)?.typeId === type.id
-      );
-      const correct = samples.filter(attempt => attempt.correct).length;
-      const seconds = Math.round(
-        median(samples.map(attempt => attempt.elapsedMs || 0)) / 1000
-      );
+    const analytics = buildDetailedAnalytics({
+      attempts: trainingStore.getAllAttempts(),
+      questions: bank,
+      types,
+      cognitiveDomains,
+      errorTaxonomy
+    });
+    const domainRows = analytics.domainRows.map(row => `
+      <tr>
+        <td>${escapeHtml(row.label)}</td>
+        <td>${row.typeIds.join(" · ")}</td>
+        <td>${row.attempts}</td>
+        <td class="${row.sampleSufficient ? "" : "collecting"}">
+          ${row.sampleSufficient
+            ? formatPercent(row.accuracy)
+            : "데이터 수집 중"}
+        </td>
+        <td>${formatSeconds(row.medianElapsedMs)}</td>
+      </tr>
+    `).join("");
+    const supplementalRows = analytics.supplementalRows.map(row => `
+      <tr>
+        <td>${row.id}</td>
+        <td>${escapeHtml(row.title)}</td>
+        <td>${row.totalSamples}</td>
+        <td class="${row.sampleSufficient ? "" : "collecting"}">
+          ${row.sampleSufficient
+            ? formatPercent(row.accuracy)
+            : "데이터 수집 중"}
+        </td>
+        <td>${formatSeconds(row.medianElapsedMs)}</td>
+      </tr>
+    `).join("");
+    const typeRows = analytics.typeRows.map(row => {
       return `
         <tr>
-          <td>${type.id}</td>
-          <td>${escapeHtml(type.title)}</td>
-          <td>${samples.length}</td>
-          <td class="${samples.length < 2 ? "collecting" : ""}">
-            ${samples.length < 2 ? "수집 중" : percentLabel(correct, samples.length)}
+          <td>${row.id}</td>
+          <td>${escapeHtml(row.title)}</td>
+          <td>${row.scoreGroup === "core" ? "핵심" : "보조"}</td>
+          <td>${row.totalSamples}</td>
+          <td>${row.attempts}</td>
+          <td class="${row.sampleSufficient ? "" : "collecting"}">
+            ${row.sampleSufficient
+              ? formatPercent(row.accuracy)
+              : "데이터 수집 중"}
           </td>
-          <td>${samples.length ? `${seconds}초` : "—"}</td>
+          <td>${formatSeconds(row.medianElapsedMs)}</td>
         </tr>
       `;
     }).join("");
+    const difficultyCards = analytics.difficultyRows.map(row => `
+      <div class="difficulty-stat">
+        <span>난이도 ${row.id}</span>
+        <strong>${formatPercent(row.accuracy)}</strong>
+        <small>${row.attempts}회 · ${formatSeconds(row.medianElapsedMs)}</small>
+      </div>
+    `).join("");
+    const errorRows = analytics.errors.rows.slice(0, 8).map(row => `
+      <div class="error-row">
+        <div>
+          <strong>${escapeHtml(row.label)}</strong>
+          <span>${row.count}회</span>
+        </div>
+        <div class="error-bar" aria-hidden="true">
+          <span style="--error-share: ${Math.max(3, row.share || 0)}%"></span>
+        </div>
+        <small>${formatPercent(row.share)}</small>
+      </div>
+    `).join("");
+    const recommendedTypes = analytics.recommendations.weakTypes.length
+      ? analytics.recommendations.weakTypes
+      : analytics.recommendations.collectingTypes;
+    const recommendationLabel = analytics.recommendations.weakTypes.length
+      ? "최근 정확도와 풀이시간을 기준으로 우선 복습"
+      : "아직 약점 판정 표본이 부족해 우선 데이터 수집";
+    const recommendationChips = recommendedTypes.length
+      ? recommendedTypes.map(row => `
+          <span class="recommendation-chip">
+            ${row.id} · ${escapeHtml(row.title)}
+          </span>
+        `).join("")
+      : '<span class="recommendation-empty">훈련 기록이 쌓이면 자동으로 추천합니다.</span>';
+    const topErrorChips = analytics.recommendations.topErrors.length
+      ? analytics.recommendations.topErrors.map(row => `
+          <span class="error-chip">${escapeHtml(row.label)} ${row.count}회</span>
+        `).join("")
+      : '<span class="recommendation-empty">분류된 첫 제출 오답이 아직 없습니다.</span>';
 
     els.detailedStatsPanel.innerHTML = `
       <div class="analysis-metrics">
         <div class="analysis-metric">
           <span>첫 통과 정확도</span>
-          <strong>${percentLabel(
-            firstPass.filter(attempt => attempt.correct).length,
-            firstPass.length
-          )}</strong>
+          <strong>${formatPercent(analytics.firstPass.accuracy)}</strong>
         </div>
         <div class="analysis-metric">
           <span>시간 내 정확도</span>
-          <strong>${percentLabel(timedCorrect, firstPass.length)}</strong>
+          <strong>${formatPercent(analytics.timedAccuracy)}</strong>
         </div>
         <div class="analysis-metric">
           <span>중앙 풀이시간</span>
-          <strong>${firstPass.length ? `${firstPassMedian}초` : "—"}</strong>
+          <strong>${formatSeconds(
+            analytics.firstPass.medianElapsedMs
+          )}</strong>
         </div>
         <div class="analysis-metric">
           <span>시간초과율</span>
-          <strong>${percentLabel(overtime, firstPass.length)}</strong>
+          <strong>${formatPercent(analytics.firstPass.overtimeRate)}</strong>
         </div>
         <div class="analysis-metric">
           <span>숙달 문제</span>
@@ -471,25 +537,95 @@ function initializeApp(data, trainingStore, activeSessions = []) {
           <strong>${stats.mastery?.reviewDue || 0}개</strong>
         </div>
         <div class="analysis-metric">
-          <span>능력 통계 표본</span>
-          <strong>${ability.length}회</strong>
+          <span>핵심 추론 정확도</span>
+          <strong>${formatPercent(analytics.coreAbility.accuracy)}</strong>
         </div>
         <div class="analysis-metric">
-          <span>목표 완주 연속</span>
-          <strong>${stats.completionStreak || 0}일</strong>
+          <span>보조 유형 정확도</span>
+          <strong>${formatPercent(
+            analytics.supplementalAbility.accuracy
+          )}</strong>
         </div>
       </div>
+      <section class="analysis-recommendation card">
+        <div>
+          <p class="eyebrow">NEXT TRAINING</p>
+          <h2>다음 추천 훈련</h2>
+          <p>${recommendationLabel}</p>
+        </div>
+        <div class="recommendation-chips">${recommendationChips}</div>
+        <div class="recommendation-errors">
+          <strong>자주 나타난 첫 제출 오류</strong>
+          <div>${topErrorChips}</div>
+        </div>
+      </section>
       <section class="analysis-table-card card">
-        <h2>유형별 능력 표본</h2>
-        <p>진단·실전·오늘의 훈련 첫 제출만 반영하며, 2회 미만은 약점으로 단정하지 않습니다.</p>
+        <h2>핵심 추론 영역</h2>
+        <p>T19 일반지식과 T23 스트룹을 제외한 능력 통계입니다.</p>
         <div class="analysis-table-wrap">
-          <table class="analysis-table">
+          <table class="analysis-table" data-analysis-table="domains">
+            <thead>
+              <tr>
+                <th>영역</th>
+                <th>유형</th>
+                <th>표본</th>
+                <th>정확도</th>
+                <th>중앙 시간</th>
+              </tr>
+            </thead>
+            <tbody>${domainRows}</tbody>
+          </table>
+        </div>
+      </section>
+      <section class="analysis-split">
+        <article class="analysis-table-card card">
+          <h2>난이도별 핵심 성과</h2>
+          <p>다차원 프로필의 종합 난이도를 기준으로 묶었습니다.</p>
+          <div class="difficulty-grid">${difficultyCards}</div>
+        </article>
+        <article class="analysis-table-card card">
+          <h2>첫 제출 오답 원인</h2>
+          <p>
+            ${analytics.errors.totalWrongFirstPass}개 오답 중
+            ${analytics.errors.classified}개를 선택지 근거로 분류했습니다.
+          </p>
+          <div class="error-list">
+            ${errorRows ||
+              '<p class="analysis-empty">분류할 오답이 아직 없습니다.</p>'}
+          </div>
+        </article>
+      </section>
+      <section class="analysis-table-card card">
+        <h2>보조 지표</h2>
+        <p>일반지식과 스트룹은 핵심 추론 점수에 합산하지 않습니다.</p>
+        <div class="analysis-table-wrap">
+          <table class="analysis-table" data-analysis-table="supplemental">
             <thead>
               <tr>
                 <th>유형</th>
                 <th>이름</th>
-                <th>표본</th>
-                <th>정확도</th>
+                <th>전체 표본</th>
+                <th>최근 정확도</th>
+                <th>중앙 시간</th>
+              </tr>
+            </thead>
+            <tbody>${supplementalRows}</tbody>
+          </table>
+        </div>
+      </section>
+      <section class="analysis-table-card card">
+        <h2>유형별 최근 10회</h2>
+        <p>진단·실전·오늘의 훈련 첫 제출만 반영하며, 전체 표본 2회 미만은 약점으로 단정하지 않습니다.</p>
+        <div class="analysis-table-wrap">
+          <table class="analysis-table" data-analysis-table="types">
+            <thead>
+              <tr>
+                <th>유형</th>
+                <th>이름</th>
+                <th>구분</th>
+                <th>전체</th>
+                <th>최근</th>
+                <th>최근 정확도</th>
                 <th>중앙 시간</th>
               </tr>
             </thead>
@@ -792,13 +928,33 @@ function initializeApp(data, trainingStore, activeSessions = []) {
 
   function renderHint(question, policy) {
     els.hintPanel.classList.toggle("hidden", !policy.allowHint);
-    const used = session.hintUsedQuestionIds.includes(question.id);
-    els.hintText.hidden = !used;
-    els.hintBtn.textContent = used ? "힌트 확인됨" : "힌트 보기";
-    els.hintBtn.disabled = used;
-    els.hintText.textContent = question.hints?.[0] ||
-      `핵심 기술은 '${question.skills?.[0] || "조건 분리"}'입니다. ` +
-      "개수·위치·방향을 각각 나눠 확인해 보세요.";
+    const hints = Array.isArray(question.hints) && question.hints.length
+      ? question.hints.slice(0, 2)
+      : [
+          `핵심 기술은 '${question.skills?.[0] || "조건 분리"}'입니다.`,
+          "개수·위치·방향을 각각 나눠 마지막에 다시 결합하세요."
+        ];
+    const legacyUsed = session.hintUsedQuestionIds.includes(question.id);
+    const level = Math.min(
+      hints.length,
+      Number(session.hintLevels?.[question.id]) || (legacyUsed ? 1 : 0)
+    );
+    els.hintText.hidden = level === 0;
+    els.hintText.innerHTML = hints
+      .slice(0, level)
+      .map((hint, index) => `
+        <p>
+          <strong>힌트 ${index + 1}</strong>
+          <span>${escapeHtml(hint)}</span>
+        </p>
+      `)
+      .join("");
+    els.hintBtn.textContent = level === 0
+      ? "힌트 1 보기"
+      : level < hints.length
+        ? `힌트 ${level + 1} 보기`
+        : "힌트 모두 확인";
+    els.hintBtn.disabled = level >= hints.length;
   }
 
   function renderOptionButtons(question, policy) {
@@ -952,12 +1108,26 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     els.questionMeta.classList.toggle("hidden", !policy.showQuestionMeta);
     els.typeBadge.textContent = `${question.typeId} · ${question.typeTitle}`;
     els.difficultyBadge.textContent = `난이도 ${question.difficulty}`;
+    const profile = question.difficultyProfile;
+    els.difficultyBadge.title = profile
+      ? [
+          `규칙 단계 ${profile.ruleSteps}`,
+          `속성 부하 ${profile.attributeLoad}`,
+          `작업 기억 ${profile.workingMemory}`,
+          `시각 복잡도 ${profile.visualComplexity}`,
+          `오답 유사도 ${profile.distractorSimilarity}`,
+          `시간 압박 ${profile.timePressure}`
+        ].join(" · ")
+      : "";
     els.skillBadge.textContent = question.skills.slice(0, 2).join(" · ");
     els.prompt.textContent = question.prompt;
     els.stimulus.innerHTML = question.stimulusSvg || "";
     els.zoomStimulusBtn.hidden = !question.stimulusSvg;
     els.feedback.classList.add("hidden");
     els.feedback.classList.remove("correct-feedback", "wrong-feedback");
+    els.optionFeedback.hidden = true;
+    els.optionFeedback.replaceChildren();
+    els.explanation.replaceChildren();
     renderHint(question, policy);
 
     if (deferred && session.pendingSelectionId == null) {
@@ -1029,7 +1199,12 @@ function initializeApp(data, trainingStore, activeSessions = []) {
       sessionId: session.sessionId,
       questionId: question.id,
       contentVersion: question.contentVersion,
+      gradingFingerprint: question.gradingFingerprint,
       bankVersion: data.bankVersion,
+      typeId: question.typeId,
+      domainId: question.domainId || null,
+      scoreGroup: question.scoreGroup || "core",
+      difficulty: question.difficulty,
       mode: session.mode,
       localDate: localDateKey(new Date(submittedAt)),
 
@@ -1125,6 +1300,43 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     renderStoredFeedback(question, session.answers.at(-1));
   }
 
+  function renderExplanation(explanation) {
+    const sections = typeof explanation === "string"
+      ? [{ label: "해설", text: explanation }]
+      : [
+          { label: "규칙", text: explanation?.rule },
+          { label: "적용", text: explanation?.application },
+          { label: "검산", text: explanation?.verification }
+        ].filter(section => section.text);
+
+    els.explanation.replaceChildren();
+    for (const section of sections) {
+      const item = document.createElement("section");
+      item.className = "explanation-step";
+      const label = document.createElement("strong");
+      label.textContent = section.label;
+      const text = document.createElement("p");
+      text.textContent = section.text;
+      item.append(label, text);
+      els.explanation.appendChild(item);
+    }
+  }
+
+  function renderOptionFeedback(selectedOption) {
+    const feedback = selectedOption?.feedback;
+    els.optionFeedback.hidden = !feedback;
+    els.optionFeedback.replaceChildren();
+    if (!feedback) return;
+
+    const label = errorTaxonomyById.get(selectedOption.errorTag)?.label ||
+      "선택 과정 점검";
+    const title = document.createElement("strong");
+    title.textContent = `오답 원인 · ${label}`;
+    const copy = document.createElement("p");
+    copy.textContent = feedback;
+    els.optionFeedback.append(title, copy);
+  }
+
   function renderStoredFeedback(question, answer) {
     const correctIndex = question.options.findIndex(
       option => option.id === question.correctOptionId
@@ -1162,9 +1374,8 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     const selectedOption = question.options.find(
       option => option.id === answer.selectedOptionId
     );
-    els.explanation.textContent =
-      (!answer.correct && selectedOption?.feedback) ||
-      question.explanation;
+    renderOptionFeedback(answer.correct ? null : selectedOption);
+    renderExplanation(question.explanation);
     els.trapBox.textContent = question.trap
       ? `실전 함정: ${question.trap}`
       : "정답을 선택한 뒤 개수·위치·방향을 마지막으로 확인하세요.";
@@ -1371,15 +1582,6 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     showResults();
   }
 
-  function median(values) {
-    if (!values.length) return 0;
-    const sorted = [...values].sort((left, right) => left - right);
-    const middle = Math.floor(sorted.length / 2);
-    return sorted.length % 2
-      ? sorted[middle]
-      : Math.round((sorted[middle - 1] + sorted[middle]) / 2);
-  }
-
   function showResults({ automatic = false } = {}) {
     clearTimer();
     const total = session.queue.length;
@@ -1477,11 +1679,25 @@ function initializeApp(data, trainingStore, activeSessions = []) {
 
   function revealHint() {
     if (!session || !currentPolicy().allowHint) return;
-    const questionId = currentQuestion().id;
+    const question = currentQuestion();
+    const questionId = question.id;
+    const maxLevel = Math.min(
+      2,
+      Array.isArray(question.hints) && question.hints.length
+        ? question.hints.length
+        : 2
+    );
+    session.hintLevels ||= {};
+    const currentLevel = Math.min(
+      maxLevel,
+      Number(session.hintLevels[questionId]) || 0
+    );
+    if (currentLevel >= maxLevel) return;
+    session.hintLevels[questionId] = currentLevel + 1;
     if (!session.hintUsedQuestionIds.includes(questionId)) {
       session.hintUsedQuestionIds.push(questionId);
     }
-    renderHint(currentQuestion(), currentPolicy());
+    renderHint(question, currentPolicy());
     void persistSession();
   }
 

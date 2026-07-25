@@ -14,6 +14,7 @@ function attempt(overrides = {}) {
     sessionId: "session-1",
     questionId: "T01-01",
     contentVersion: 1,
+    gradingFingerprint: "fingerprint-1",
     mode: "daily",
     localDate: "2026-07-25",
     correct: true,
@@ -36,6 +37,7 @@ test("유효 정답은 서로 다른 날에 3회 성공하면 숙달 단계가 �
     localDate: "2026-07-01"
   }));
   assert.equal(progress.level, 1);
+  assert.equal(progress.gradingFingerprint, "fingerprint-1");
   assert.equal(progress.dueAt, "2026-07-04");
 
   progress = applyAttemptToProgress(progress, attempt({

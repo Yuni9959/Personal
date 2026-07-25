@@ -10,7 +10,7 @@
 ## 2. 한 문제에 한 개의 정답만 존재해야 한다
 
 보기의 시각적 차이가 작더라도 데이터 수준에서는 중복되지 않아야 합니다.
-새 문제를 추가한 뒤 반드시 Foundation 검증과 자동 테스트를 실행합니다.
+새 문제를 추가한 뒤 반드시 `content-complete` 검증과 자동 테스트를 실행합니다.
 
 ## 3. 정답은 보기 순서와 분리한다
 
@@ -53,17 +53,31 @@
 - 한 선이나 한 면을 누락함
 - 계산한 숫자와 비슷한 숫자를 잘못 누름
 
-Foundation 단계에서는 `errorTag`와 선택지별 `feedback`이 없어도 검증을
-통과하지만 품질 경고가 표시됩니다. 콘텐츠 고도화 단계에서 채웁니다.
+현재 `content-complete` 프로필에서는 모든 오답 보기에 `errorTag`와
+선택지별 `feedback`이 있어야 합니다. 정답 보기의 두 필드는 `null`이어야
+합니다. 태그는 문제은행 최상위 `errorTaxonomy`에 등록된 값만 사용합니다.
 
 ## 6. 설명은 규칙과 적용을 구분한다
 
-현재 문자열 해설은 유지할 수 있습니다. 콘텐츠 고도화 시 다음 구조로
-점진적으로 전환합니다.
+모든 해설은 다음 세 필드를 가진 객체로 작성합니다.
 
-1. 규칙을 한 문장으로 선언합니다.
-2. 해당 문제의 구체적 값에 규칙을 적용합니다.
-3. 필요한 경우 최종 검산을 덧붙입니다.
+```json
+{
+  "explanation": {
+    "rule": "규칙을 한 문장으로 선언합니다.",
+    "application": "해당 문제의 값에 규칙을 적용합니다.",
+    "verification": "최종 답을 다른 방향으로 검산합니다."
+  },
+  "hints": [
+    "첫 번째 힌트는 관찰 대상을 좁힙니다.",
+    "두 번째 힌트는 적용 순서를 안내합니다."
+  ]
+}
+```
+
+힌트는 정답을 직접 말하지 않으며, 첫 단계보다 두 번째 단계가 더 구체적이어야
+합니다. 힌트를 사용한 정답은 일일 목표에는 포함하지만 숙달·능력 통계에서는
+제외합니다.
 
 ## 7. 난이도 기준
 
@@ -73,10 +87,23 @@ Foundation 단계에서는 `errorTag`와 선택지별 `feedback`이 없어도 �
 - 4: 서로 다른 주기·방향을 동시에 추적
 - 5: 복합 규칙, 작업기억 부담, 강한 오답 유혹
 
-현재 숫자 난이도는 유지합니다. 다차원 난이도는 후속 콘텐츠 단계에서
-추가하며, Foundation 검증에서는 누락 경고만 출력합니다.
+`difficulty`는 다차원 프로필의 `overall`과 같아야 합니다. 프로필에는
+`ruleSteps`, `attributeLoad`, `workingMemory`, `visualComplexity`,
+`distractorSimilarity`, `timePressure`를 각각 1~5로 기록합니다.
+기존 1~5 기준은 `sourceDifficulty`에 보존합니다.
 
-## 8. SVG 안전성
+## 8. 인지 영역과 점수 그룹
+
+각 유형과 문항에는 `domainId`와 `scoreGroup`을 함께 둡니다.
+
+- 인지 영역: 도형 규칙, 순서·다중속성, 공간 추론, 수리·등가, 개수·주의,
+  지식·기억
+- `core`: 핵심 추론 정확도에 포함
+- `supplemental`: 별도 보조 지표로만 표시
+
+현재 T19 일반지식과 T23 스트룹만 `supplemental`입니다.
+
+## 9. SVG 안전성
 
 `stimulusSvg`와 보기 SVG는 검토된 로컬 정적 데이터만 사용합니다.
 외부 사용자 입력을 SVG에 삽입하지 않습니다.
@@ -89,16 +116,24 @@ Foundation 단계에서는 `errorTag`와 선택지별 `feedback`이 없어도 �
 - `javascript:` URL
 - 외부 HTTP(S) `href`
 
-## 9. 새 문제 또는 기존 문제 수정 절차
+## 10. 새 문제 또는 기존 문제 수정 절차
 
 1. `data/question-bank.json`을 편집합니다.
 2. 새 옵션에 고유 ID를 부여하고 `correctOptionId`를 지정합니다.
 3. 문제 내용 변경 시 `contentVersion`을 올립니다.
 4. 배포 단위가 바뀌면 `bankVersion`을 올립니다.
-5. 프로젝트 루트에서 `npm run sync:bank`를 실행합니다.
-6. `npm test`를 실행합니다.
-7. 모바일 폭 390px와 데스크톱에서 문제와 보기를 확인합니다.
-8. 배포 시 `sw.js`의 `CACHE_NAME`을 올립니다.
+5. 인지 영역·피드백·해설 생성 규칙을 수정했다면
+   `npm run enrich:content`를 실행합니다.
+6. 프로젝트 루트에서 `npm run sync:bank`를 실행합니다.
+7. `npm test`를 실행합니다.
+8. `npm run test:release`로 실제 Chromium과 오프라인 흐름을 확인합니다.
+9. 모바일 폭 390px와 데스크톱에서 문제와 보기를 확인합니다.
+10. 배포 시 `sw.js`의 `CACHE_NAME`을 올립니다.
 
 `npm run sync:bank`는 `gradingFingerprint`를 다시 계산하고
 `answer-key.csv`를 JSON과 동기화합니다.
+
+`enrich:content`의 유형별 규칙은 `tools/enrich-content-v2.mjs`가 관리합니다.
+이 도구는 반복 실행해도 결과가 같아야 하며, 채점 fingerprint를 바꾸는
+변환을 거부합니다. 문제 자극·보기·정답을 의도적으로 바꾸는 작업은 먼저
+검토한 뒤 `sync:bank`로 새 fingerprint를 확정하고 다시 전체 검증합니다.

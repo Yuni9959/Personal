@@ -130,6 +130,25 @@ test("bankVersion만 달라지고 문항 contentVersion이 같으면 복원할 �
   assert.equal(result.bankVersionChanged, true);
 });
 
+test("채점 fingerprint가 같으면 콘텐츠 문구 버전이 달라도 복원한다", () => {
+  const source = question();
+  const snapshot = createSessionSnapshot({
+    sessionId: "session-a",
+    bankVersion: "bank-1",
+    mode: "daily",
+    questions: [source]
+  });
+  const result = inspectSessionCompatibility(
+    snapshot,
+    [question({ contentVersion: 2 })],
+    "bank-2"
+  );
+
+  assert.equal(result.compatible, true);
+  assert.equal(result.normalizedItems[0].contentVersion, 2);
+  assert.equal(result.bankVersionChanged, true);
+});
+
 test("문항·버전·보기 집합이 바뀐 세션은 조용히 복원하지 않는다", () => {
   const source = question();
   const snapshot = createSessionSnapshot({
@@ -143,9 +162,11 @@ test("문항·버전·보기 집합이 바뀐 세션은 조용히 복원하지 �
     inspectSessionCompatibility(snapshot, [], "bank-1").reason,
     "question-missing"
   );
+  const legacySnapshot = structuredClone(snapshot);
+  legacySnapshot.items[0].gradingFingerprint = null;
   assert.equal(
     inspectSessionCompatibility(
-      snapshot,
+      legacySnapshot,
       [question({ contentVersion: 2 })],
       "bank-2"
     ).reason,
@@ -251,6 +272,10 @@ test("평가 모드의 임시 답안·표시·문제별 시간·종료 시각을
   };
   snapshot.markedQuestionIds = [first.id, "missing"];
   snapshot.hintUsedQuestionIds = [first.id];
+  snapshot.hintLevels = {
+    [first.id]: 2,
+    missing: 2
+  };
   snapshot.questionTimers[first.id] = {
     ...createQuestionClock({
       questionIndex: 0,
@@ -281,6 +306,7 @@ test("평가 모드의 임시 답안·표시·문제별 시간·종료 시각을
   );
   assert.deepEqual(restored.session.markedQuestionIds, [first.id]);
   assert.deepEqual(restored.session.hintUsedQuestionIds, [first.id]);
+  assert.deepEqual(restored.session.hintLevels, { [first.id]: 2 });
   assert.equal(
     restored.session.questionTimers[first.id].elapsedMs,
     3500
@@ -295,6 +321,27 @@ test("평가 모드의 임시 답안·표시·문제별 시간·종료 시각을
     serialized.questionTimers,
     restored.session.questionTimers
   );
+  assert.deepEqual(serialized.hintLevels, restored.session.hintLevels);
+});
+
+test("이전 세션의 힌트 사용 기록은 1단계 힌트로 복원된다", () => {
+  const source = question();
+  const snapshot = createSessionSnapshot({
+    sessionId: "session-hint",
+    bankVersion: "bank-1",
+    mode: "learn",
+    questions: [source]
+  });
+  snapshot.hintUsedQuestionIds = [source.id];
+  delete snapshot.hintLevels;
+
+  const restored = restoreSessionSnapshot({
+    snapshot,
+    questions: [source],
+    currentBankVersion: "bank-1"
+  });
+
+  assert.deepEqual(restored.session.hintLevels, { [source.id]: 1 });
 });
 
 test("복원할 때 현재 보기 목록에 없는 임시 선택은 버린다", () => {

@@ -61,9 +61,12 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 ```
 
 유형 표본이 두 번 미만이면 취약으로 분류하지 않습니다. 같은 날짜에는 통계가
-바뀌어도 저장된 큐를 그대로 사용합니다. 문제 ID가 사라지거나
-`contentVersion`이 달라졌을 때만 해당 위치를 교체하며 나머지 문제 순서는
-유지합니다. 최근 45일 큐만 보존합니다.
+바뀌어도 저장된 큐를 그대로 사용합니다. 각 항목은 `contentVersion`과
+`gradingFingerprint`를 저장합니다. fingerprint가 같으면 해설·힌트 같은
+콘텐츠 버전이 달라져도 같은 문제 ID를 유지하고, 정답 의미가 바뀌거나 문제
+ID가 사라졌을 때만 해당 위치를 교체합니다. 구버전 항목에 fingerprint가
+없으면 `contentVersion`을 안전한 대체 기준으로 사용합니다. 최근 45일 큐만
+보존합니다.
 
 ## 응시 이벤트
 
@@ -73,7 +76,12 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
   sessionId,
   questionId,
   contentVersion,
+  gradingFingerprint,
   bankVersion,
+  typeId,
+  domainId,
+  scoreGroup,
+  difficulty,
   mode,
   localDate,
 
@@ -105,6 +113,11 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 `presentedAt`과 `submittedAt`은 재실행 후에도 비교할 수 있도록 `Date.now()` 값을
 저장합니다.
 
+`typeId`, `domainId`, `scoreGroup`, `difficulty`는 응시 당시의 분석 문맥을
+보존합니다. 과거 응시에 이 필드가 없으면 현재 문제은행의 같은 문제 ID에서
+보완해 읽습니다. `inferredErrorTag`는 사용자가 고른 오답 보기의 표준 오류
+태그이며, 첫 제출 오답 원인 분포에 사용합니다.
+
 ## 선택지 순서와 세션 복원
 
 - 새 세션마다 문제별 `optionSeed`와 `shuffleVersion`을 생성합니다.
@@ -116,8 +129,10 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 - 세션에는 각 문제의 `contentVersion`과 전체 `bankVersion`을 저장합니다.
 - 채점 의미가 바뀌었는지 이중 확인할 수 있도록 문제별
   `gradingFingerprint`도 저장합니다.
-- `bankVersion`만 바뀌고 모든 문제의 ID·`contentVersion`·보기 집합이 같다면
-  그대로 복원합니다.
+- `gradingFingerprint`가 같으면 `contentVersion`이 달라도 해설·힌트 변경으로
+  간주해 그대로 복원합니다. fingerprint가 없는 구버전 세션에서만
+  `contentVersion` 일치를 요구합니다.
+- `bankVersion` 변경만으로는 세션을 무효화하지 않습니다.
 - 문제·정답·보기 구성이 달라졌다면 세션을 `invalidated`로 보관하고 새 내용으로
   조용히 교체하지 않습니다.
 - 페이지 전환 중 늦게 끝난 저장이 새 상태를 덮지 않도록 세션별
@@ -127,6 +142,9 @@ meta                 설정, 이전 상태, 문제은행 정보, revision
 페이지가 숨겨지면 일시정지 상태를 저장하고, 저장 전에 브라우저가 종료된
 경우에는 마지막 `runningSince` 이후 wall-clock 구간을 반영한 뒤 홈의 복원
 대기 화면에서 다시 멈춥니다.
+
+힌트를 허용하는 세션은 문항별 공개 단계 1~2를 `hintLevels`에 저장합니다.
+기존 `hintUsedQuestionIds`는 숙달 자격 판정과 구버전 복원에 계속 사용합니다.
 
 평가형 세션은 다음 상태도 함께 저장합니다.
 
@@ -167,6 +185,22 @@ IndexedDB 트랜잭션으로 기록합니다. 실패하면 전체 묶음을 복�
 - v1 횟수만으로 서로 다른 문제 완주 여부를 알 수 없으므로 과거 목표 완주일은 만들지 않습니다.
 - 목표 완주 연속일은 v2 응시 이벤트가 쌓인 날짜부터 계산합니다.
 - 기존 `streak`은 `legacyStreak`으로 백업하지만 공식 연속일에는 합산하지 않습니다.
+
+## 상세 분석 파생 규칙
+
+상세 분석은 별도 사실 원본을 만들지 않고 `attempts`와 현재 문제은행 메타데이터에서
+매번 계산합니다.
+
+- 첫 통과 정확도·시간 내 정확도·중앙 풀이시간·시간초과율은 `firstPass` 응시로 계산
+- 인지 영역·유형·난이도 성과는 `eligibleForAbilityStats` 응시만 사용
+- 유형 성과는 최근 10회와 전체 표본 수를 함께 표시
+- 전체 표본 두 번 미만인 유형은 약점으로 분류하지 않음
+- T19 일반지식과 T23 스트룹은 `supplemental`로 분리하고 핵심 추론 정확도에서 제외
+- 오답 원인 분포는 첫 제출 오답의 `inferredErrorTag`만 집계
+
+과거 응시에 인지 영역이나 난이도 스냅샷이 없으면 같은 `questionId`의 현재
+문제은행 값을 사용합니다. 분석 결과는 localStorage나 IndexedDB에 중복
+저장하지 않습니다.
 
 ## v1 이전
 

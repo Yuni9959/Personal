@@ -111,6 +111,7 @@ export function createSessionSnapshot({
     responses: {},
     markedQuestionIds: [],
     hintUsedQuestionIds: [],
+    hintLevels: {},
     questionTimers: {},
     pendingSelectionId: null,
     examEndsAt: finiteTimestamp(examEndsAt),
@@ -152,18 +153,18 @@ export function inspectSessionCompatibility(
         questionId: item?.questionId || null
       };
     }
-    if (question.contentVersion !== item.contentVersion) {
+    if (item.gradingFingerprint) {
+      if (question.gradingFingerprint !== item.gradingFingerprint) {
+        return {
+          compatible: false,
+          reason: "grading-fingerprint",
+          questionId: question.id
+        };
+      }
+    } else if (question.contentVersion !== item.contentVersion) {
       return {
         compatible: false,
         reason: "content-version",
-        questionId: question.id
-      };
-    }
-    if (item.gradingFingerprint &&
-        question.gradingFingerprint !== item.gradingFingerprint) {
-      return {
-        compatible: false,
-        reason: "grading-fingerprint",
         questionId: question.id
       };
     }
@@ -322,6 +323,21 @@ function normalizedStringArray(value, allowed) {
   )];
 }
 
+function normalizeHintLevels(value, allowed, hintUsedQuestionIds) {
+  const levels = {};
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    for (const [questionId, rawLevel] of Object.entries(value)) {
+      if (!allowed.has(questionId)) continue;
+      const level = Math.min(2, nonNegativeInteger(rawLevel));
+      if (level > 0) levels[questionId] = level;
+    }
+  }
+  for (const questionId of hintUsedQuestionIds) {
+    if (!levels[questionId]) levels[questionId] = 1;
+  }
+  return levels;
+}
+
 function normalizeResponses(value, items) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return {};
@@ -443,6 +459,10 @@ export function restoreSessionSnapshot({
     )
       ? snapshot.pendingSelectionId
       : null;
+  const hintUsedQuestionIds = normalizedStringArray(
+    snapshot.hintUsedQuestionIds,
+    allowedQuestionIds
+  );
 
   return {
     ok: true,
@@ -462,9 +482,11 @@ export function restoreSessionSnapshot({
         snapshot.markedQuestionIds,
         allowedQuestionIds
       ),
-      hintUsedQuestionIds: normalizedStringArray(
-        snapshot.hintUsedQuestionIds,
-        allowedQuestionIds
+      hintUsedQuestionIds,
+      hintLevels: normalizeHintLevels(
+        snapshot.hintLevels,
+        allowedQuestionIds,
+        hintUsedQuestionIds
       ),
       questionTimers,
       pendingSelectionId,
@@ -512,6 +534,14 @@ export function serializeSession(session) {
     ),
     markedQuestionIds: [...new Set(session.markedQuestionIds || [])],
     hintUsedQuestionIds: [...new Set(session.hintUsedQuestionIds || [])],
+    hintLevels: Object.fromEntries(
+      Object.entries(session.hintLevels || {})
+        .map(([questionId, level]) => [
+          questionId,
+          Math.min(2, nonNegativeInteger(level))
+        ])
+        .filter(([, level]) => level > 0)
+    ),
     questionTimers: Object.fromEntries(
       Object.entries(session.questionTimers || {}).map(([questionId, timer]) => [
         questionId,

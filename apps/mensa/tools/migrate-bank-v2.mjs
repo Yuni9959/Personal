@@ -73,7 +73,8 @@ function correctVisibleText(value) {
     .replaceAll("하린는", "하린은")
     .replaceAll("태현는", "태현은")
     .replaceAll("빨강색", "빨간색")
-    .replaceAll("파랑색", "파란색");
+    .replaceAll("파랑색", "파란색")
+    .replaceAll("노랑색", "노란색");
 }
 
 const questions = source.questions.map(question => {

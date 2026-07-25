@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.3.0-training-modes.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.4.0-analytics-content.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -14,6 +14,7 @@ const CORE_ASSETS = [
   "./apps/mensa/",
   "./apps/mensa/index.html",
   "./apps/mensa/styles.css",
+  "./apps/mensa/js/analytics-model.js",
   "./apps/mensa/js/app.js",
   "./apps/mensa/js/bank-loader.js",
   "./apps/mensa/js/daily-queue-engine.js",

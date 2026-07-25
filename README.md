@@ -25,6 +25,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         ├── index.html         # MKAT 98 앱
         ├── styles.css
         ├── js/
+        │   ├── analytics-model.js
         │   ├── app.js
         │   ├── bank-loader.js
         │   ├── daily-queue-engine.js
@@ -120,7 +121,14 @@ MKAT 화면은 다섯 사용자 모드와 하나의 복습 큐로 나뉩니다.
 답안은 종료 전까지 세션에만 보관하고, 종료 시 응시 이벤트와 완료 세션을 하나의
 IndexedDB 트랜잭션으로 기록합니다. 문제 그림은 전체화면에서 확대·이동할 수
 있고 보기 레이아웃은 SVG·짧은 답·긴 문장에 맞춰 자동 변경됩니다. 상세 분석
-화면에서는 첫 통과·시간 내 정확도·중앙 풀이시간과 유형별 표본을 분리해 봅니다.
+화면에서는 첫 통과·시간 내 정확도·중앙 풀이시간, 최근 10회 유형 성과,
+난이도별 성과와 첫 제출 오답 원인을 분리해 봅니다.
+
+문제은행의 25개 유형은 6개 인지 영역으로 묶입니다. T19 일반지식과 T23
+스트룹은 보조 지표로 표시하고 핵심 추론 정확도에는 합산하지 않습니다.
+125문제에는 규칙·적용·검산으로 나눈 해설, 2단계 힌트, 다차원 난이도
+프로필이 있으며, 705개 오답 보기에는 표준 오류 태그와 선택지별 피드백이
+연결되어 있습니다.
 
 저장소와 이전 규칙의 상세 계약은
 [`apps/mensa/docs/storage-model.md`](./apps/mensa/docs/storage-model.md)에 정리되어 있습니다.
@@ -158,16 +166,24 @@ http://localhost:8080
 `apps/mensa/data/question-bank.json`이 문제은행의 유일한 원본입니다.
 브라우저는 이 JSON을 직접 불러오고, `answer-key.csv`는 JSON에서 자동 생성합니다.
 
-문제은행을 수정한 뒤에는 다음을 실행합니다.
+문제·보기·정답을 의도적으로 수정한 뒤에는 새 채점 fingerprint를 먼저
+동기화하고 릴리스 검증을 실행합니다.
 
 ```bash
 npm run sync:bank
-npm test
-npm run test:browser
+npm run test:release
 ```
 
-Foundation 검증은 필수 데이터 오류를 실패로 처리하고, 아직 작성하지 않은
-선택지별 피드백·구조화 해설·다차원 난이도·힌트는 품질 경고로만 표시합니다.
+인지 영역·오류 분류·해설 생성 규칙을 수정한 경우에는 그 전에
+`npm run enrich:content`를 실행합니다. `enrich:content`는 현재 125문제의
+인지 영역, 오류 분류, 구조화 해설,
+2단계 힌트와 난이도 프로필을 재현 가능하게 생성합니다. 변환은 멱등이며
+자극·보기·정답의 `gradingFingerprint`가 달라지면 즉시 실패합니다.
+
+현재 기본 검증은 `content-complete` 프로필입니다. 선택지별 피드백,
+구조화 해설, 다차원 난이도나 힌트가 하나라도 누락되면 테스트가 실패합니다.
+`npm run test:release`는 자동 테스트와 실제 Chromium 브라우저 검증을
+연속 실행합니다.
 
 `npm run test:browser`는 Chromium 기반 헤드리스 브라우저에서 기존 훈련 모드,
 v1 안전 이전, IndexedDB 응시 이벤트, v2 요약 캐시, JSON 로드와 PWA

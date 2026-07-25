@@ -265,6 +265,22 @@ async function waitForBrowserStore(
   throw new Error(`${storeName} 저장소가 기대 상태가 되지 않았습니다.`);
 }
 
+async function captureOptionalScreenshot(client, name) {
+  const outputDirectory = process.env.SMOKE_SCREENSHOT_DIR;
+  if (!outputDirectory) return;
+
+  fs.mkdirSync(outputDirectory, { recursive: true });
+  const screenshot = await client.send("Page.captureScreenshot", {
+    format: "png",
+    fromSurface: true,
+    captureBeyondViewport: false
+  });
+  fs.writeFileSync(
+    path.join(outputDirectory, `${name}.png`),
+    Buffer.from(screenshot.data, "base64")
+  );
+}
+
 async function run() {
   const browserPath = findBrowser();
   if (!browserPath) {
@@ -417,8 +433,29 @@ async function run() {
       "!document.querySelector('#statsView').classList.contains('hidden')"
     );
     assert.equal(
-      await evaluate(client, "document.querySelectorAll('.analysis-table tbody tr').length"),
+      await evaluate(
+        client,
+        "document.querySelectorAll('[data-analysis-table=\"types\"] tbody tr').length"
+      ),
       25
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.querySelectorAll('[data-analysis-table=\"domains\"] tbody tr').length"
+      ),
+      5
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.querySelectorAll('[data-analysis-table=\"supplemental\"] tbody tr').length"
+      ),
+      2
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.difficulty-stat').length"),
+      5
     );
     assert.equal(
       await evaluate(client, "document.querySelectorAll('.analysis-metric').length"),
@@ -548,7 +585,15 @@ async function run() {
         questionId,
         correctOptionId: question.correctOptionId,
         selectedOptionId: wrongOption.id,
-        bankVersion: bank.bankVersion
+        bankVersion: bank.bankVersion,
+        contentVersion: question.contentVersion,
+        gradingFingerprint: question.gradingFingerprint,
+        typeId: question.typeId,
+        domainId: question.domainId,
+        scoreGroup: question.scoreGroup,
+        difficulty: question.difficulty,
+        errorTag: wrongOption.errorTag,
+        feedback: wrongOption.feedback
       };
     })()`);
     assert.equal(
@@ -580,7 +625,16 @@ async function run() {
     assert.equal(attempts[0].selectedOptionId, wrongSelection.selectedOptionId);
     assert.notEqual(attempts[0].selectedOptionId, wrongSelection.correctOptionId);
     assert.equal(attempts[0].bankVersion, wrongSelection.bankVersion);
-    assert.equal(attempts[0].contentVersion, 1);
+    assert.equal(attempts[0].contentVersion, wrongSelection.contentVersion);
+    assert.equal(
+      attempts[0].gradingFingerprint,
+      wrongSelection.gradingFingerprint
+    );
+    assert.equal(attempts[0].typeId, wrongSelection.typeId);
+    assert.equal(attempts[0].domainId, wrongSelection.domainId);
+    assert.equal(attempts[0].scoreGroup, wrongSelection.scoreGroup);
+    assert.equal(attempts[0].difficulty, wrongSelection.difficulty);
+    assert.equal(attempts[0].inferredErrorTag, wrongSelection.errorTag);
     assert.equal(attempts[0].correct, false);
     assert.equal(attempts[0].firstPass, true);
     assert.equal(attempts[0].retry, false);
@@ -593,11 +647,44 @@ async function run() {
     assert.equal(attempts[0].shuffleVersion, 1);
     assert.equal(typeof attempts[0].optionSeed, "number");
     assert.equal(attempts[0].elapsedMs >= 0, true);
+    assert.equal(
+      await evaluate(client, "document.querySelector('#optionFeedback').hidden"),
+      false
+    );
+    assert.ok(
+      (await evaluate(
+        client,
+        "document.querySelector('#optionFeedback').textContent"
+      )).includes(wrongSelection.feedback.slice(0, 18))
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('.explanation-step').length"),
+      3
+    );
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    assert.equal(
+      await evaluate(
+        client,
+        "document.documentElement.scrollWidth <= window.innerWidth"
+      ),
+      true
+    );
+    await captureOptionalScreenshot(client, "feedback-mobile");
+    await client.send("Emulation.clearDeviceMetricsOverride");
     const [questionProgress] = await readBrowserStore(
       client,
       "questionProgress"
     );
     assert.equal(questionProgress.questionId, wrongSelection.questionId);
+    assert.equal(
+      questionProgress.gradingFingerprint,
+      wrongSelection.gradingFingerprint
+    );
     assert.equal(questionProgress.level, 0);
     assert.equal(questionProgress.status, "new");
     assert.equal(questionProgress.lastReviewReason, "wrong");
@@ -888,13 +975,90 @@ async function run() {
       await evaluate(client, "document.querySelector('#hintPanel').classList.contains('hidden')"),
       false
     );
+    const hintQuestionId = await evaluate(
+      client,
+      "document.querySelector('#options').dataset.questionId"
+    );
     await evaluate(client, "document.querySelector('#hintBtn').click(); true");
     assert.equal(
       await evaluate(client, "document.querySelector('#hintText').hidden"),
       false
     );
-    console.log("[smoke] 유형 학습 힌트");
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('#hintText p').length"),
+      1
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#hintBtn').disabled"),
+      false
+    );
+    await evaluate(client, "document.querySelector('#hintBtn').click(); true");
+    assert.equal(
+      await evaluate(client, "document.querySelectorAll('#hintText p').length"),
+      2
+    );
+    assert.equal(
+      await evaluate(client, "document.querySelector('#hintBtn').disabled"),
+      true
+    );
+    const hintSession = (await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.mode === "learn" &&
+        record.hintLevels?.[hintQuestionId] === 2
+      )
+    )).find(record =>
+      record.status === "active" && record.mode === "learn"
+    );
+    assert.equal(hintSession.hintUsedQuestionIds.includes(hintQuestionId), true);
+    console.log("[smoke] 유형 학습 2단계 힌트");
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
+    await evaluate(
+      client,
+      "document.querySelector('#viewDetailedStatsBtn').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#statsView').classList.contains('hidden')"
+    );
+    assert.ok(
+      await evaluate(client, "document.querySelectorAll('.error-row').length >= 1")
+    );
+    assert.ok(
+      await evaluate(
+        client,
+        "document.querySelectorAll('.recommendation-chip').length >= 1"
+      )
+    );
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    assert.equal(
+      await evaluate(
+        client,
+        "document.documentElement.scrollWidth <= window.innerWidth"
+      ),
+      true
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "getComputedStyle(document.querySelector('.analysis-split')).gridTemplateColumns.split(' ').length"
+      ),
+      1
+    );
+    await captureOptionalScreenshot(client, "analytics-mobile");
+    await client.send("Emulation.clearDeviceMetricsOverride");
+    await evaluate(client, "document.querySelector('#statsBackBtn').click(); true");
     await waitForCondition(
       client,
       "!document.querySelector('#homeView').classList.contains('hidden')"
@@ -948,6 +1112,7 @@ async function run() {
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 일일 고정 큐, 세션 복원, " +
+      "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
       "v2 요약 캐시, 오프라인 로드"
     );
   } finally {

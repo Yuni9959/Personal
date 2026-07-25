@@ -14,6 +14,7 @@ function questions(count = 30) {
       ).padStart(2, "0")}`,
       typeId: `T${String(typeNumber).padStart(2, "0")}`,
       contentVersion: 1,
+      gradingFingerprint: `fingerprint-${index}`,
       difficulty: index % 5 + 1,
       options: [{ id: `O-${index}-1` }, { id: `O-${index}-2` }]
     };
@@ -51,6 +52,7 @@ test("기록이 없는 사용자는 중복 없는 10문제 콜드 스타트 큐�
     2
   );
   assert.ok(queue.items.every(item => item.contentVersion === 1));
+  assert.ok(queue.items.every(item => item.gradingFingerprint));
 });
 
 test("표본이 충분해진 뒤에는 복습 4·취약 3·신규 2·도전 1 구성을 우선한다", () => {
@@ -136,7 +138,7 @@ test("저장된 일일 큐는 통계가 바뀌어도 같은 날 그대로 재사
   assert.equal(second.queue.updatedAt, first.queue.updatedAt);
 });
 
-test("문제 버전이 바뀌면 해당 위치만 교체하고 나머지는 유지한다", () => {
+test("채점 fingerprint가 같으면 문구 버전이 바뀌어도 일일 큐를 유지한다", () => {
   const bank = questions();
   const first = resolveDailyQueue({
     date: "2026-07-25",
@@ -148,6 +150,37 @@ test("문제 버전이 바뀌면 해당 위치만 교체하고 나머지는 유�
   const updatedBank = bank.map(question =>
     question.id === changedId
       ? { ...question, contentVersion: 2 }
+      : question
+  );
+  const reused = resolveDailyQueue({
+    date: "2026-07-25",
+    bankVersion: "bank-2",
+    questions: updatedBank,
+    storedQueue: first.queue,
+    now: 2000
+  });
+
+  assert.equal(reused.changed, false);
+  assert.equal(reused.reused, true);
+  assert.deepEqual(reused.queue.items, first.queue.items);
+});
+
+test("채점 fingerprint가 바뀌면 해당 위치만 교체하고 나머지는 유지한다", () => {
+  const bank = questions();
+  const first = resolveDailyQueue({
+    date: "2026-07-25",
+    bankVersion: "bank-1",
+    questions: bank,
+    now: 1000
+  });
+  const changedId = first.queue.items[3].questionId;
+  const updatedBank = bank.map(question =>
+    question.id === changedId
+      ? {
+          ...question,
+          contentVersion: 2,
+          gradingFingerprint: `${question.gradingFingerprint}-changed`
+        }
       : question
   );
   const repaired = resolveDailyQueue({

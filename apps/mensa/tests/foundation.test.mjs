@@ -21,6 +21,8 @@ const baseline = JSON.parse(
     "utf8"
   )
 );
+const FOUNDATION_GRADING_SET_SHA256 =
+  "ba9e76f8b9fb2fba64bf12e6ec5bd8e6804c6f6de8e1d7fb1f014792fe4368d3";
 
 test("v2 문제은행의 전체 수량과 ID가 안정적이다", () => {
   assert.equal(bank.schemaVersion, 2);
@@ -80,6 +82,14 @@ test("저장된 채점 fingerprint를 다시 계산할 수 있다", () => {
       question.id
     );
   }
+});
+
+test("Foundation의 125문제 채점 계약 전체가 유지된다", () => {
+  const gradingSet = bank.questions
+    .map(question => `${question.id}:${question.gradingFingerprint}`)
+    .join("\n");
+
+  assert.equal(sha256(gradingSet), FOUNDATION_GRADING_SET_SHA256);
 });
 
 test("answer-key.csv는 JSON에서 완전히 재생성된다", () => {

@@ -68,6 +68,7 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   const assets = [...assetBlock.matchAll(/"([^"]+)"/g)].map(match => match[1]);
 
   assert.ok(assets.includes("./apps/mensa/data/question-bank.json"));
+  assert.ok(assets.includes("./apps/mensa/js/analytics-model.js"));
   assert.ok(assets.includes("./apps/mensa/js/app.js"));
   assert.ok(assets.includes("./apps/mensa/js/daily-queue-engine.js"));
   assert.ok(assets.includes("./apps/mensa/js/indexeddb-repository.js"));
@@ -109,6 +110,9 @@ test("런타임은 IndexedDB를 사실 원본으로 쓰고 v2 요약 캐시를 �
   assert.match(appSource, /finalizeAssessment/);
   assert.match(appSource, /examEndsAt/);
   assert.match(appSource, /inferOptionLayout/);
+  assert.match(appSource, /buildDetailedAnalytics/);
+  assert.match(appSource, /renderOptionFeedback/);
+  assert.match(appSource, /renderExplanation/);
   assert.match(appSource, /optionSeed/);
   assert.match(appSource, /elapsedMs/);
   assert.doesNotMatch(appSource, /localStorage\.setItem/);

@@ -55,7 +55,7 @@ const visibleTextPatterns = [
   [/(?:지훈는|서윤가|서윤는|도윤가|도윤는|하린가|하린는|태현는)/, "이름 조사"],
   [/\b23가 됩니다\b/, "숫자 조사"],
   [/(?:안쪽가|바깥쪽가) 됩니다/, "위치 조사"],
-  [/(?:빨강색|파랑색)/, "색상 표현"]
+  [/(?:빨강색|파랑색|노랑색)/, "색상 표현"]
 ];
 
 function checkVisibleText(value, label) {
@@ -77,15 +77,68 @@ if (data.schemaVersion !== 2) {
 if (typeof data.bankVersion !== "string" || !data.bankVersion.trim()) {
   errors.push("bankVersion이 없습니다.");
 }
+if (!Number.isInteger(data.contentQualityVersion) ||
+    data.contentQualityVersion < 1) {
+  addWarning("콘텐츠 품질 버전 미완료", "bank");
+}
 if (!Array.isArray(data.types) || data.types.length !== 25) {
   errors.push(`유형 수가 25가 아닙니다: ${data.types?.length}`);
 }
 if (!Array.isArray(data.questions) || data.questions.length !== 125) {
   errors.push(`문제 수가 125가 아닙니다: ${data.questions?.length}`);
 }
+if (!Array.isArray(data.cognitiveDomains) ||
+    data.cognitiveDomains.length !== 6) {
+  errors.push(
+    `인지 영역 수가 6이 아닙니다: ${data.cognitiveDomains?.length}`
+  );
+}
 
 const typeIds = new Set();
 const typeById = new Map();
+const domainIds = new Set();
+for (const domain of Array.isArray(data.cognitiveDomains)
+  ? data.cognitiveDomains
+  : []) {
+  if (!domain || typeof domain !== "object") {
+    errors.push("인지 영역 형식 오류");
+    continue;
+  }
+  if (typeof domain.id !== "string" || !domain.id.trim()) {
+    errors.push("인지 영역 ID 누락");
+  } else if (domainIds.has(domain.id)) {
+    errors.push(`중복 인지 영역 ID: ${domain.id}`);
+  } else {
+    domainIds.add(domain.id);
+  }
+  checkVisibleText(domain.label, `${domain.id || "unknown"}.label`);
+  checkVisibleText(
+    domain.description,
+    `${domain.id || "unknown"}.description`
+  );
+}
+
+if (!Array.isArray(data.errorTaxonomy) || !data.errorTaxonomy.length) {
+  errors.push("오류 분류표가 없습니다.");
+}
+const errorTagIds = new Set();
+for (const item of Array.isArray(data.errorTaxonomy)
+  ? data.errorTaxonomy
+  : []) {
+  if (!item || typeof item !== "object") {
+    errors.push("오류 분류표 형식 오류");
+    continue;
+  }
+  if (typeof item.id !== "string" || !item.id.trim()) {
+    errors.push("오류 태그 ID 누락");
+  } else if (errorTagIds.has(item.id)) {
+    errors.push(`중복 오류 태그 ID: ${item.id}`);
+  } else {
+    errorTagIds.add(item.id);
+  }
+  checkVisibleText(item.label, `${item.id || "unknown"}.label`);
+}
+
 for (const type of data.types || []) {
   if (typeIds.has(type.id)) errors.push(`중복 유형 ID: ${type.id}`);
   typeIds.add(type.id);
@@ -94,6 +147,22 @@ for (const type of data.types || []) {
   if (!Number.isInteger(type.count) || type.count < 1) {
     errors.push(`유형 count 오류: ${type.id}`);
   }
+  if (!domainIds.has(type.domainId)) {
+    errors.push(`유형 인지 영역 오류: ${type.id} → ${type.domainId}`);
+  }
+  if (!["core", "supplemental"].includes(type.scoreGroup)) {
+    errors.push(`유형 점수 그룹 오류: ${type.id} → ${type.scoreGroup}`);
+  }
+}
+
+const supplementalTypeIds = (data.types || [])
+  .filter(type => type.scoreGroup === "supplemental")
+  .map(type => type.id)
+  .sort();
+if (supplementalTypeIds.join(",") !== "T19,T23") {
+  errors.push(
+    `보조 점수 유형이 T19·T23과 다릅니다: ${supplementalTypeIds.join(",")}`
+  );
 }
 
 const questionIds = new Set();
@@ -109,6 +178,9 @@ for (const question of data.questions || []) {
   }
   if (!Number.isInteger(question.contentVersion) || question.contentVersion < 1) {
     errors.push(`contentVersion 오류: ${question.id}`);
+  }
+  if (question.contentQualityVersion !== data.contentQualityVersion) {
+    addWarning("문항 콘텐츠 품질 버전 불일치", question.id);
   }
   if (!typeById.has(question.typeId)) {
     errors.push(`알 수 없는 유형 참조: ${question.id} → ${question.typeId}`);
@@ -128,6 +200,12 @@ for (const question of data.questions || []) {
   if (!Array.isArray(question.skills) || !question.skills.length) {
     errors.push(`기술 태그 누락: ${question.id}`);
   }
+  const type = typeById.get(question.typeId);
+  if (type &&
+      (question.domainId !== type.domainId ||
+       question.scoreGroup !== type.scoreGroup)) {
+    errors.push(`문항 인지 영역 불일치: ${question.id}`);
+  }
   if (!Array.isArray(question.options) ||
       question.options.length < 6 ||
       question.options.length > 9) {
@@ -136,9 +214,78 @@ for (const question of data.questions || []) {
   }
 
   checkVisibleText(question.prompt, `${question.id}.prompt`);
-  checkVisibleText(question.explanation, `${question.id}.explanation`);
   checkVisibleText(question.trap, `${question.id}.trap`);
   checkSvg(question.stimulusSvg, `${question.id}.stimulusSvg`);
+
+  const explanation = question.explanation;
+  const structuredExplanation =
+    explanation &&
+    typeof explanation === "object" &&
+    !Array.isArray(explanation) &&
+    ["rule", "application", "verification"].every(
+      key => typeof explanation[key] === "string" &&
+        explanation[key].trim()
+    );
+  if (!structuredExplanation) {
+    addWarning("구조화 해설 미완료", question.id);
+    if (typeof explanation === "string") {
+      checkVisibleText(explanation, `${question.id}.explanation`);
+    }
+  } else {
+    for (const key of ["rule", "application", "verification"]) {
+      checkVisibleText(
+        explanation[key],
+        `${question.id}.explanation.${key}`
+      );
+    }
+  }
+
+  const difficultyProfile = question.difficultyProfile;
+  const difficultyKeys = [
+    "overall",
+    "ruleSteps",
+    "attributeLoad",
+    "workingMemory",
+    "visualComplexity",
+    "distractorSimilarity",
+    "timePressure"
+  ];
+  const completeDifficulty =
+    difficultyProfile &&
+    typeof difficultyProfile === "object" &&
+    Number.isInteger(difficultyProfile.sourceDifficulty) &&
+    difficultyProfile.sourceDifficulty >= 1 &&
+    difficultyProfile.sourceDifficulty <= 5 &&
+    difficultyKeys.every(key =>
+      Number.isInteger(difficultyProfile[key]) &&
+      difficultyProfile[key] >= 1 &&
+      difficultyProfile[key] <= 5
+    ) &&
+    typeof difficultyProfile.rationale === "string" &&
+    difficultyProfile.rationale.trim();
+  if (!completeDifficulty) {
+    addWarning("다차원 난이도 미완료", question.id);
+  } else {
+    if (difficultyProfile.overall !== question.difficulty) {
+      errors.push(`종합 난이도 불일치: ${question.id}`);
+    }
+    checkVisibleText(
+      difficultyProfile.rationale,
+      `${question.id}.difficultyProfile.rationale`
+    );
+  }
+
+  if (!Array.isArray(question.hints) ||
+      question.hints.length < 2 ||
+      question.hints.some(hint =>
+        typeof hint !== "string" || !hint.trim()
+      )) {
+    addWarning("단계별 힌트 미완료", question.id);
+  } else {
+    question.hints.forEach((hint, index) => {
+      checkVisibleText(hint, `${question.id}.hints[${index}]`);
+    });
+  }
 
   const expectedFingerprint = gradingFingerprint(question);
   if (question.gradingFingerprint !== expectedFingerprint) {
@@ -185,18 +332,21 @@ for (const question of data.questions || []) {
   }
 
   for (const option of question.options) {
-    if (option.id === question.correctOptionId) continue;
+    if (option.id === question.correctOptionId) {
+      if (option.errorTag != null || option.feedback != null) {
+        errors.push(`정답 보기에 오류 피드백이 있습니다: ${option.id}`);
+      }
+      continue;
+    }
     if (!option.errorTag) addWarning("오답 errorTag 미작성", option.id);
-    if (!option.feedback) addWarning("오답 feedback 미작성", option.id);
-  }
-  if (typeof question.explanation === "string") {
-    addWarning("구조화 해설 미완료", question.id);
-  }
-  if (typeof question.difficulty === "number") {
-    addWarning("다차원 난이도 미완료", question.id);
-  }
-  if (!Array.isArray(question.hints)) {
-    addWarning("단계별 힌트 미완료", question.id);
+    else if (!errorTagIds.has(option.errorTag)) {
+      errors.push(`알 수 없는 errorTag: ${option.id} → ${option.errorTag}`);
+    }
+    if (!option.feedback) {
+      addWarning("오답 feedback 미작성", option.id);
+    } else {
+      checkVisibleText(option.feedback, `${option.id}.feedback`);
+    }
   }
 }
 
