@@ -1,14 +1,14 @@
 {
-  "name": "MKAT 98 훈련실",
-  "short_name": "MKAT 98",
-  "description": "25개 추론 유형과 125개 오리지널 연습문제로 구성된 오프라인 훈련 앱",
+  "name": "Personal Tap",
+  "short_name": "Personal Tap",
+  "description": "개인 웹앱과 자주 쓰는 도구를 한곳에서 여는 개인용 PWA 허브",
   "lang": "ko",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#f7f6fa",
-  "theme_color": "#17152d",
+  "orientation": "any",
+  "background_color": "#f4f3f8",
+  "theme_color": "#111426",
   "icons": [
     {
       "src": "./icons/icon-192.png",
@@ -21,6 +21,15 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "MKAT 98 훈련",
+      "short_name": "MKAT 98",
+      "description": "오늘의 멘사 추론 훈련을 시작합니다.",
+      "url": "./apps/mensa/",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
