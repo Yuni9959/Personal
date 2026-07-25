@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.2.0-session.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.2.0-mastery.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -17,6 +17,7 @@ const CORE_ASSETS = [
   "./apps/mensa/js/app.js",
   "./apps/mensa/js/bank-loader.js",
   "./apps/mensa/js/indexeddb-repository.js",
+  "./apps/mensa/js/mastery-engine.js",
   "./apps/mensa/js/random.js",
   "./apps/mensa/js/session-engine.js",
   "./apps/mensa/js/stats-model.js",

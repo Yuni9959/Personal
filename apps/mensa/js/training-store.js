@@ -14,6 +14,10 @@ import {
   localDateKey,
   normalizeLegacyStats
 } from "./stats-model.js";
+import {
+  applyAttemptToProgress,
+  rebuildQuestionProgress
+} from "./mastery-engine.js";
 
 function clone(value) {
   if (typeof structuredClone === "function") return structuredClone(value);
@@ -81,9 +85,27 @@ export class MemoryTrainingRepository {
       .map(clone);
   }
 
-  async commitAttempt({ attempt, session, revision }) {
+  async replaceQuestionProgress(records) {
+    this.stores.questionProgress.clear();
+    records.forEach(record => {
+      this.stores.questionProgress.set(record.questionId, clone(record));
+    });
+  }
+
+  async commitAttempt({
+    attempt,
+    session,
+    questionProgress,
+    revision
+  }) {
     this.stores.attempts.set(attempt.attemptId, clone(attempt));
     if (session) await this.putSession(session);
+    if (questionProgress) {
+      this.stores.questionProgress.set(
+        questionProgress.questionId,
+        clone(questionProgress)
+      );
+    }
     this.stores.meta.set("revision", {
       key: "revision",
       value: revision
@@ -123,6 +145,7 @@ export class TrainingStore {
     this.migrationState = {};
     this.revision = 0;
     this.attemptsById = new Map();
+    this.questionProgressById = new Map();
     this.volatileRecovery = [];
     this.summary = null;
     this.writeChain = Promise.resolve();
@@ -150,6 +173,17 @@ export class TrainingStore {
       if (entry.kind === "attempt" && entry.attempt?.attemptId) {
         this.attemptsById.set(entry.attempt.attemptId, entry.attempt);
       }
+    }
+    this.questionProgressById = rebuildQuestionProgress(
+      [...this.attemptsById.values()]
+    );
+    try {
+      await this.repository.replaceQuestionProgress(
+        [...this.questionProgressById.values()]
+      );
+    } catch (error) {
+      // questionProgress는 attempts에서 언제든 재생성할 수 있는 파생값이다.
+      this.health.lastError = errorMessage(error);
     }
     return this.rebuildSummary({ writeCache: true });
   }
@@ -346,6 +380,7 @@ export class TrainingStore {
           await this.repository.commitAttempt({
             attempt: entry.attempt,
             session: entry.session || null,
+            questionProgress: entry.questionProgress || null,
             revision: nextRevision
           });
           this.revision = nextRevision;
@@ -375,9 +410,19 @@ export class TrainingStore {
     };
   }
 
+  getQuestionProgress(questionId) {
+    const progress = this.questionProgressById.get(questionId);
+    return progress ? clone(progress) : null;
+  }
+
+  getAllQuestionProgress() {
+    return [...this.questionProgressById.values()].map(clone);
+  }
+
   rebuildSummary({ writeCache }) {
     const summary = buildStatsSummary({
       attempts: [...this.attemptsById.values()],
+      questionProgress: [...this.questionProgressById.values()],
       legacyStats: this.legacyStats,
       settings: this.settings,
       migrationState: this.migrationState,
@@ -448,7 +493,21 @@ export class TrainingStore {
 
   async recordAttempt(attempt, session) {
     return this.enqueue(async () => {
+      if (this.attemptsById.has(attempt.attemptId)) {
+        return {
+          saved: true,
+          queuedForRecovery: false,
+          duplicate: true,
+          summary: this.summary,
+          storage: this.storageSnapshot()
+        };
+      }
+
       const nextRevision = this.revision + 1;
+      const questionProgress = applyAttemptToProgress(
+        this.questionProgressById.get(attempt.questionId),
+        attempt
+      );
       let saved = false;
       let queuedForRecovery = false;
 
@@ -456,6 +515,7 @@ export class TrainingStore {
         await this.repository.commitAttempt({
           attempt,
           session,
+          questionProgress,
           revision: nextRevision
         });
         this.revision = nextRevision;
@@ -467,7 +527,8 @@ export class TrainingStore {
             kind: "attempt",
             entryId: `attempt:${attempt.attemptId}`,
             attempt,
-            session
+            session,
+            questionProgress
           });
         }
       } catch (error) {
@@ -477,11 +538,16 @@ export class TrainingStore {
           kind: "attempt",
           entryId: `attempt:${attempt.attemptId}`,
           attempt,
-          session
+          session,
+          questionProgress
         });
       }
 
       this.attemptsById.set(attempt.attemptId, attempt);
+      this.questionProgressById.set(
+        questionProgress.questionId,
+        questionProgress
+      );
       const summary = this.rebuildSummary({
         writeCache: saved || queuedForRecovery
       });
@@ -559,6 +625,7 @@ export class TrainingStore {
       this.settings = { ...DEFAULT_SETTINGS };
       this.revision = 0;
       this.attemptsById.clear();
+      this.questionProgressById.clear();
       this.volatileRecovery = [];
       this.health.recoveryPending = 0;
       this.health.lastError = null;

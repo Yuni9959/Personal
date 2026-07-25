@@ -28,6 +28,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         │   ├── app.js
         │   ├── bank-loader.js
         │   ├── indexeddb-repository.js
+        │   ├── mastery-engine.js
         │   ├── random.js
         │   ├── session-engine.js
         │   ├── stats-model.js
@@ -94,6 +95,10 @@ MKAT의 **데이터 내보내기** 버튼으로 상세 기록과 복구 저널�
 새로고침해도 호환되는 문제은행이면 같은 문제·보기 순서·풀이시간으로 이어서
 풀 수 있습니다. 문제 내용이나 정답 버전이 달라졌다면 기존 답안은 보관하되
 세션을 조용히 새 문제로 바꾸지 않습니다.
+
+문제별 숙달 단계는 `신규 → 학습 중 → 안정화 중 → 숙달 → 유지 복습`으로
+관리합니다. 첫 제출·힌트 미사용·제한시간 내 정답만 서로 다른 날짜에 승급시키며,
+오답·시간초과·힌트·즉시 재도전·속도 훈련은 각각 별도 규칙으로 처리합니다.
 
 저장소와 이전 규칙의 상세 계약은
 [`apps/mensa/docs/storage-model.md`](./apps/mensa/docs/storage-model.md)에 정리되어 있습니다.

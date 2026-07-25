@@ -284,13 +284,12 @@ function initializeApp(data, trainingStore, activeSessions = []) {
 
   function renderStatsPanel() {
     const accuracy = stats.attempts ? Math.round(stats.correct / stats.attempts * 100) : 0;
-    const wrong = allWrongQuestions().length;
     const attemptedQuestions = Object.values(stats.questions).filter(x => x.attempts > 0).length;
     els.statsPanel.innerHTML = `
       <div class="stat-box"><span>누적 풀이</span><strong>${stats.attempts}</strong></div>
       <div class="stat-box"><span>누적 정확도</span><strong>${stats.attempts ? `${accuracy}%` : "—"}</strong></div>
       <div class="stat-box"><span>경험한 문제</span><strong>${attemptedQuestions}/${bank.length}</strong></div>
-      <div class="stat-box"><span>복습할 오답</span><strong>${wrong}</strong></div>
+      <div class="stat-box"><span>오늘 복습 예정</span><strong>${stats.mastery?.reviewDue || 0}</strong></div>
     `;
   }
 

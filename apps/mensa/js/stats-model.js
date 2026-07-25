@@ -174,6 +174,7 @@ function mergeQuestionStats(target, source) {
 
 export function buildStatsSummary({
   attempts = [],
+  questionProgress = [],
   legacyStats = blankLegacyStats(),
   settings = DEFAULT_SETTINGS,
   migrationState = {},
@@ -271,6 +272,25 @@ export function buildStatsSummary({
   const practiceStreak = calculateCurrentStreak(practiceDays, todayKey);
   const totalAttempts = legacy.attempts + v2Attempts;
   const totalCorrect = legacy.correct + v2Correct;
+  const masteryByLevel = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+  let reviewDue = 0;
+  let mastered = 0;
+  let nextDueAt = null;
+
+  for (const progress of questionProgress) {
+    const level = Math.min(
+      4,
+      Math.max(0, Math.floor(Number(progress?.level) || 0))
+    );
+    masteryByLevel[level] += 1;
+    if (level >= 3) mastered += 1;
+    if (typeof progress?.dueAt === "string") {
+      if (progress.dueAt <= todayKey) reviewDue += 1;
+      if (!nextDueAt || progress.dueAt < nextDueAt) {
+        nextDueAt = progress.dueAt;
+      }
+    }
+  }
 
   return {
     schemaVersion: STATS_SCHEMA_VERSION,
@@ -313,6 +333,14 @@ export function buildStatsSummary({
       abilityCorrect,
       speedAttempts,
       speedCorrect
+    },
+
+    mastery: {
+      tracked: questionProgress.length,
+      mastered,
+      reviewDue,
+      nextDueAt,
+      byLevel: masteryByLevel
     },
 
     legacy: {

@@ -380,6 +380,10 @@ test("데이터 내보내기는 네 저장소와 요약·버전 정보를 함께
   ]);
   assert.equal(exported.data.attempts.length, 1);
   assert.equal(exported.data.sessions.length, 1);
+  assert.equal(exported.data.questionProgress.length, 1);
+  assert.equal(exported.data.questionProgress[0].level, 0);
+  assert.equal(exported.data.questionProgress[0].dueAt, "2026-07-26");
+  assert.equal(exported.summary.mastery.tracked, 1);
   assert.ok(exported.data.meta.some(record => record.key === "legacyBackup"));
 });
 

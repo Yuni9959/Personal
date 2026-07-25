@@ -513,6 +513,15 @@ async function run() {
     assert.equal(attempts[0].shuffleVersion, 1);
     assert.equal(typeof attempts[0].optionSeed, "number");
     assert.equal(attempts[0].elapsedMs >= 0, true);
+    const [questionProgress] = await readBrowserStore(
+      client,
+      "questionProgress"
+    );
+    assert.equal(questionProgress.questionId, wrongSelection.questionId);
+    assert.equal(questionProgress.level, 0);
+    assert.equal(questionProgress.status, "new");
+    assert.equal(questionProgress.lastReviewReason, "wrong");
+    assert.match(questionProgress.dueAt, /^\d{4}-\d{2}-\d{2}$/);
 
     await navigate(client, `${baseUrl}/apps/mensa/?feedback-restore=1`);
     await waitForCondition(
@@ -544,6 +553,7 @@ async function run() {
     assert.equal(currentSummary.v2.attempts, 1);
     assert.equal(currentSummary.today.goalProgress, 1);
     assert.equal(currentSummary.completionStreak, 0);
+    assert.equal(currentSummary.mastery.tracked, 1);
     assert.equal(currentSummary.migration.noticePending, false);
     assert.equal((await readBrowserStore(client, "sessions")).length, 1);
 
