@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#17152d" />
+  <meta name="description" content="25개 추론 유형, 125개 오리지널 문제로 구성된 오프라인 연습 앱" />
+  <title>MKAT 98 | Personal Tap</title>
+  <link rel="manifest" href="../../manifest.webmanifest" />
+  <link rel="icon" href="../../icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="../../icons/icon-192.png" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand-cluster">
+        <a class="hub-back" href="../../" aria-label="Personal Tap 메인으로">PT</a>
+        <button id="homeBtn" class="brand" type="button" aria-label="MKAT 98 홈으로">
+          <span class="brand-mark">98</span>
+          <span>
+            <strong>MKAT 98</strong>
+            <small>Personal Tap · 매일 추론 훈련</small>
+          </span>
+        </button>
+      </div>
+      <div class="header-stats">
+        <span id="streakBadge" class="pill">🔥 0일</span>
+        <span id="accuracyBadge" class="pill">정확도 —</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="homeView" class="view">
+        <div class="hero card">
+          <div>
+            <p class="eyebrow">D-프로젝트 훈련은행 v1</p>
+            <h1>풀어낸 답을<br /><em>끝까지 점수로 바꾸자.</em></h1>
+            <p>25개 유형 · 유형별 5문제 · 총 125문제. 모든 문제는 원리만 참고해 새로 제작한 연습문항입니다.</p>
+          </div>
+          <div class="hero-orb" aria-hidden="true">
+            <span id="todaySolved">0</span>
+            <small>오늘 풀이</small>
+          </div>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card primary" data-mode="daily" type="button">
+            <span class="mode-icon">⚡</span>
+            <strong>오늘의 10문제</strong>
+            <small>날짜별 고정 혼합 세트</small>
+          </button>
+          <button class="mode-card" data-mode="mixed25" type="button">
+            <span class="mode-icon">🧠</span>
+            <strong>전 유형 25문제</strong>
+            <small>각 유형에서 1문제씩</small>
+          </button>
+          <button class="mode-card" data-mode="wrong" type="button">
+            <span class="mode-icon">🎯</span>
+            <strong>오답 다시 풀기</strong>
+            <small id="wrongCountLabel">저장된 오답 0개</small>
+          </button>
+          <button class="mode-card" data-mode="speed" type="button">
+            <span class="mode-icon">⏱️</span>
+            <strong>속도 훈련 15문제</strong>
+            <small>설명 없이 연속 풀이</small>
+          </button>
+        </div>
+
+        <section class="card section-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">유형별 집중훈련</p>
+              <h2>취약 유형을 골라 5문제 완주</h2>
+            </div>
+            <select id="categoryFilter" aria-label="카테고리 필터">
+              <option value="all">전체 카테고리</option>
+            </select>
+          </div>
+          <div id="typeGrid" class="type-grid"></div>
+        </section>
+
+        <section class="card section-card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">내 훈련 기록</p>
+              <h2>실수 유형을 숫자로 확인</h2>
+            </div>
+            <button id="resetStatsBtn" class="text-button" type="button">기록 초기화</button>
+          </div>
+          <div id="statsPanel" class="stats-panel"></div>
+        </section>
+      </section>
+
+      <section id="quizView" class="view hidden">
+        <div class="quiz-shell">
+          <div class="quiz-toolbar">
+            <button id="quitBtn" class="icon-button" type="button" aria-label="훈련 종료">←</button>
+            <div class="progress-wrap">
+              <div class="progress-copy">
+                <span id="progressText">1 / 10</span>
+                <span id="sessionScore">정답 0</span>
+              </div>
+              <div class="progress-track"><span id="progressBar"></span></div>
+            </div>
+            <div id="timer" class="timer">00:45</div>
+          </div>
+
+          <article class="question-card card">
+            <div class="question-meta">
+              <span id="typeBadge" class="type-badge">T01</span>
+              <span id="difficultyBadge">난이도 1</span>
+              <span id="skillBadge"></span>
+            </div>
+            <h2 id="prompt"></h2>
+            <div id="stimulus" class="stimulus"></div>
+            <div id="options" class="options-grid" role="group" aria-label="답안 보기"></div>
+          </article>
+
+          <aside id="feedback" class="feedback card hidden" aria-live="polite">
+            <div class="feedback-head">
+              <span id="feedbackIcon"></span>
+              <div>
+                <strong id="feedbackTitle"></strong>
+                <p id="feedbackSubtitle"></p>
+              </div>
+            </div>
+            <p id="explanation"></p>
+            <div id="trapBox" class="trap-box"></div>
+            <button id="nextBtn" class="next-button" type="button">다음 문제 →</button>
+          </aside>
+        </div>
+      </section>
+
+      <section id="resultView" class="view hidden">
+        <div class="result-card card">
+          <p class="eyebrow">SESSION COMPLETE</p>
+          <div id="resultRing" class="result-ring"><span id="resultScore">0%</span></div>
+          <h1 id="resultTitle">훈련 완료</h1>
+          <p id="resultSummary"></p>
+          <div id="resultBreakdown" class="result-breakdown"></div>
+          <div class="result-actions">
+            <button id="retryWrongBtn" class="next-button" type="button">이번 오답 다시 풀기</button>
+            <button id="backHomeBtn" class="secondary-button" type="button">홈으로</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <noscript>이 앱은 JavaScript가 필요합니다.</noscript>
+  <script src="./question-bank.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

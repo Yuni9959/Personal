@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111426" />
+  <meta name="description" content="개인 웹앱과 자주 쓰는 도구를 한곳에서 여는 Personal Tap" />
+  <title>Personal Tap</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./hub.css" />
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <div class="shell">
+    <header class="topbar">
+      <a class="identity" href="./" aria-label="Personal Tap 홈">
+        <span class="identity-mark">PT</span>
+        <span class="identity-copy">
+          <strong>Personal Tap</strong>
+          <small>승윤님의 개인 앱 허브</small>
+        </span>
+      </a>
+
+      <div class="top-actions">
+        <span id="connectionBadge" class="status-chip"><i></i><span>온라인</span></span>
+        <button id="installBtn" class="install-button hidden" type="button">앱 설치</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="welcome-panel">
+        <div class="welcome-copy">
+          <p id="todayLabel" class="eyebrow">오늘</p>
+          <h1><span id="greeting">좋은 아침이에요.</span><br />필요한 곳으로 <em>바로 들어가세요.</em></h1>
+          <p>공부, 기록, 육아, 개인 프로젝트를 흩어두지 않고 하나의 첫 화면에서 연결합니다.</p>
+        </div>
+        <div class="focus-card" aria-label="오늘의 집중 앱">
+          <span class="focus-label">TODAY'S FOCUS</span>
+          <div class="focus-icon">🧠</div>
+          <strong>MKAT 98</strong>
+          <p id="focusSummary">오늘 첫 문제를 시작해 보세요.</p>
+          <a href="./apps/mensa/">훈련 시작 <span>→</span></a>
+        </div>
+      </section>
+
+      <section class="section-block" aria-labelledby="appsTitle">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MY APPS</p>
+            <h2 id="appsTitle">내가 쓰는 것들의 입구</h2>
+          </div>
+          <p id="lastOpened" class="last-opened">아직 방문 기록이 없습니다.</p>
+        </div>
+        <div id="appGrid" class="app-grid"></div>
+      </section>
+
+      <section class="guide-card">
+        <div>
+          <span class="guide-icon">⌘</span>
+          <div>
+            <strong>앱을 더 연결하는 방법</strong>
+            <p><code>apps.js</code>에 카드 한 개를 추가하면 이 화면에 자동으로 나타납니다.</p>
+          </div>
+        </div>
+        <span class="guide-note">GitHub Pages · PWA · 오프라인 지원</span>
+      </section>
+    </main>
+
+    <footer>
+      <span>Personal Tap</span>
+      <span>한 번의 탭으로, 필요한 곳까지.</span>
+    </footer>
+  </div>
+
+  <noscript>이 페이지는 JavaScript가 필요합니다.</noscript>
+  <script src="./apps.js"></script>
+  <script src="./hub.js"></script>
+</body>
+</html>
