@@ -10,9 +10,14 @@
   <link rel="icon" href="../../icons/icon-192.png" />
   <link rel="apple-touch-icon" href="../../icons/icon-192.png" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="../../pwa-update.css" />
 </head>
 <body>
-  <div id="app">
+  <div id="bootStatus" class="boot-status" role="status" aria-live="polite">
+    <span>문제은행을 불러오는 중입니다.</span>
+  </div>
+
+  <div id="app" hidden>
     <header class="topbar">
       <div class="brand-cluster">
         <a class="hub-back" href="../../" aria-label="Personal Tap 메인으로">PT</a>
@@ -149,7 +154,7 @@
   </div>
 
   <noscript>이 앱은 JavaScript가 필요합니다.</noscript>
-  <script src="./question-bank.js"></script>
-  <script src="./app.js"></script>
+  <script type="module" src="./js/app.js"></script>
+  <script src="../../pwa-update.js"></script>
 </body>
 </html>

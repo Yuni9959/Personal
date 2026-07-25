@@ -1,8 +1,33 @@
-(() => {
+import { loadQuestionBank } from "./bank-loader.js";
+import { hashString, shuffled } from "./random.js";
+
+const bootStatus = document.querySelector("#bootStatus");
+const appRoot = document.querySelector("#app");
+
+async function bootstrap() {
+  try {
+    const data = await loadQuestionBank();
+    bootStatus.hidden = true;
+    appRoot.hidden = false;
+    initializeApp(data);
+  } catch (error) {
+    console.error(error);
+    bootStatus.classList.add("error");
+    bootStatus.textContent = "문제은행을 불러오지 못했습니다.";
+
+    const retryButton = document.createElement("button");
+    retryButton.type = "button";
+    retryButton.textContent = "다시 시도";
+    retryButton.addEventListener("click", () => window.location.reload());
+    bootStatus.appendChild(retryButton);
+  }
+}
+
+function initializeApp(data) {
   "use strict";
 
-  const bank = window.MENSA_QUESTION_BANK || [];
-  const types = window.MENSA_TYPES || [];
+  const bank = data.questions;
+  const types = data.types;
   const STORAGE_KEY = "mkat98-stats-v1";
 
   const $ = (selector) => document.querySelector(selector);
@@ -99,36 +124,6 @@
     else stats.streak = dayDiff(stats.lastActiveDate, today) === 1 ? stats.streak + 1 : 1;
     stats.lastActiveDate = today;
     saveStats();
-  }
-
-  function hashString(str) {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619);
-    }
-    return h >>> 0;
-  }
-
-  function seededRandom(seed) {
-    let s = seed >>> 0;
-    return () => {
-      s += 0x6D2B79F5;
-      let t = s;
-      t = Math.imul(t ^ (t >>> 15), t | 1);
-      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function shuffled(items, seed = Math.floor(Math.random() * 2 ** 31)) {
-    const result = [...items];
-    const rand = seededRandom(seed);
-    for (let i = result.length - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-    return result;
   }
 
   function showView(name) {
@@ -356,13 +351,14 @@
     clearTimer();
 
     const q = session.queue[session.index];
-    const isCorrect = selectedIndex === q.answerIndex;
+    const correctIndex = q.options.findIndex(option => option.id === q.correctOptionId);
+    const isCorrect = selectedIndex === correctIndex;
     if (isCorrect) session.score += 1;
 
     const buttons = $$(".option-button");
     buttons.forEach((button, index) => {
       button.disabled = true;
-      if (index === q.answerIndex) button.classList.add("correct");
+      if (index === correctIndex) button.classList.add("correct");
       if (index === selectedIndex) {
         button.classList.add("selected");
         if (!isCorrect) button.classList.add("wrong");
@@ -474,10 +470,8 @@
     }
   });
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => navigator.serviceWorker.register("../../sw.js").catch(() => {}));
-  }
-
   renderCategoryOptions();
   renderHome();
-})();
+}
+
+bootstrap();

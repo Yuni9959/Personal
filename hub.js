@@ -171,12 +171,6 @@
     els.installBtn.classList.add("hidden");
   });
 
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./sw.js").catch(() => {});
-    });
-  }
-
   setGreeting();
   updateConnection();
   updateFocus();

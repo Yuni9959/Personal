@@ -1,0 +1,12 @@
+{
+  "name": "personal-tap-v2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:answer-key": "node apps/mensa/tools/generate-answer-key.mjs",
+    "sync:bank": "node apps/mensa/tools/sync-bank.mjs",
+    "test:browser": "node apps/mensa/tests/browser-smoke.mjs",
+    "validate:bank": "node apps/mensa/tests/validate-bank.mjs --profile=foundation",
+    "test": "node --test apps/mensa/tests/*.test.mjs && node apps/mensa/tests/validate-bank.mjs --profile=foundation && node apps/mensa/tools/generate-answer-key.mjs --check"
+  }
+}

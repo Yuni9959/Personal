@@ -12,21 +12,32 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 ├── hub.css                    # 메인 화면 스타일
 ├── hub.js                     # 앱 카드·PWA 설치·상태 표시
 ├── apps.js                    # 연결할 앱 목록
+├── pwa-update.css             # 공통 PWA 업데이트 배너
+├── pwa-update.js              # 대기 중인 업데이트 적용 제어
 ├── manifest.webmanifest       # Personal Tap PWA 설정
 ├── sw.js                      # 허브와 하위 앱 공통 오프라인 캐시
+├── package.json               # 빌드 없는 검증·생성 명령
 ├── icons/
 │   ├── icon-192.png
 │   └── icon-512.png
 └── apps/
     └── mensa/
         ├── index.html         # MKAT 98 앱
-        ├── app.js
         ├── styles.css
-        ├── question-bank.js
+        ├── js/
+        │   ├── app.js
+        │   ├── bank-loader.js
+        │   └── random.js
         ├── data/
+        │   ├── question-bank.json
+        │   └── answer-key.csv
         ├── docs/
-        └── tests/
+        ├── tests/
+        └── tools/
 ```
+
+런타임은 여전히 빌드 과정이나 외부 라이브러리가 필요하지 않습니다.
+`package.json`은 문제은행 생성·검증과 자동 테스트 명령만 제공합니다.
 
 ## 현재 연결된 카드
 
@@ -101,17 +112,31 @@ http://localhost:8080
 
 ## 문제은행 검증
 
+`apps/mensa/data/question-bank.json`이 문제은행의 유일한 원본입니다.
+브라우저는 이 JSON을 직접 불러오고, `answer-key.csv`는 JSON에서 자동 생성합니다.
+
+문제은행을 수정한 뒤에는 다음을 실행합니다.
+
 ```bash
-node apps/mensa/tests/validate-bank.mjs
+npm run sync:bank
+npm test
+npm run test:browser
 ```
 
-## Service Worker를 수정했을 때
+Foundation 검증은 필수 데이터 오류를 실패로 처리하고, 아직 작성하지 않은
+선택지별 피드백·구조화 해설·다차원 난이도·힌트는 품질 경고로만 표시합니다.
 
-`sw.js` 첫 줄의 캐시 이름을 올려야 기존 설치본이 새 파일을 즉시 받습니다.
+`npm run test:browser`는 Chromium 기반 헤드리스 브라우저에서 기존 훈련 모드,
+v1 통계 저장, JSON 로드와 PWA 오프라인 실행을 함께 확인합니다.
 
-```js
-const CACHE_NAME = "personal-tap-v2.0.1";
-```
+## PWA 업데이트
+
+`sw.js`의 `CACHE_NAME`을 올리면 새 Service Worker가 설치 후 대기합니다.
+앱은 **새 버전이 준비되었습니다** 배너를 표시하며, 사용자가 업데이트 버튼을
+눌렀을 때만 새 버전을 활성화하고 한 번 새로고침합니다.
+
+Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
+`personal-tap-`으로 시작하는 이전 캐시만 정리합니다.
 
 ## 다음 확장 아이디어
 

@@ -1,0 +1,60 @@
+.pwa-update-banner {
+  position: fixed;
+  z-index: 1000;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  width: min(520px, calc(100% - 32px));
+  margin-left: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 15px 16px;
+  border: 1px solid rgba(255, 255, 255, .14);
+  border-radius: 18px;
+  color: #fff;
+  background: rgba(23, 21, 45, .96);
+  box-shadow: 0 18px 54px rgba(23, 21, 45, .28);
+  font-family: Inter, Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+}
+.pwa-update-banner p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+.pwa-update-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 7px;
+}
+.pwa-update-actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, .2);
+  border-radius: 11px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 850;
+}
+.pwa-update-actions .pwa-update-confirm {
+  border-color: transparent;
+  color: #17152d;
+  background: #fff;
+}
+.pwa-update-actions button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
+@media (max-width: 520px) {
+  .pwa-update-banner {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .pwa-update-actions { justify-content: flex-end; }
+}
