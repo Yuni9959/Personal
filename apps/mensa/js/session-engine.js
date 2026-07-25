@@ -87,6 +87,7 @@ export function createSessionSnapshot({
       questionId: question.id,
       contentVersion: question.contentVersion,
       gradingFingerprint: question.gradingFingerprint || null,
+      selectionReason: question.selectionReason || null,
       optionSeed,
       shuffleVersion: SHUFFLE_VERSION,
       presentedOptionIds
@@ -192,6 +193,7 @@ export function inspectSessionCompatibility(
       questionId: question.id,
       contentVersion: question.contentVersion,
       gradingFingerprint: question.gradingFingerprint || null,
+      selectionReason: item.selectionReason || null,
       optionSeed: nonNegativeInteger(item.optionSeed),
       shuffleVersion: nonNegativeInteger(
         item.shuffleVersion,
@@ -327,7 +329,11 @@ export function restoreSessionSnapshot({
     const options = item.presentedOptionIds.map(optionId =>
       question.options.find(option => option.id === optionId)
     );
-    return { ...question, options };
+    return {
+      ...question,
+      options,
+      selectionReason: item.selectionReason || null
+    };
   });
   const answers = Array.isArray(snapshot.answers)
     ? snapshot.answers.map(answer => ({ ...answer }))
@@ -372,6 +378,7 @@ export function serializeSession(session) {
       questionId: item.questionId,
       contentVersion: item.contentVersion,
       gradingFingerprint: item.gradingFingerprint || null,
+      selectionReason: item.selectionReason || null,
       optionSeed: item.optionSeed,
       shuffleVersion: item.shuffleVersion,
       presentedOptionIds: [...item.presentedOptionIds]

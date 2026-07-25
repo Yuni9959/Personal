@@ -433,6 +433,11 @@ async function run() {
       savedBeforeReload.items[0].presentedOptionIds,
       initialPresentation.presentedOptionIds
     );
+    assert.ok(
+      savedBeforeReload.items.every(item =>
+        typeof item.selectionReason === "string"
+      )
+    );
     assert.equal(savedBeforeReload.items[0].shuffleVersion, 1);
     assert.equal(typeof savedBeforeReload.items[0].optionSeed, "number");
 
@@ -556,9 +561,50 @@ async function run() {
     assert.equal(currentSummary.mastery.tracked, 1);
     assert.equal(currentSummary.migration.noticePending, false);
     assert.equal((await readBrowserStore(client, "sessions")).length, 1);
+    const dailyQueuesRecord = (await readBrowserStore(client, "meta"))
+      .find(record => record.key === "dailyQueues");
+    const [dailyQueue] = Object.values(dailyQueuesRecord.value);
+    assert.equal(dailyQueue.items.length, 10);
+    assert.equal(
+      new Set(dailyQueue.items.map(item => item.questionId)).size,
+      10
+    );
+    assert.equal(dailyQueue.strategy, "cold-start");
 
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
     await waitForCondition(client, "!document.querySelector('#homeView').classList.contains('hidden')");
+
+    await evaluate(
+      client,
+      "document.querySelector('[data-mode=\"daily\"]').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "!document.querySelector('#quizView').classList.contains('hidden')"
+    );
+    const sessionsAfterDailyRestart = await waitForBrowserStore(
+      client,
+      "sessions",
+      records => records.some(record =>
+        record.status === "active" &&
+        record.mode === "daily" &&
+        record.sessionId !== savedBeforeReload.sessionId
+      )
+    );
+    const restartedDaily = sessionsAfterDailyRestart.find(record =>
+      record.status === "active" &&
+      record.mode === "daily" &&
+      record.sessionId !== savedBeforeReload.sessionId
+    );
+    assert.deepEqual(
+      restartedDaily.queueQuestionIds,
+      dailyQueue.items.map(item => item.questionId)
+    );
+    await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
 
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
@@ -622,7 +668,8 @@ async function run() {
     console.log(
       "브라우저 스모크 성공: 허브 5카드, 유형 25개, " +
       "일일·혼합·속도·유형·오답 모드, v1 안전 이전, " +
-      "IndexedDB 응시 이벤트, v2 요약 캐시, 오프라인 로드"
+      "IndexedDB 응시·숙달 이벤트, 일일 고정 큐, 세션 복원, " +
+      "v2 요약 캐시, 오프라인 로드"
     );
   } finally {
     try {

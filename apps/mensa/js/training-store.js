@@ -386,6 +386,8 @@ export class TrainingStore {
           this.revision = nextRevision;
         } else if (entry.kind === "session") {
           await this.repository.putSession(entry.session);
+        } else if (entry.kind === "meta") {
+          await this.repository.putMeta(entry.key, entry.value);
         }
       } catch (error) {
         remaining.push(entry);
@@ -489,6 +491,61 @@ export class TrainingStore {
       this.health.lastError = errorMessage(error);
       return [];
     }
+  }
+
+  getAllAttempts() {
+    return [...this.attemptsById.values()].map(clone);
+  }
+
+  async getDailyQueue(date) {
+    await this.writeChain;
+    try {
+      const queues = await this.repository.getMeta("dailyQueues");
+      const queue = queues && typeof queues === "object"
+        ? queues[date]
+        : null;
+      return queue ? clone(queue) : null;
+    } catch (error) {
+      this.health.lastError = errorMessage(error);
+      return null;
+    }
+  }
+
+  async saveDailyQueue(queue) {
+    return this.enqueue(async () => {
+      let queues = {};
+      try {
+        const stored = await this.repository.getMeta("dailyQueues");
+        if (stored && typeof stored === "object") queues = stored;
+      } catch (error) {
+        this.health.lastError = errorMessage(error);
+      }
+
+      queues = {
+        ...queues,
+        [queue.date]: clone(queue)
+      };
+      const retainedDates = Object.keys(queues).sort().slice(-45);
+      queues = Object.fromEntries(
+        retainedDates.map(date => [date, queues[date]])
+      );
+      const recovery = {
+        kind: "meta",
+        entryId: `meta:dailyQueues:${queue.date}:${queue.updatedAt}`,
+        key: "dailyQueues",
+        value: queues
+      };
+
+      try {
+        await this.repository.putMeta("dailyQueues", queues);
+        if (!this.durable) this.queueRecovery(recovery);
+        return { saved: this.durable, queue: clone(queue) };
+      } catch (error) {
+        this.health.lastError = errorMessage(error);
+        this.queueRecovery(recovery);
+        return { saved: false, queue: clone(queue) };
+      }
+    });
   }
 
   async recordAttempt(attempt, session) {

@@ -27,6 +27,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         ├── js/
         │   ├── app.js
         │   ├── bank-loader.js
+        │   ├── daily-queue-engine.js
         │   ├── indexeddb-repository.js
         │   ├── mastery-engine.js
         │   ├── random.js
@@ -99,6 +100,12 @@ MKAT의 **데이터 내보내기** 버튼으로 상세 기록과 복구 저널�
 문제별 숙달 단계는 `신규 → 학습 중 → 안정화 중 → 숙달 → 유지 복습`으로
 관리합니다. 첫 제출·힌트 미사용·제한시간 내 정답만 서로 다른 날짜에 승급시키며,
 오답·시간초과·힌트·즉시 재도전·속도 훈련은 각각 별도 규칙으로 처리합니다.
+
+오늘의 10문제는 처음 만든 문제 ID와 선정 이유를 `meta.dailyQueues`에 저장합니다.
+따라서 같은 날 통계가 바뀌어도 문제 구성이 달라지지 않으며, 문제 버전이 바뀐
+경우에만 호환되지 않는 위치를 교체합니다. 표본이 부족한 동안은 미응시 유형을
+우선하고, 충분한 기록이 쌓이면 `복습 4 + 취약 3 + 신규 2 + 도전 1` 구성을
+사용합니다.
 
 저장소와 이전 규칙의 상세 계약은
 [`apps/mensa/docs/storage-model.md`](./apps/mensa/docs/storage-model.md)에 정리되어 있습니다.

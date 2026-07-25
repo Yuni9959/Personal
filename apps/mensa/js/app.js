@@ -19,6 +19,7 @@ import {
   resumeQuestionClock,
   serializeSession
 } from "./session-engine.js";
+import { resolveDailyQueue } from "./daily-queue-engine.js";
 
 const bootStatus = document.querySelector("#bootStatus");
 const appRoot = document.querySelector("#app");
@@ -114,6 +115,7 @@ function initializeApp(data, trainingStore, activeSessions = []) {
   let overtime = false;
   let questionSegmentBaseElapsedMs = 0;
   let questionSegmentStartedPerformance = null;
+  let startingSession = false;
 
   const modeLabels = {
     daily: "오늘의 10문제",
@@ -135,6 +137,13 @@ function initializeApp(data, trainingStore, activeSessions = []) {
 
   function allWrongQuestions() {
     return bank.filter(q => {
+      const progress = trainingStore.getQuestionProgress(q.id);
+      if (progress) {
+        return (
+          Boolean(progress.dueAt && progress.dueAt <= localDateKey()) ||
+          progress.lastReviewReason === "wrong"
+        );
+      }
       const s = questionStats(q.id);
       return (s.wrong || 0) > (s.correct || 0);
     });
@@ -277,7 +286,9 @@ function initializeApp(data, trainingStore, activeSessions = []) {
           <span class="type-accuracy">${accuracy == null ? "미응시" : `${accuracy}%`}</span>
           <small>5문제 →</small>
         `;
-        button.addEventListener("click", () => startSession("type", type.id));
+        button.addEventListener("click", () => {
+          void startSession("type", type.id);
+        });
         els.typeGrid.appendChild(button);
       });
   }
@@ -293,21 +304,27 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     `;
   }
 
-  function chooseDailyQuestions() {
-    const seed = hashString(`daily-${localDateKey()}`);
-    const orderedTypes = shuffled(types, seed).slice(0, 10);
-    return orderedTypes.map((type, index) => {
-      const qs = bank.filter(q => q.typeId === type.id);
-      const weakFirst = [...qs].sort((a, b) => {
-        const sa = questionStats(a.id);
-        const sb = questionStats(b.id);
-        const scoreA = (sa.wrong || 0) * 3 - (sa.correct || 0);
-        const scoreB = (sb.wrong || 0) * 3 - (sb.correct || 0);
-        return scoreB - scoreA;
-      });
-      const pickIndex = hashString(`${localDateKey()}-${type.id}-${index}`) % weakFirst.length;
-      return weakFirst[pickIndex];
+  async function chooseDailyQuestions() {
+    const date = localDateKey();
+    const storedQueue = await trainingStore.getDailyQueue(date);
+    const resolved = resolveDailyQueue({
+      date,
+      bankVersion: data.bankVersion,
+      questions: bank,
+      attempts: trainingStore.getAllAttempts(),
+      questionProgress: trainingStore.getAllQuestionProgress(),
+      storedQueue,
+      now: Date.now()
     });
+    if (resolved.changed) {
+      await trainingStore.saveDailyQueue(resolved.queue);
+    }
+
+    const byId = new Map(bank.map(question => [question.id, question]));
+    return resolved.queue.items.map(item => ({
+      ...byId.get(item.questionId),
+      selectionReason: item.reason
+    }));
   }
 
   function chooseMixed25() {
@@ -371,55 +388,70 @@ function initializeApp(data, trainingStore, activeSessions = []) {
       .then(renderStorageNotices);
   }
 
-  function startSession(mode, typeId = null, suppliedQueue = null) {
-    let queue;
-    if (suppliedQueue) queue = suppliedQueue;
-    else if (mode === "daily") queue = chooseDailyQuestions();
-    else if (mode === "mixed25") queue = chooseMixed25();
-    else if (mode === "speed") queue = chooseSpeed15();
-    else if (mode === "wrong") {
-      const wrong = allWrongQuestions();
-      if (!wrong.length) {
-        alert("아직 저장된 오답이 없습니다. 오늘의 문제부터 풀어봅시다.");
-        return;
+  async function startSession(mode, typeId = null, suppliedQueue = null) {
+    if (startingSession) return;
+    startingSession = true;
+    try {
+      let queue;
+      if (suppliedQueue) queue = suppliedQueue;
+      else if (mode === "daily") queue = await chooseDailyQuestions();
+      else if (mode === "mixed25") queue = chooseMixed25();
+      else if (mode === "speed") queue = chooseSpeed15();
+      else if (mode === "wrong") {
+        const wrong = allWrongQuestions();
+        if (!wrong.length) {
+          alert("아직 저장된 오답이 없습니다. 오늘의 문제부터 풀어봅시다.");
+          return;
+        }
+        queue = shuffled(wrong, Date.now()).slice(0, 25);
+      } else if (mode === "type") {
+        queue = shuffled(
+          bank.filter(q => q.typeId === typeId),
+          Date.now()
+        );
+      } else {
+        queue = shuffled(bank, Date.now()).slice(0, 10);
       }
-      queue = shuffled(wrong, Date.now()).slice(0, 25);
-    } else if (mode === "type") {
-      queue = shuffled(bank.filter(q => q.typeId === typeId), Date.now());
-    } else queue = shuffled(bank, Date.now()).slice(0, 10);
 
-    const previousPresentedOptionIdsByQuestion = mode === "retry" && session
-      ? new Map(
-          session.items.map(item => [
-            item.questionId,
-            item.presentedOptionIds
-          ])
-        )
-      : null;
-    abandonRestorableSession();
-    const snapshot = createSessionSnapshot({
-      sessionId: createRecordId("session"),
-      bankVersion: data.bankVersion,
-      mode,
-      typeId,
-      questions: queue,
-      previousPresentedOptionIdsByQuestion,
-      now: Date.now()
-    });
-    const prepared = restoreSessionSnapshot({
-      snapshot,
-      questions: bank,
-      currentBankVersion: data.bankVersion,
-      now: Date.now()
-    });
-    if (!prepared.ok) {
-      throw new Error("새 세션의 보기 순서를 구성하지 못했습니다.");
+      const previousPresentedOptionIdsByQuestion =
+        mode === "retry" && session
+          ? new Map(
+              session.items.map(item => [
+                item.questionId,
+                item.presentedOptionIds
+              ])
+            )
+          : null;
+      abandonRestorableSession();
+      const snapshot = createSessionSnapshot({
+        sessionId: createRecordId("session"),
+        bankVersion: data.bankVersion,
+        mode,
+        typeId,
+        questions: queue,
+        previousPresentedOptionIdsByQuestion,
+        now: Date.now()
+      });
+      const prepared = restoreSessionSnapshot({
+        snapshot,
+        questions: bank,
+        currentBankVersion: data.bankVersion,
+        now: Date.now()
+      });
+      if (!prepared.ok) {
+        throw new Error("새 세션의 보기 순서를 구성하지 못했습니다.");
+      }
+
+      session = prepared.session;
+      session.restored = false;
+      showView("quiz");
+      renderQuestion();
+    } catch (error) {
+      console.error(error);
+      alert("훈련 세트를 준비하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      startingSession = false;
     }
-
-    session = prepared.session;
-    session.restored = false;
-    showView("quiz");
-    renderQuestion();
   }
 
   function clearTimer() {
@@ -763,7 +795,9 @@ function initializeApp(data, trainingStore, activeSessions = []) {
   }
 
   $$(".mode-card").forEach(button => {
-    button.addEventListener("click", () => startSession(button.dataset.mode));
+    button.addEventListener("click", () => {
+      void startSession(button.dataset.mode);
+    });
   });
   els.categoryFilter.addEventListener("change", renderTypeGrid);
   els.nextBtn.addEventListener("click", nextQuestion);
@@ -776,7 +810,9 @@ function initializeApp(data, trainingStore, activeSessions = []) {
     if (!session) return;
     const wrongIds = new Set(session.answers.filter(x => !x.correct).map(x => x.id));
     const retry = bank.filter(q => wrongIds.has(q.id));
-    if (retry.length) startSession("retry", null, shuffled(retry, Date.now()));
+    if (retry.length) {
+      void startSession("retry", null, shuffled(retry, Date.now()));
+    }
   });
   els.resumeSessionBtn.addEventListener("click", resumeSavedSession);
   els.discardSessionBtn.addEventListener("click", () => {

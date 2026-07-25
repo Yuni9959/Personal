@@ -408,6 +408,50 @@ test("늦게 도착한 이전 세션 저장은 더 최신 revision을 덮어쓰�
   assert.equal(saved.status, "active");
 });
 
+test("날짜별 일일 큐는 meta에 저장되어 다시 열어도 같은 순서를 반환한다", async () => {
+  const repository = new MemoryTrainingRepository();
+  const localStorage = new MemoryLocalStorage();
+  const store = new TrainingStore({
+    repository,
+    localStorageImpl: localStorage,
+    now: () => Date.parse("2026-07-25T12:00:00")
+  });
+  await store.initialize({ bankVersion: "test-bank" });
+  const queue = {
+    queueId: "daily:2026-07-25:v1",
+    date: "2026-07-25",
+    bankVersion: "test-bank",
+    strategy: "cold-start",
+    strategyVersion: 1,
+    targetSize: 2,
+    items: [
+      {
+        questionId: "T01-01",
+        contentVersion: 1,
+        reason: "unseen-type"
+      },
+      {
+        questionId: "T02-01",
+        contentVersion: 1,
+        reason: "challenge"
+      }
+    ],
+    createdAt: 1000,
+    updatedAt: 1000
+  };
+
+  await store.saveDailyQueue(queue);
+  assert.deepEqual(await store.getDailyQueue("2026-07-25"), queue);
+
+  const reopened = new TrainingStore({
+    repository,
+    localStorageImpl: localStorage,
+    now: () => Date.parse("2026-07-25T13:00:00")
+  });
+  await reopened.initialize({ bankVersion: "test-bank" });
+  assert.deepEqual(await reopened.getDailyQueue("2026-07-25"), queue);
+});
+
 test("기록 초기화 후에는 남아 있던 v1 통계를 다시 가져오지 않는다", async () => {
   const localStorage = new MemoryLocalStorage({
     [LEGACY_STATS_KEY]: JSON.stringify({
