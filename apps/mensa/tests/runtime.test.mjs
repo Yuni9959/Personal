@@ -33,7 +33,7 @@ test("브라우저 문제은행 로더가 JSON v2를 검사해 반환한다", as
   });
 
   assert.equal(loaded.bankVersion, bank.bankVersion);
-  assert.equal(loaded.questions.length, 652);
+  assert.equal(loaded.questions.length, 1002);
 });
 
 test("HTML의 모든 로컬 href와 src가 존재한다", () => {

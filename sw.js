@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.5.0-expanded-bank.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.6.0-mensano-bank.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",

@@ -27,23 +27,23 @@ const activeBaseline = baseline.questions.filter(
   question => question.typeId !== "T19"
 );
 
-test("v2 활성 문제은행의 652문항·4270보기 ID가 안정적이다", () => {
+test("v2 활성 문제은행의 1002문항·6370보기 ID가 안정적이다", () => {
   assert.equal(bank.schemaVersion, 2);
-  assert.equal(bank.types.length, 25);
-  assert.equal(bank.questions.length, 652);
+  assert.equal(bank.types.length, 60);
+  assert.equal(bank.questions.length, 1002);
   assert.equal(
     bank.questions.reduce((sum, question) => sum + question.options.length, 0),
-    4270
+    6370
   );
   assert.equal(
     new Set(bank.questions.flatMap(question =>
       question.options.map(option => option.id)
     )).size,
-    4270
+    6370
   );
   assert.equal(
     bank.questions.filter(question => "answerIndex" in question).length,
-    652
+    1002
   );
   assert.equal(bank.questions.some(question => question.typeId === "T19"), false);
   assert.equal(bank.questions.filter(
@@ -55,6 +55,9 @@ test("v2 활성 문제은행의 652문항·4270보기 ID가 안정적이다", ()
   assert.equal(bank.questions.filter(
     question => question.provenance.sourceId === "mkat-original-300-v1"
   ).length, 300);
+  assert.equal(bank.questions.filter(
+    question => question.provenance.sourceId === "mkat-mensano-350-v1"
+  ).length, 350);
 });
 
 test("T19를 제외한 Foundation 120문항의 SVG·보기·정답은 동일하다", () => {

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { gradingFingerprint } from "./bank-utils.mjs";
 
 export const CONTENT_QUALITY_VERSION = 2;
-export const TARGET_BANK_VERSION = "2026.07.25-content.2";
+export const TARGET_BANK_VERSION = "2026.07.28-content.3";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const mensaRoot = path.resolve(here, "..");
@@ -411,6 +411,97 @@ function clampDifficulty(value) {
   return Math.min(5, Math.max(1, Math.round(value)));
 }
 
+function derivedDomainId(type) {
+  const family = String(type.familyId || "");
+  if (/(rotation|motion|toroidal|orientation|path|diagonal)/i.test(family)) {
+    return "spatial-reasoning";
+  }
+  if (/(latin|sequence|progression|orthogonal|nested)/i.test(family)) {
+    return "sequence-attributes";
+  }
+  return "figure-rules";
+}
+
+function derivedErrorTags(type) {
+  const family = String(type.familyId || "");
+  if (/(set-operation|exact-cover|mixed-operator|signed|ternary)/i.test(
+    family
+  )) {
+    return [
+      "operation-confusion",
+      "element-omission",
+      "element-excess"
+    ];
+  }
+  if (/(rotation|motion|toroidal|orientation|path|diagonal)/i.test(family)) {
+    return [
+      "direction-reversal",
+      "movement-distance",
+      "attribute-incomplete"
+    ];
+  }
+  return [
+    "attribute-incomplete",
+    "row-only-check",
+    "sequence-offset"
+  ];
+}
+
+function derivedTypeConfig(type, questions) {
+  const representative = questions.find(
+    question => question.typeId === type.id
+  );
+  const steps = Array.isArray(representative?.explanationSteps)
+    ? representative.explanationSteps
+    : [];
+  const authoring =
+    representative?.authoringDifficultyProfile ||
+    representative?.difficultyProfile ||
+    {};
+  const rule =
+    representative?.ruleSignature ||
+    (typeof representative?.explanation === "string"
+      ? representative.explanation
+      : representative?.explanation?.rule) ||
+    `${type.title} 규칙을 행·열과 대각선에서 일관되게 적용합니다.`;
+  const hint1 = steps[0]?.text ||
+    "한 방향의 변화만 먼저 분리해 반복되는 속성을 찾으세요.";
+  const hint2 = steps[1]?.text ||
+    "찾은 규칙을 다른 행·열에도 대입해 같은 결과가 나오는지 확인하세요.";
+  const verification = steps.at(-1)?.text ||
+    "후보가 모든 행·열의 속성을 동시에 만족하는지 검산합니다.";
+  const difficultyBase = [
+    (Number(authoring.ruleCount) + Number(authoring.inferenceDepth)) / 2,
+    Number(authoring.independentAttributes),
+    Number(authoring.workingMemory),
+    Number(authoring.visualLoad),
+    Number(authoring.distractorSimilarity)
+  ].map(value => Number.isFinite(value) ? clampDifficulty(value) : 3);
+
+  return config(
+    derivedDomainId(type),
+    rule,
+    hint1,
+    hint2,
+    verification,
+    difficultyBase,
+    derivedErrorTags(type)
+  );
+}
+
+function typeConfigsForSource(source) {
+  const configs = new Map(Object.entries(TYPE_CONFIG));
+  for (const type of source.types) {
+    if (!configs.has(type.id)) {
+      configs.set(
+        type.id,
+        derivedTypeConfig(type, source.questions)
+      );
+    }
+  }
+  return configs;
+}
+
 function authorDifficultyToRuntime(value) {
   const level = Number(value);
   if (level <= 5) return clampDifficulty(level);
@@ -551,8 +642,13 @@ function styleSignature(svg) {
   return JSON.stringify({ fills, dashed });
 }
 
-function classifyWrongOption(question, option, correctOption, optionIndex) {
-  const configForType = TYPE_CONFIG[question.typeId];
+function classifyWrongOption(
+  question,
+  option,
+  correctOption,
+  optionIndex,
+  typeConfig
+) {
   const optionNumber = numericOptionValue(option);
   const correctNumber = numericOptionValue(correctOption);
   const sourceTag = option.sourceErrorTag || option.errorTag;
@@ -591,21 +687,21 @@ function classifyWrongOption(question, option, correctOption, optionIndex) {
     const countDifference =
       primitiveCount(option.svg) - primitiveCount(correctOption.svg);
     if (countDifference < 0 &&
-        configForType.errorTags.includes("element-omission")) {
+        typeConfig.errorTags.includes("element-omission")) {
       return "element-omission";
     }
     if (countDifference > 0 &&
-        configForType.errorTags.includes("element-excess")) {
+        typeConfig.errorTags.includes("element-excess")) {
       return "element-excess";
     }
     if (styleSignature(option.svg) !== styleSignature(correctOption.svg) &&
-        configForType.errorTags.includes("fill-style-mismatch")) {
+        typeConfig.errorTags.includes("fill-style-mismatch")) {
       return "fill-style-mismatch";
     }
   }
 
-  return configForType.errorTags[
-    optionIndex % configForType.errorTags.length
+  return typeConfig.errorTags[
+    optionIndex % typeConfig.errorTags.length
   ];
 }
 
@@ -613,7 +709,8 @@ function optionFeedback(
   question,
   option,
   correctOption,
-  errorTag
+  errorTag,
+  typeConfig
 ) {
   const taxonomy = ERROR_TAXONOMY[errorTag];
   const optionNumber = numericOptionValue(option);
@@ -630,8 +727,30 @@ function optionFeedback(
   return (
     comparison +
     `${taxonomy.diagnosis} ${taxonomy.action} ` +
-    TYPE_CONFIG[question.typeId].verification
+    typeConfig.verification
   );
+}
+
+function usefulFeedback(value) {
+  return typeof value === "string" &&
+    value.trim() &&
+    value.trim() !== "정답 규칙을 다시 확인하세요.";
+}
+
+function questionHints(question, typeConfig) {
+  if (Array.isArray(question.hints) && question.hints.length >= 2) {
+    return question.hints.slice(0, 2);
+  }
+  const stepHints = question.typeId?.startsWith("S") &&
+      Array.isArray(question.explanationSteps)
+    ? question.explanationSteps
+      .map(step => step?.text)
+      .filter(text => typeof text === "string" && text.trim())
+      .slice(0, 2)
+    : [];
+  return stepHints.length >= 2
+    ? stepHints
+    : [typeConfig.hint1, typeConfig.hint2];
 }
 
 function structuredExplanation(question, typeConfig) {
@@ -669,12 +788,13 @@ export function enrichBank(source) {
     throw new Error("폐기된 일반지식 유형 T19는 활성 문제은행에 포함할 수 없습니다.");
   }
 
+  const typeConfigs = typeConfigsForSource(source);
   const typeCounts = source.questions.reduce((counts, question) => {
     counts.set(question.typeId, (counts.get(question.typeId) || 0) + 1);
     return counts;
   }, new Map());
   const types = source.types.map(type => {
-    const typeConfig = TYPE_CONFIG[type.id];
+    const typeConfig = typeConfigs.get(type.id);
     if (!typeConfig) throw new Error(`유형 설정 누락: ${type.id}`);
     return {
       ...type,
@@ -685,7 +805,7 @@ export function enrichBank(source) {
   });
 
   const questions = source.questions.map(question => {
-    const typeConfig = TYPE_CONFIG[question.typeId];
+    const typeConfig = typeConfigs.get(question.typeId);
     if (!typeConfig) throw new Error(`문항 유형 설정 누락: ${question.id}`);
     const correctOption = question.options.find(
       option => option.id === question.correctOptionId
@@ -715,19 +835,20 @@ export function enrichBank(source) {
         question,
         option,
         correctOption,
-        optionIndex
+        optionIndex,
+        typeConfig
       );
       return {
         ...option,
         errorTag,
-        feedback: typeof option.feedback === "string" &&
-            option.feedback.trim()
+        feedback: usefulFeedback(option.feedback)
           ? option.feedback
           : optionFeedback(
               question,
               option,
               correctOption,
-              errorTag
+              errorTag,
+              typeConfig
             )
       };
     });
@@ -735,8 +856,7 @@ export function enrichBank(source) {
       option => option.id === question.correctOptionId
     );
     const sourceAnswerFeedback =
-      typeof correctOption.feedback === "string" &&
-      correctOption.feedback.trim()
+      usefulFeedback(correctOption.feedback)
         ? correctOption.feedback
         : question.answerFeedback || null;
     const enriched = {
@@ -753,9 +873,7 @@ export function enrichBank(source) {
       answerIndex,
       answerFeedback: sourceAnswerFeedback,
       explanation: structuredExplanation(question, typeConfig),
-      hints: Array.isArray(question.hints) && question.hints.length >= 2
-        ? question.hints.slice(0, 2)
-        : [typeConfig.hint1, typeConfig.hint2]
+      hints: questionHints(question, typeConfig)
     };
     return {
       ...enriched,

@@ -20,23 +20,33 @@ if (!supportedProfiles.has(profile)) {
 
 const errors = [];
 const warnings = new Map();
-const EXPECTED_TYPE_IDS = [
+const LEGACY_TYPE_IDS = [
   "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
   "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
   "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25",
   "T26"
+];
+const MENSA_NO_TYPE_IDS = Array.from(
+  { length: 35 },
+  (_, index) => `S${String(index + 1).padStart(2, "0")}`
+);
+const EXPECTED_TYPE_IDS = [
+  ...LEGACY_TYPE_IDS,
+  ...MENSA_NO_TYPE_IDS
 ];
 const EXPECTED_TYPE_COUNTS = {
   T01: 27, T02: 27, T03: 24, T04: 27, T05: 27,
   T06: 27, T07: 27, T08: 26, T09: 27, T10: 27,
   T11: 27, T12: 27, T13: 27, T14: 27, T15: 27,
   T16: 27, T17: 27, T18: 23, T20: 27, T21: 27,
-  T22: 27, T23: 27, T24: 27, T25: 27, T26: 12
+  T22: 27, T23: 27, T24: 27, T25: 27, T26: 12,
+  ...Object.fromEntries(MENSA_NO_TYPE_IDS.map(typeId => [typeId, 10]))
 };
 const EXPECTED_SOURCE_COUNTS = {
   "foundation-v1": 120,
   "advanced-v1": 232,
-  "mkat-original-300-v1": 300
+  "mkat-original-300-v1": 300,
+  "mkat-mensano-350-v1": 350
 };
 
 function addWarning(code, id) {
@@ -98,11 +108,11 @@ if (typeof data.bankVersion !== "string" || !data.bankVersion.trim()) {
 if (data.contentQualityVersion !== 2) {
   errors.push(`콘텐츠 품질 버전이 2가 아닙니다: ${data.contentQualityVersion}`);
 }
-if (!Array.isArray(data.types) || data.types.length !== 25) {
-  errors.push(`유형 수가 25가 아닙니다: ${data.types?.length}`);
+if (!Array.isArray(data.types) || data.types.length !== 60) {
+  errors.push(`유형 수가 60이 아닙니다: ${data.types?.length}`);
 }
-if (!Array.isArray(data.questions) || data.questions.length !== 652) {
-  errors.push(`문제 수가 652가 아닙니다: ${data.questions?.length}`);
+if (!Array.isArray(data.questions) || data.questions.length !== 1002) {
+  errors.push(`문제 수가 1002가 아닙니다: ${data.questions?.length}`);
 }
 if (!Array.isArray(data.cognitiveDomains) ||
     data.cognitiveDomains.length !== 6) {
@@ -408,8 +418,8 @@ for (const type of data.types || []) {
   }
 }
 
-if (optionIds.size !== 4270) {
-  errors.push(`전체 옵션 수가 4270이 아닙니다: ${optionIds.size}`);
+if (optionIds.size !== 6370) {
+  errors.push(`전체 옵션 수가 6370이 아닙니다: ${optionIds.size}`);
 }
 for (const [sourceId, expectedCount] of Object.entries(
   EXPECTED_SOURCE_COUNTS

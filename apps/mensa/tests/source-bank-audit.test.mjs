@@ -19,6 +19,15 @@ const compressedSource = fs.readFileSync(
 );
 const originalBytes = zlib.gunzipSync(compressedSource);
 const original300 = JSON.parse(originalBytes.toString("utf8"));
+const mensaNoManifest = JSON.parse(fs.readFileSync(
+  path.join(sourceRoot, "mkat-mensano-350-v1.manifest.json"),
+  "utf8"
+));
+const compressedMensaNoSource = fs.readFileSync(
+  path.join(sourceRoot, mensaNoManifest.storedFileName)
+);
+const mensaNoBytes = zlib.gunzipSync(compressedMensaNoSource);
+const mensaNo350 = JSON.parse(mensaNoBytes.toString("utf8"));
 const advancedBytes = fs.readFileSync(
   path.join(dataRoot, "advanced-question-bank-v1.json")
 );
@@ -95,6 +104,25 @@ function duplicateGroups(questions) {
     .filter(ids => ids.length > 1)
     .map(ids => ids.sort())
     .sort((left, right) => left[0].localeCompare(right[0], "en"));
+}
+
+function completeVisualKey(question) {
+  return sha256(JSON.stringify({
+    stimulusSvg: question.stimulusSvg
+      .replace(/<text\b[^>]*>\s*S\d{2}\s*<\/text>/gi, "")
+      .replace(/\s+/g, " ")
+      .trim(),
+    options: question.options.map(optionKey).sort()
+  }));
+}
+
+function completeVisualDuplicateGroups(questions) {
+  const groups = new Map();
+  for (const question of questions) {
+    const key = completeVisualKey(question);
+    groups.set(key, [...(groups.get(key) || []), question.id]);
+  }
+  return [...groups.values()].filter(ids => ids.length > 1);
 }
 
 function answerText(question) {
@@ -295,6 +323,77 @@ test("신규 300 원본은 해시·분포·ID·보기·SVG 안전성 계약을 �
       }
     }
   }
+});
+
+test("Mensa Norway 신규 350 원본은 해시·분포·ID·시각 중복 계약을 만족한다", () => {
+  assert.equal(
+    sha256(compressedMensaNoSource),
+    mensaNoManifest.storedSha256
+  );
+  assert.equal(sha256(mensaNoBytes), mensaNoManifest.jsonSha256);
+  assert.equal(mensaNo350.schemaVersion, 4);
+  assert.equal(mensaNo350.questions.length, 350);
+  assert.equal(mensaNo350.types.length, 35);
+  assert.deepEqual(
+    countBy(mensaNo350.questions, question => question.difficulty),
+    { 3: 35, 4: 70, 5: 70, 6: 70, 7: 70, 8: 35 }
+  );
+  assert.deepEqual(
+    countBy(mensaNo350.questions, question => question.options.length),
+    { 6: 350 }
+  );
+  assert.deepEqual(
+    countBy(mensaNo350.questions, question => question.answerIndex),
+    { 0: 59, 1: 59, 2: 58, 3: 58, 4: 58, 5: 58 }
+  );
+  assert.ok(Object.values(
+    countBy(mensaNo350.questions, question => question.typeId)
+  ).every(count => count === 10));
+  assert.equal(
+    completeVisualDuplicateGroups(mensaNo350.questions).length,
+    0
+  );
+
+  const ids = new Set();
+  for (const question of mensaNo350.questions) {
+    assert.match(question.id, /^S(?:0[1-9]|[12]\d|3[0-5])-(?:0[1-9]|10)$/);
+    assert.ok(!ids.has(question.id), question.id);
+    ids.add(question.id);
+    assert.equal(
+      question.options[question.answerIndex].id,
+      question.correctOptionId,
+      question.id
+    );
+    assert.equal(
+      new Set(question.options.map(optionKey)).size,
+      question.options.length,
+      question.id
+    );
+    assert.equal(question.validation.uniqueAnswer, true, question.id);
+    for (const svg of [
+      question.stimulusSvg,
+      ...question.options.map(option => option.svg)
+    ]) {
+      assert.ok(svg.trimStart().startsWith("<svg"), question.id);
+      assert.ok(svg.trimEnd().endsWith("</svg>"), question.id);
+      for (const pattern of UNSAFE_SVG) {
+        assert.doesNotMatch(svg, pattern, question.id);
+      }
+    }
+  }
+
+  const activeLegacyQuestions = bank.questions.filter(
+    question => question.provenance.sourceId !== "mkat-mensano-350-v1"
+  );
+  const legacyVisualKeys = new Set(
+    activeLegacyQuestions.map(completeVisualKey)
+  );
+  assert.equal(
+    mensaNo350.questions.some(question =>
+      legacyVisualKeys.has(completeVisualKey(question))
+    ),
+    false
+  );
 });
 
 test("신규 수리·문자·개수 문항의 정답을 검증 메타데이터에서 재계산한다", () => {
@@ -514,7 +613,7 @@ test("기존 심화 수리·개수 문항도 표시 정답과 산식을 독립 �
   }
 });
 
-test("심화 원본의 실질 중복 8개만 폐기하고 최종 652문항에는 중복이 없다", () => {
+test("심화 원본의 실질 중복 8개만 폐기하고 최종 1002문항에는 중복이 없다", () => {
   const advancedActiveCandidates = advanced.questions.filter(
     question => question.typeId !== "T19"
   );
@@ -531,11 +630,15 @@ test("심화 원본의 실질 중복 8개만 폐기하고 최종 652문항에는
     assert.ok(group, `${duplicateId} → ${originalId}`);
   }
 
-  assert.equal(bank.questions.length, 652);
+  assert.equal(bank.questions.length, 1002);
   assert.equal(duplicateGroups(bank.questions).length, 0);
+  assert.equal(completeVisualDuplicateGroups(bank.questions).length, 0);
   assert.equal(bank.questions.some(question => question.typeId === "T19"), false);
   const finalIds = new Set(bank.questions.map(question => question.id));
   for (const question of original300.questions) {
+    assert.ok(finalIds.has(question.id), question.id);
+  }
+  for (const question of mensaNo350.questions) {
     assert.ok(finalIds.has(question.id), question.id);
   }
   for (const question of advancedActiveCandidates) {

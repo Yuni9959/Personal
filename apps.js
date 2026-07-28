@@ -3,7 +3,7 @@ window.PERSONAL_TAP_APPS = [
     id: "mkat98",
     title: "MKAT 98",
     subtitle: "멘사 합격 프로젝트",
-    description: "25개 유형과 중복을 제거한 652개 문제로 매일 추론력·속도·선택 정확도를 훈련합니다.",
+    description: "60개 유형과 중복을 제거한 1,002개 문제로 매일 추론력·속도·선택 정확도를 훈련합니다.",
     href: "./apps/mensa/",
     icon: "🧠",
     badge: "TRAINING",

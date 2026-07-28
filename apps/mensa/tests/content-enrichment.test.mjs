@@ -25,10 +25,10 @@ test("콘텐츠 고도화 변환은 두 번 실행해도 결과가 바뀌지 않
   assert.doesNotThrow(() => assertGradingInvariants(bank, rerun));
 });
 
-test("652문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
+test("1002문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
   assert.equal(bank.bankVersion, TARGET_BANK_VERSION);
   assert.equal(bank.contentQualityVersion, CONTENT_QUALITY_VERSION);
-  assert.equal(bank.questions.length, 652);
+  assert.equal(bank.questions.length, 1002);
 
   for (const question of bank.questions) {
     assert.equal(
@@ -72,6 +72,8 @@ test("6개 인지 영역과 핵심·보조 점수 그룹이 문항까지 일관�
   );
   assert.equal(typeById.has("T19"), false);
   assert.equal(typeById.has("T26"), true);
+  assert.equal(typeById.has("S01"), true);
+  assert.equal(typeById.has("S35"), true);
 
   for (const question of bank.questions) {
     const type = typeById.get(question.typeId);
@@ -98,5 +100,5 @@ test("모든 오답 보기에 표준 오류 태그와 선택지 피드백이 있
     }
   }
 
-  assert.equal(wrongOptionCount, 3618);
+  assert.equal(wrongOptionCount, 5368);
 });

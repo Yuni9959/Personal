@@ -43,6 +43,15 @@ test("기록이 없는 사용자는 중복 없는 10문제 콜드 스타트 큐�
   assert.equal(queue.strategy, "cold-start");
   assert.equal(queue.items.length, 10);
   assert.equal(new Set(queue.items.map(item => item.questionId)).size, 10);
+  const questionById = new Map(
+    questions().map(question => [question.id, question])
+  );
+  assert.equal(
+    new Set(queue.items.map(item =>
+      questionById.get(item.questionId).typeId
+    )).size,
+    10
+  );
   assert.equal(
     queue.items.filter(item => item.reason === "unseen-type").length,
     6
@@ -91,6 +100,44 @@ test("표본이 충분해진 뒤에는 복습 4·취약 3·신규 2·도전 1 �
   assert.equal(counts["new-question"], 2);
   assert.equal(counts.challenge, 1);
   assert.equal(new Set(queue.items.map(item => item.questionId)).size, 10);
+  const questionById = new Map(
+    bank.map(question => [question.id, question])
+  );
+  assert.equal(
+    new Set(queue.items.map(item =>
+      questionById.get(item.questionId).typeId
+    )).size,
+    10
+  );
+});
+
+test("복습 예정 문제가 한 유형에 몰려도 오늘의 큐에는 그 유형을 한 번만 넣는다", () => {
+  const bank = questions();
+  const sameType = bank.filter(question => question.typeId === "T01");
+  const progress = sameType.map(question => ({
+    questionId: question.id,
+    contentVersion: question.contentVersion,
+    gradingFingerprint: question.gradingFingerprint,
+    level: 1,
+    dueAt: "2026-07-25"
+  }));
+  const queue = buildDailyQueue({
+    date: "2026-07-25",
+    questions: bank,
+    questionProgress: progress
+  });
+  const questionById = new Map(
+    bank.map(question => [question.id, question])
+  );
+  const selectedTypes = queue.items.map(item =>
+    questionById.get(item.questionId).typeId
+  );
+
+  assert.equal(
+    queue.items.filter(item => item.reason === "review-due").length,
+    1
+  );
+  assert.equal(new Set(selectedTypes).size, 10);
 });
 
 test("표본이 두 번 미만인 유형은 취약 유형으로 분류하지 않는다", () => {
@@ -163,6 +210,60 @@ test("채점 fingerprint가 같으면 문구 버전이 바뀌어도 일일 큐�
   assert.equal(reused.changed, false);
   assert.equal(reused.reused, true);
   assert.deepEqual(reused.queue.items, first.queue.items);
+});
+
+test("저장된 큐에 같은 유형이 두 번 있으면 중복 위치만 다른 유형으로 고친다", () => {
+  const bank = questions();
+  const first = resolveDailyQueue({
+    date: "2026-07-25",
+    bankVersion: "bank-1",
+    questions: bank,
+    now: 1000
+  });
+  const questionById = new Map(
+    bank.map(question => [question.id, question])
+  );
+  const firstType = questionById.get(
+    first.queue.items[0].questionId
+  ).typeId;
+  const duplicateTypeQuestion = bank.find(question =>
+    question.typeId === firstType &&
+    question.id !== first.queue.items[0].questionId
+  );
+  const corruptedQueue = {
+    ...first.queue,
+    strategyVersion: 1,
+    items: first.queue.items.map((item, index) =>
+      index === 1
+        ? {
+            questionId: duplicateTypeQuestion.id,
+            contentVersion: duplicateTypeQuestion.contentVersion,
+            gradingFingerprint: duplicateTypeQuestion.gradingFingerprint,
+            reason: "legacy-duplicate"
+          }
+        : item
+    )
+  };
+  const repaired = resolveDailyQueue({
+    date: "2026-07-25",
+    bankVersion: "bank-2",
+    questions: bank,
+    storedQueue: corruptedQueue,
+    now: 2000
+  });
+  const selectedTypes = repaired.queue.items.map(item =>
+    questionById.get(item.questionId).typeId
+  );
+
+  assert.equal(repaired.changed, true);
+  assert.equal(repaired.reused, false);
+  assert.deepEqual(repaired.queue.items[0], corruptedQueue.items[0]);
+  assert.notEqual(
+    repaired.queue.items[1].questionId,
+    duplicateTypeQuestion.id
+  );
+  assert.equal(new Set(selectedTypes).size, 10);
+  assert.equal(repaired.queue.strategyVersion, 2);
 });
 
 test("채점 fingerprint가 바뀌면 해당 위치만 교체하고 나머지는 유지한다", () => {

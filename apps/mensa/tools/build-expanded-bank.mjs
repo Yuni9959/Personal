@@ -27,15 +27,34 @@ const sourceGzipPath = path.join(
   sourceRoot,
   "mkat-original-300-v1.json.gz"
 );
+const mensaNoManifestPath = path.join(
+  sourceRoot,
+  "mkat-mensano-350-v1.manifest.json"
+);
+const mensaNoGzipPath = path.join(
+  sourceRoot,
+  "mkat-mensano-350-v1.json.gz"
+);
 
-const EXPECTED_TYPE_IDS = Object.freeze([
+const LEGACY_TYPE_IDS = Object.freeze([
   "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
   "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
   "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25",
   "T26"
 ]);
-const EXPECTED_QUESTION_COUNT = 652;
-const EXPECTED_OPTION_COUNT = 4270;
+const MENSA_NO_TYPE_IDS = Object.freeze(Array.from(
+  { length: 35 },
+  (_, index) => `S${String(index + 1).padStart(2, "0")}`
+));
+const EXPECTED_TYPE_IDS = Object.freeze([
+  ...LEGACY_TYPE_IDS,
+  ...MENSA_NO_TYPE_IDS
+]);
+const TYPE_ORDER = new Map(
+  EXPECTED_TYPE_IDS.map((typeId, index) => [typeId, index])
+);
+const EXPECTED_QUESTION_COUNT = 1002;
+const EXPECTED_OPTION_COUNT = 6370;
 const RETIRED_DUPLICATE_QUESTIONS = Object.freeze([
   {
     id: "T03-10",
@@ -107,7 +126,8 @@ function sourceQuestionNumber(question) {
 }
 
 function typeSort(left, right) {
-  return left.typeId.localeCompare(right.typeId, "en") ||
+  return (TYPE_ORDER.get(left.typeId) ?? Number.MAX_SAFE_INTEGER) -
+    (TYPE_ORDER.get(right.typeId) ?? Number.MAX_SAFE_INTEGER) ||
     sourceQuestionNumber(left) - sourceQuestionNumber(right);
 }
 
@@ -121,6 +141,13 @@ function optionContentKey(option) {
     svg: option.svg ?? null,
     suffix: option.suffix ?? null
   });
+}
+
+function canonicalStimulusForDuplicateAudit(svg) {
+  return String(svg || "")
+    .replace(/<text\b[^>]*>\s*S\d{2}\s*<\/text>/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function safeSvg(svg, location) {
@@ -347,7 +374,65 @@ function normalizeOriginal300Question(question) {
   };
 }
 
+function normalizeMensaNo350Question(question) {
+  const normalized = normalizeOptions(question, {
+    preserveSourceIds: true
+  });
+  const {
+    stimulus,
+    difficultyProfile: authoringDifficultyProfile,
+    domainId: sourceDomainId,
+    ...sourceQuestion
+  } = question;
+  const options = normalized.options.map(option => {
+    if (option.feedback !== "정답 규칙을 다시 확인하세요.") {
+      return option;
+    }
+    const { feedback, ...withoutPlaceholder } = option;
+    return withoutPlaceholder;
+  });
+  const stepSkills = Array.isArray(question.explanationSteps)
+    ? question.explanationSteps
+      .map(step => step?.label)
+      .filter(label => typeof label === "string" && label.trim())
+    : [];
+  const explanationSteps = Array.isArray(question.explanationSteps)
+    ? question.explanationSteps.map(step => ({
+        ...step,
+        text: String(step.text || "")
+          .replace(/\bleft쪽/g, "왼쪽")
+          .replace(/\bright쪽/g, "오른쪽")
+      }))
+    : [];
+  return {
+    ...sourceQuestion,
+    ...normalized,
+    options,
+    correctOptionId: options[normalized.answerIndex].id,
+    contentVersion: Number(question.contentVersion) || 1,
+    sourceDomainId,
+    stimulusKind: stimulus?.kind || "svg",
+    authoringDifficultyProfile,
+    explanationSteps,
+    skills: stepSkills.length ? stepSkills : question.skills,
+    provenance: {
+      sourceId: "mkat-mensano-350-v1",
+      sourceVersion: "source35-350-v1-2026-07-28",
+      sourceQuestionId: question.id,
+      sourceExercise: question.sourceExercise,
+      importedAt: "2026-07-28",
+      generatedOriginal: true
+    }
+  };
+}
+
 function expectedIdsForType(typeId) {
+  if (MENSA_NO_TYPE_IDS.includes(typeId)) {
+    return Array.from(
+      { length: 10 },
+      (_, index) => `${typeId}-${String(index + 1).padStart(2, "0")}`
+    );
+  }
   if (typeId === "T26") {
     return Array.from(
       { length: 12 },
@@ -371,6 +456,12 @@ function expectedIdsForType(typeId) {
 }
 
 function sourceRangesForType(typeId) {
+  if (MENSA_NO_TYPE_IDS.includes(typeId)) {
+    return [{
+      sourceId: "mkat-mensano-350-v1",
+      range: `${typeId}-01~${typeId}-10`
+    }];
+  }
   return typeId === "T26"
     ? [{ sourceId: "mkat-original-300-v1", range: "T26-01~T26-12" }]
     : [
@@ -409,6 +500,7 @@ function assertExpandedBank(bank) {
   const questionIds = new Set();
   const optionIds = new Set();
   const substantiveKeys = new Map();
+  const completeVisualKeys = new Map();
   let optionCount = 0;
   for (const question of bank.questions) {
     if (questionIds.has(question.id)) {
@@ -492,6 +584,18 @@ function assertExpandedBank(bank) {
     } else {
       substantiveKeys.set(substantiveKey, question.id);
     }
+    const completeVisualKey = sha256(JSON.stringify({
+      stimulusSvg: canonicalStimulusForDuplicateAudit(
+        question.stimulusSvg
+      ),
+      options: question.options.map(optionContentKey).sort()
+    }));
+    const visualDuplicate = completeVisualKeys.get(completeVisualKey);
+    if (visualDuplicate) {
+      errors.push(`유형 간 시각 중복=${visualDuplicate},${question.id}`);
+    } else {
+      completeVisualKeys.set(completeVisualKey, question.id);
+    }
   }
   if (optionCount !== EXPECTED_OPTION_COUNT) {
     errors.push(`보기 총수=${optionCount}`);
@@ -519,10 +623,14 @@ function assertExpandedBank(bank) {
   const expectedProvenance = {
     "foundation-v1": 120,
     "advanced-v1": 232,
-    "mkat-original-300-v1": 300
+    "mkat-original-300-v1": 300,
+    "mkat-mensano-350-v1": 350
   };
-  if (JSON.stringify(provenanceCounts) !==
-      JSON.stringify(expectedProvenance)) {
+  if (Object.entries(expectedProvenance).some(
+    ([sourceId, count]) => provenanceCounts[sourceId] !== count
+  ) ||
+      Object.keys(provenanceCounts).length !==
+        Object.keys(expectedProvenance).length) {
     errors.push(`출처 분포=${JSON.stringify(provenanceCounts)}`);
   }
 
@@ -538,10 +646,19 @@ export function buildExpandedBank({
   currentBank,
   advancedBank,
   original300,
-  sourceManifest
+  sourceManifest,
+  mensaNo350,
+  mensaNoManifest
 }) {
   if (sourceManifest.questionCount !== original300.questions?.length) {
     throw new Error("신규 300 원본과 출처 매니페스트의 문항 수가 다릅니다.");
+  }
+  if (mensaNoManifest.questionCount !== mensaNo350.questions?.length ||
+      mensaNoManifest.activeTypeCount !== mensaNo350.types?.length ||
+      mensaNo350.schemaVersion !== mensaNoManifest.sourceSchemaVersion) {
+    throw new Error(
+      "Mensa Norway 신규 350 원본과 출처 매니페스트가 다릅니다."
+    );
   }
   const foundationQuestions = currentBank.questions
     .filter(question =>
@@ -558,23 +675,28 @@ export function buildExpandedBank({
     .map(normalizeAdvancedQuestion);
   const originalQuestions = original300.questions
     .map(normalizeOriginal300Question);
+  const mensaNoQuestions = mensaNo350.questions
+    .map(normalizeMensaNo350Question);
   if (foundationQuestions.length !== 120 ||
       advancedQuestions.length !== 232 ||
-      originalQuestions.length !== 300) {
+      originalQuestions.length !== 300 ||
+      mensaNoQuestions.length !== 350) {
     throw new Error(
       "출처별 문항 수 불일치: " +
       `${foundationQuestions.length}/` +
       `${advancedQuestions.length}/` +
-      `${originalQuestions.length}`
+      `${originalQuestions.length}/` +
+      `${mensaNoQuestions.length}`
     );
   }
 
   const questions = [
     ...foundationQuestions,
     ...advancedQuestions,
-    ...originalQuestions
+    ...originalQuestions,
+    ...mensaNoQuestions
   ].sort(typeSort);
-  const types = original300.types
+  const legacyTypes = original300.types
     .filter(type => type.id !== "T19")
     .map(type => {
       const {
@@ -589,17 +711,45 @@ export function buildExpandedBank({
         runtimeDifficultyRange: [1, 5],
         sourceRanges: sourceRangesForType(type.id)
       };
-    })
-    .sort((left, right) => left.id.localeCompare(right.id, "en"));
+    });
+  const mensaNoTypes = mensaNo350.types.map(type => {
+    const {
+      domainId: sourceDomainId,
+      ...metadata
+    } = type;
+    const representative = mensaNo350.questions.find(
+      question => question.typeId === type.id
+    );
+    return {
+      ...metadata,
+      domainTitle: "도형·행렬 추론",
+      category: "Mensa Norway 유형 변형",
+      description: [
+        representative?.ruleSignature || type.title
+      ],
+      sourceDomainId,
+      count: 10,
+      runtimeDifficultyRange: [1, 5],
+      sourceRanges: sourceRangesForType(type.id)
+    };
+  });
+  const types = [
+    ...legacyTypes,
+    ...mensaNoTypes
+  ].sort((left, right) =>
+    (TYPE_ORDER.get(left.id) ?? Number.MAX_SAFE_INTEGER) -
+    (TYPE_ORDER.get(right.id) ?? Number.MAX_SAFE_INTEGER)
+  );
 
   const rawBank = {
     schemaVersion: 2,
     bankVersion: TARGET_BANK_VERSION,
     contentQualityVersion: currentBank.contentQualityVersion || 1,
-    title: "MKAT 오리지널 추론 문제은행",
+    title: "MKAT 통합 추론 문제은행",
     basis:
       "Foundation 120문항, 중복 제거 심화 232문항, 신규 오리지널 " +
-      "300문항을 T19 일반지식 제외 정책에 따라 통합한 앱 실행용 문제은행",
+      "300문항과 Mensa Norway 35개 원형 기반 독자 생성 350문항을 " +
+      "T19 일반지식 제외 정책에 따라 통합한 앱 실행용 문제은행",
     policy: {
       totalQuestions: EXPECTED_QUESTION_COUNT,
       activeTypes: EXPECTED_TYPE_IDS.length,
@@ -611,10 +761,13 @@ export function buildExpandedBank({
       sourceQuestionCounts: {
         foundation: 120,
         advanced: 232,
-        original300: 300
+        original300: 300,
+        mensaNo350: 350
       },
-      importedQuestionCount: 660,
-      duplicateQuestionCount: RETIRED_DUPLICATE_QUESTIONS.length
+      importedQuestionCount: 1025,
+      duplicateQuestionCount: RETIRED_DUPLICATE_QUESTIONS.length,
+      excludedGeneralKnowledgeQuestionCount: 15,
+      exactCrossSourceDuplicateQuestionCount: 0
     },
     retiredTypes: original300.retiredTypes,
     retiredQuestions: RETIRED_DUPLICATE_QUESTIONS.map(question => ({
@@ -643,6 +796,14 @@ export function buildExpandedBank({
         sourceZipSha256: sourceManifest.zipSha256,
         activeQuestionCount: 300,
         retiredQuestionCount: 0
+      },
+      {
+        sourceId: mensaNoManifest.sourceId,
+        sourceVersion: mensaNoManifest.packageVersion,
+        sourceJsonSha256: mensaNoManifest.jsonSha256,
+        sourceZipSha256: mensaNoManifest.zipSha256,
+        activeQuestionCount: 350,
+        retiredQuestionCount: 0
       }
     ],
     types,
@@ -669,6 +830,19 @@ function loadSources() {
   if (sha256(originalBytes) !== sourceManifest.jsonSha256) {
     throw new Error("신규 300 원본 SHA-256이 매니페스트와 다릅니다.");
   }
+  const mensaNoManifest = readJson(mensaNoManifestPath);
+  const storedMensaNoBytes = fs.readFileSync(mensaNoGzipPath);
+  if (sha256(storedMensaNoBytes) !== mensaNoManifest.storedSha256) {
+    throw new Error(
+      "Mensa Norway 신규 350 압축 원본 SHA-256이 매니페스트와 다릅니다."
+    );
+  }
+  const mensaNoBytes = zlib.gunzipSync(storedMensaNoBytes);
+  if (sha256(mensaNoBytes) !== mensaNoManifest.jsonSha256) {
+    throw new Error(
+      "Mensa Norway 신규 350 JSON SHA-256이 매니페스트와 다릅니다."
+    );
+  }
   return {
     currentBank,
     advancedBank: JSON.parse(
@@ -677,7 +851,11 @@ function loadSources() {
     original300: JSON.parse(
       originalBytes.toString("utf8").replace(/^\uFEFF/, "")
     ),
-    sourceManifest
+    sourceManifest,
+    mensaNo350: JSON.parse(
+      mensaNoBytes.toString("utf8").replace(/^\uFEFF/, "")
+    ),
+    mensaNoManifest
   };
 }
 

@@ -5,14 +5,19 @@
 브라우저는 `data/question-bank.json`만 읽지만 이 파일은 병합 결과물입니다.
 심화 원본은 `data/advanced-question-bank-v1.json`, 신규 300문항 원본은
 `data/sources/mkat-original-300-v1.json.gz`에 보존하고 manifest의 SHA-256으로
-무결성을 확인합니다. `npm run build:bank`가 소스들을 병합해 실행용 JSON과
-`answer-key.csv`를 만듭니다.
+무결성을 확인합니다. Mensa Norway 35개 원형 기반 신규 350문항은
+`data/sources/mkat-mensano-350-v1.json.gz`에 원본 스키마 4 그대로 보존하고,
+빌드 중 앱 스키마 2와 전역 보기 ID 계약으로 정규화합니다.
+`npm run build:bank`가 소스들을 병합해 실행용 JSON과 `answer-key.csv`를
+만듭니다.
 
 `question-bank.js` 같은 실행용 사본을 별도로 만들지 않습니다.
 
 ## 2. 한 문제에 한 개의 정답만 존재해야 한다
 
 보기의 시각적 차이가 작더라도 데이터 수준에서는 중복되지 않아야 합니다.
+유형 ID가 달라도 자극 SVG와 보기 콘텐츠 묶음이 완전히 같으면 중복으로
+판정합니다.
 새 문제를 추가한 뒤 반드시 `content-complete` 검증과 자동 테스트를 실행합니다.
 
 ## 3. 정답은 보기 순서와 분리한다

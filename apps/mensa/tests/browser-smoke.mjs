@@ -9,6 +9,10 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, "..", "..", "..");
+const runtimeBank = JSON.parse(fs.readFileSync(
+  path.join(projectRoot, "apps", "mensa", "data", "question-bank.json"),
+  "utf8"
+));
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -365,7 +369,7 @@ async function run() {
     await navigate(client, `${baseUrl}/apps/mensa/`);
     await waitForCondition(
       client,
-      "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 25"
+      "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 60"
     );
     console.log("[smoke] MKAT 초기화");
     assert.equal(
@@ -396,14 +400,16 @@ async function run() {
           bank.questions.some(question => question.typeId === "T19")
       };
     })()`);
-    assert.equal(bankInventory.questionCount, 652);
+    assert.equal(bankInventory.questionCount, 1002);
     assert.deepEqual(bankInventory.sourceCounts, {
       "foundation-v1": 120,
       "advanced-v1": 232,
-      "mkat-original-300-v1": 300
+      "mkat-original-300-v1": 300,
+      "mkat-mensano-350-v1": 350
     });
-    assert.equal(bankInventory.typeIds.length, 25);
+    assert.equal(bankInventory.typeIds.length, 60);
     assert.equal(bankInventory.typeIds.includes("T26"), true);
+    assert.equal(bankInventory.typeIds.includes("S35"), true);
     assert.equal(bankInventory.hasRetiredT19, false);
     assert.match(
       await evaluate(
@@ -411,6 +417,13 @@ async function run() {
         "document.querySelector('[data-type-id=\"T26\"]').textContent"
       ),
       /학습 12문제/
+    );
+    assert.match(
+      await evaluate(
+        client,
+        "document.querySelector('[data-type-id=\"S35\"]').textContent"
+      ),
+      /학습 10문제/
     );
 
     const resourceNames = await evaluate(
@@ -469,7 +482,7 @@ async function run() {
         client,
         "document.querySelectorAll('[data-analysis-table=\"types\"] tbody tr').length"
       ),
-      25
+      60
     );
     assert.equal(
       await evaluate(
@@ -764,6 +777,15 @@ async function run() {
       new Set(dailyQueue.items.map(item => item.questionId)).size,
       10
     );
+    const runtimeQuestionById = new Map(
+      runtimeBank.questions.map(question => [question.id, question])
+    );
+    assert.equal(
+      new Set(dailyQueue.items.map(item =>
+        runtimeQuestionById.get(item.questionId).typeId
+      )).size,
+      10
+    );
     assert.equal(dailyQueue.strategy, "cold-start");
 
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
@@ -816,10 +838,10 @@ async function run() {
     assert.match(mkatMetric, /목표 0일 연속/);
 
     await navigate(client, `${baseUrl}/apps/mensa/`);
-    await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
+    await waitForCondition(client, "document.querySelectorAll('.type-card').length === 60");
     await evaluate(client, "window.confirm = () => true; true");
     await evaluate(client, "document.querySelector('[data-mode=\"diagnostic\"]').click(); true");
-    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 25'");
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 60'");
     assert.equal(
       await evaluate(client, "document.querySelector('#questionMeta').classList.contains('hidden')"),
       true
@@ -830,7 +852,7 @@ async function run() {
     );
     assert.equal(
       await evaluate(client, "document.querySelectorAll('.question-number-button').length"),
-      25
+      60
     );
     assert.equal(
       await evaluate(client, "document.querySelector('#timer').textContent"),
@@ -843,7 +865,7 @@ async function run() {
     );
     await waitForCondition(
       client,
-      "document.querySelector('#progressText').textContent === '2 / 25'"
+      "document.querySelector('#progressText').textContent === '2 / 60'"
     );
     assert.equal(
       await evaluate(client, "document.querySelector('#feedback').classList.contains('hidden')"),
@@ -872,7 +894,7 @@ async function run() {
     await evaluate(client, "window.confirm = () => true; document.querySelector('#resumeSessionBtn').click(); true");
     await waitForCondition(
       client,
-      "document.querySelector('#progressText').textContent === '2 / 25'"
+      "document.querySelector('#progressText').textContent === '2 / 60'"
     );
     assert.equal(
       await evaluate(client, "document.querySelectorAll('.question-number-button.answered').length"),
@@ -891,19 +913,19 @@ async function run() {
       client,
       "attempts"
     );
-    assert.equal(attemptsAfterDiagnostic.length, 26);
+    assert.equal(attemptsAfterDiagnostic.length, 61);
     assert.equal(
       attemptsAfterDiagnostic.filter(attempt =>
         attempt.sessionId === diagnosticSession.sessionId
       ).length,
-      25
+      60
     );
     assert.equal(
       attemptsAfterDiagnostic.filter(attempt =>
         attempt.sessionId === diagnosticSession.sessionId &&
         attempt.skipped
       ).length,
-      24
+      59
     );
     assert.match(
       await evaluate(client, "document.querySelector('#resultRing').style.getPropertyValue('--score-angle')"),
@@ -917,7 +939,7 @@ async function run() {
     );
 
     await evaluate(client, "document.querySelector('[data-mode=\"exam\"]').click(); true");
-    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 25'");
+    await waitForCondition(client, "document.querySelector('#progressText').textContent === '1 / 60'");
     const activeExam = (await waitForBrowserStore(
       client,
       "sessions",
@@ -968,7 +990,7 @@ async function run() {
     );
     const examAttempts = (await readBrowserStore(client, "attempts"))
       .filter(attempt => attempt.sessionId === activeExam.sessionId);
-    assert.equal(examAttempts.length, 25);
+    assert.equal(examAttempts.length, 60);
     assert.equal(examAttempts.every(attempt => attempt.skipped), true);
     console.log("[smoke] 실전 시간 만료 자동 제출");
     await evaluate(client, "document.querySelector('#backHomeBtn').click(); true");
@@ -1099,8 +1121,43 @@ async function run() {
       client,
       "!document.querySelector('#homeView').classList.contains('hidden')"
     );
+    await evaluate(
+      client,
+      "document.querySelector('[data-type-id=\"S35\"]').click(); true"
+    );
+    await waitForCondition(
+      client,
+      "document.querySelector('#progressText').textContent === '1 / 10'"
+    );
+    assert.match(
+      await evaluate(
+        client,
+        "document.querySelector('#options').dataset.questionId"
+      ),
+      /^S35-/
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.querySelectorAll('.option-button').length"
+      ),
+      6
+    );
+    assert.equal(
+      await evaluate(
+        client,
+        "document.documentElement.scrollWidth <= window.innerWidth"
+      ),
+      true
+    );
+    await captureOptionalScreenshot(client, "s35-learning-mobile");
+    await evaluate(client, "document.querySelector('#quitBtn').click(); true");
+    await waitForCondition(
+      client,
+      "!document.querySelector('#homeView').classList.contains('hidden')"
+    );
     await client.send("Emulation.clearDeviceMetricsOverride");
-    console.log("[smoke] 신규 T26 390px 모바일 렌더링");
+    console.log("[smoke] 신규 T26·Mensa Norway S35 390px 모바일 렌더링");
     await evaluate(
       client,
       "document.querySelector('#viewDetailedStatsBtn').click(); true"
@@ -1147,7 +1204,7 @@ async function run() {
     );
 
     await navigate(client, `${baseUrl}/apps/mensa/`);
-    await waitForCondition(client, "document.querySelectorAll('.type-card').length === 25");
+    await waitForCondition(client, "document.querySelectorAll('.type-card').length === 60");
     await evaluate(client, "document.querySelector('[data-mode=\"review\"]').click(); true");
     await waitForCondition(
       client,
@@ -1177,7 +1234,7 @@ async function run() {
     await navigate(client, `${baseUrl}/apps/mensa/?offline-smoke=1`);
     await waitForCondition(
       client,
-      "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 25",
+      "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 60",
       15000
     );
     await client.send("Network.emulateNetworkConditions", {
@@ -1190,10 +1247,10 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 5카드, 유형 25개, " +
+      "브라우저 스모크 성공: 허브 5카드, 유형 60개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
-      "IndexedDB 응시·숙달 이벤트, 일일 고정 큐, 세션 복원, " +
+      "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
       "v2 요약 캐시, 오프라인 로드"
     );

@@ -1,7 +1,7 @@
 import { hashString } from "./random.js";
 import { isReviewDue } from "./mastery-engine.js";
 
-export const DAILY_QUEUE_STRATEGY_VERSION = 1;
+export const DAILY_QUEUE_STRATEGY_VERSION = 2;
 export const DEFAULT_DAILY_QUEUE_SIZE = 10;
 export const SUFFICIENT_ABILITY_ATTEMPTS = 20;
 export const SUFFICIENT_MEASURED_TYPES = 6;
@@ -110,15 +110,35 @@ function challengeDifficulty(questions, attempts, questionById) {
 function createSelector({
   questions,
   excludedQuestionIds,
+  blockedQuestionIds,
   attemptCounts,
-  date
+  date,
+  targetSize
 }) {
   const selected = [];
-  const selectedIds = new Set(excludedQuestionIds || []);
-  const selectedTypeCounts = new Map();
+  const blockedIds = new Set(blockedQuestionIds || []);
+  const questionById = new Map(
+    questions.map(question => [question.id, question])
+  );
+  const selectedIds = new Set();
+  const selectedTypes = new Set();
+  for (const questionId of excludedQuestionIds || []) {
+    const question = questionById.get(questionId);
+    if (!question || selectedTypes.has(question.typeId)) continue;
+    selectedIds.add(question.id);
+    selectedTypes.add(question.typeId);
+  }
+  const selectedTypeCounts = new Map(
+    [...selectedTypes].map(typeId => [typeId, 1])
+  );
 
   function add(question, reason) {
-    if (!question || selectedIds.has(question.id)) return false;
+    if (!question ||
+        blockedIds.has(question.id) ||
+        selectedIds.has(question.id) ||
+        selectedTypes.has(question.typeId)) {
+      return false;
+    }
     selected.push({
       questionId: question.id,
       contentVersion: question.contentVersion,
@@ -126,6 +146,7 @@ function createSelector({
       reason
     });
     selectedIds.add(question.id);
+    selectedTypes.add(question.typeId);
     selectedTypeCounts.set(
       question.typeId,
       (selectedTypeCounts.get(question.typeId) || 0) + 1
@@ -133,19 +154,14 @@ function createSelector({
     return true;
   }
 
-  function pick(candidates, count, reason, { distinctTypes = false } = {}) {
+  function pick(candidates, count, reason) {
     if (count <= 0) return;
-    const bucketTypes = new Set();
+    let picked = 0;
     for (const question of candidates) {
-      if (selected.length >= DEFAULT_DAILY_QUEUE_SIZE) break;
-      if (selectedIds.has(question.id)) continue;
-      if (distinctTypes && bucketTypes.has(question.typeId)) continue;
+      if (selectedIds.size >= targetSize) break;
       if (add(question, reason)) {
-        bucketTypes.add(question.typeId);
-        if (bucketTypes.size >= count || (!distinctTypes && selected
-          .filter(item => item.reason === reason).length >= count)) {
-          break;
-        }
+        picked += 1;
+        if (picked >= count) break;
       }
     }
   }
@@ -164,12 +180,20 @@ function createSelector({
         stableRank(right.id, `${date}:fill`);
     });
     for (const question of candidates) {
-      if (selected.length >= targetSize) break;
+      if (selectedIds.size >= targetSize) break;
       add(question, "balanced-fill");
     }
   }
 
-  return { selected, selectedIds, selectedTypeCounts, add, pick, fill };
+  return {
+    selected,
+    selectedIds,
+    selectedTypes,
+    selectedTypeCounts,
+    add,
+    pick,
+    fill
+  };
 }
 
 function sortDueQuestions(questions, progressById, date) {
@@ -199,10 +223,11 @@ function pickWeakQuestions({
         right.samples - left.samples ||
         stableRank(left.typeId, `${date}:weak-type`) -
           stableRank(right.typeId, `${date}:weak-type`);
-    })
-    .slice(0, count);
+    });
 
+  let picked = 0;
   for (const stats of weakTypes) {
+    if (selector.selectedTypes.has(stats.typeId)) continue;
     const candidates = sortStable(
       questions.filter(question => question.typeId === stats.typeId),
       `${date}:weak-question`
@@ -210,7 +235,8 @@ function pickWeakQuestions({
     const question = candidates.find(item =>
       !selector.selectedIds.has(item.id)
     );
-    selector.add(question, "weak-type");
+    if (selector.add(question, "weak-type")) picked += 1;
+    if (picked >= count) break;
   }
 }
 
@@ -231,6 +257,7 @@ function pickRecentTypes({
 
   let picked = 0;
   for (const stats of recentTypes) {
+    if (selector.selectedTypes.has(stats.typeId)) continue;
     const candidates = sortStable(
       questions.filter(question => question.typeId === stats.typeId),
       `${date}:recent-question`
@@ -249,10 +276,14 @@ export function buildDailyQueue({
   attempts = [],
   questionProgress = [],
   targetSize = DEFAULT_DAILY_QUEUE_SIZE,
-  excludedQuestionIds = []
+  excludedQuestionIds = [],
+  blockedQuestionIds = []
 }) {
   if (!Array.isArray(questions) || questions.length < targetSize) {
     throw new Error("일일 큐를 만들기에 문제 수가 부족합니다.");
+  }
+  if (new Set(questions.map(question => question.typeId)).size < targetSize) {
+    throw new Error("일일 큐를 만들기에 서로 다른 문제 유형이 부족합니다.");
   }
 
   const progressById = progressMap(questionProgress);
@@ -268,8 +299,10 @@ export function buildDailyQueue({
   const selector = createSelector({
     questions,
     excludedQuestionIds,
+    blockedQuestionIds,
     attemptCounts,
-    date
+    date,
+    targetSize
   });
   const dueQuestions = sortDueQuestions(questions, progressById, date);
   const measuredTypes = [...typeStats.values()].filter(
@@ -299,9 +332,7 @@ export function buildDailyQueue({
       ),
       `${date}:new`
     );
-    selector.pick(newQuestions, 2, "new-question", {
-      distinctTypes: true
-    });
+    selector.pick(newQuestions, 2, "new-question");
 
     const targetDifficulty = challengeDifficulty(
       questions,
@@ -332,9 +363,7 @@ export function buildDailyQueue({
       ),
       `${date}:unseen-type`
     );
-    selector.pick(unseenQuestions, unseenTarget, "unseen-type", {
-      distinctTypes: true
-    });
+    selector.pick(unseenQuestions, unseenTarget, "unseen-type");
 
     pickRecentTypes({
       questions,
@@ -355,14 +384,12 @@ export function buildDailyQueue({
       ),
       `${date}:challenge`
     );
-    selector.pick(challenges, 2, "challenge", {
-      distinctTypes: true
-    });
+    selector.pick(challenges, 2, "challenge");
   }
 
   selector.fill(targetSize);
-  if (selector.selected.length < targetSize) {
-    throw new Error("중복 없이 일일 큐를 완성하지 못했습니다.");
+  if (selector.selectedIds.size < targetSize) {
+    throw new Error("서로 다른 유형만으로 일일 큐를 완성하지 못했습니다.");
   }
 
   return {
@@ -375,15 +402,19 @@ export function buildDailyQueue({
   };
 }
 
-function validStoredItem(item, questionById, usedIds) {
+function validStoredItem(item, questionById, usedIds, usedTypes) {
   const question = questionById.get(item?.questionId);
   const compatibleVersion = item?.gradingFingerprint
     ? question?.gradingFingerprint === item.gradingFingerprint
     : question?.contentVersion === item?.contentVersion;
-  if (!question || !compatibleVersion || usedIds.has(question.id)) {
+  if (!question ||
+      !compatibleVersion ||
+      usedIds.has(question.id) ||
+      usedTypes.has(question.typeId)) {
     return false;
   }
   usedIds.add(question.id);
+  usedTypes.add(question.typeId);
   return true;
 }
 
@@ -405,8 +436,9 @@ export function resolveDailyQueue({
     ? storedQueue.items.slice(0, targetSize)
     : [];
   const usedIds = new Set();
+  const usedTypes = new Set();
   const validity = storedItems.map(item =>
-    validStoredItem(item, questionById, usedIds)
+    validStoredItem(item, questionById, usedIds, usedTypes)
   );
 
   if (storedItems.length === targetSize &&
@@ -421,13 +453,19 @@ export function resolveDailyQueue({
   const keptIds = storedItems
     .filter((item, index) => validity[index])
     .map(item => item.questionId);
+  const blockedIds = storedItems
+    .filter((item, index) => !validity[index] && questionById.has(
+      item?.questionId
+    ))
+    .map(item => item.questionId);
   const generated = buildDailyQueue({
     date,
     questions,
     attempts,
     questionProgress,
     targetSize,
-    excludedQuestionIds: keptIds
+    excludedQuestionIds: keptIds,
+    blockedQuestionIds: blockedIds
   });
   const replacements = [...generated.items];
   const items = [];
@@ -456,8 +494,7 @@ export function resolveDailyQueue({
       date,
       bankVersion,
       strategy: storedQueue?.strategy || generated.strategy,
-      strategyVersion:
-        storedQueue?.strategyVersion || DAILY_QUEUE_STRATEGY_VERSION,
+      strategyVersion: DAILY_QUEUE_STRATEGY_VERSION,
       targetSize,
       items,
       createdAt: storedQueue?.createdAt || now,
