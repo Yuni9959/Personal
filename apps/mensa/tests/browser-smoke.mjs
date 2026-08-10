@@ -128,11 +128,15 @@ async function stopProcess(child) {
 async function waitForJson(url, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
+    const controller = new AbortController();
+    const requestTimeout = setTimeout(() => controller.abort(), 1000);
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: controller.signal });
       if (response.ok) return response.json();
     } catch {
       // Browser has not opened the debugging port yet.
+    } finally {
+      clearTimeout(requestTimeout);
     }
     await new Promise(resolve => setTimeout(resolve, 100));
   }
@@ -159,6 +163,7 @@ class CdpClient {
         const pending = this.pending.get(message.id);
         if (!pending) return;
         this.pending.delete(message.id);
+        clearTimeout(pending.timer);
         if (message.error) pending.reject(new Error(message.error.message));
         else pending.resolve(message.result);
         return;
@@ -168,14 +173,31 @@ class CdpClient {
       if (!callbacks) return;
       callbacks.forEach(callback => callback(message.params));
     });
+    this.socket.addEventListener("close", () => {
+      for (const [id, pending] of this.pending) {
+        clearTimeout(pending.timer);
+        pending.reject(new Error(`CDP 연결 종료: command ${id}`));
+      }
+      this.pending.clear();
+    });
   }
 
-  send(method, params = {}) {
+  send(method, params = {}, timeoutMs = 15000) {
     const id = this.nextId;
     this.nextId += 1;
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      this.socket.send(JSON.stringify({ id, method, params }));
+      const timer = setTimeout(() => {
+        this.pending.delete(id);
+        reject(new Error(`CDP command timeout: ${method}`));
+      }, timeoutMs);
+      this.pending.set(id, { resolve, reject, timer });
+      try {
+        this.socket.send(JSON.stringify({ id, method, params }));
+      } catch (error) {
+        clearTimeout(timer);
+        this.pending.delete(id);
+        reject(error);
+      }
     });
   }
 
@@ -792,6 +814,7 @@ async function run() {
       10
     );
     assert.equal(dailyQueue.strategy, "cold-start");
+    assert.equal(dailyQueue.strategyVersion, 3);
 
     await evaluate(client, "document.querySelector('#quitBtn').click(); true");
     await waitForCondition(client, "!document.querySelector('#homeView').classList.contains('hidden')");

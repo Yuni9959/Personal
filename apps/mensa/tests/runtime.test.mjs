@@ -106,6 +106,7 @@ test("런타임은 IndexedDB를 사실 원본으로 쓰고 v2 요약 캐시를 �
   assert.match(appSource, /presentedOptionIds/);
   assert.match(appSource, /restoreSessionSnapshot/);
   assert.match(appSource, /resolveDailyQueue/);
+  assert.match(appSource, /getDailyQueues/);
   assert.match(appSource, /recordAttemptBatch/);
   assert.match(appSource, /finalizeAssessment/);
   assert.match(appSource, /examEndsAt/);

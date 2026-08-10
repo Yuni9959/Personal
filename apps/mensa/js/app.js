@@ -639,13 +639,15 @@ function initializeApp(data, trainingStore, activeSessions = []) {
 
   async function chooseDailyQuestions() {
     const date = localDateKey();
-    const storedQueue = await trainingStore.getDailyQueue(date);
+    const dailyQueues = await trainingStore.getDailyQueues();
+    const storedQueue = dailyQueues[date] || null;
     const resolved = resolveDailyQueue({
       date,
       bankVersion: data.bankVersion,
       questions: bank,
       attempts: trainingStore.getAllAttempts(),
       questionProgress: trainingStore.getAllQuestionProgress(),
+      recentDailyQueues: dailyQueues,
       storedQueue,
       now: Date.now()
     });

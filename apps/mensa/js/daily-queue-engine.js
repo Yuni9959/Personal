@@ -1,10 +1,12 @@
 import { hashString } from "./random.js";
 import { isReviewDue } from "./mastery-engine.js";
 
-export const DAILY_QUEUE_STRATEGY_VERSION = 2;
+export const DAILY_QUEUE_STRATEGY_VERSION = 3;
 export const DEFAULT_DAILY_QUEUE_SIZE = 10;
 export const SUFFICIENT_ABILITY_ATTEMPTS = 20;
 export const SUFFICIENT_MEASURED_TYPES = 6;
+export const WEAK_TYPE_ACCURACY_THRESHOLD = 0.8;
+export const RECENT_DAILY_QUEUE_WINDOW = 6;
 
 function progressMap(questionProgress) {
   if (questionProgress instanceof Map) return new Map(questionProgress);
@@ -18,14 +20,6 @@ function progressMap(questionProgress) {
 
 function stableRank(value, seedKey) {
   return hashString(`${seedKey}:${value}`);
-}
-
-function sortStable(items, seedKey, id = item => item.id) {
-  return [...items].sort((left, right) => {
-    const rankDifference =
-      stableRank(id(left), seedKey) - stableRank(id(right), seedKey);
-    return rankDifference || id(left).localeCompare(id(right));
-  });
 }
 
 function buildQuestionFacts(questions, attempts, progressById) {
@@ -47,11 +41,13 @@ function buildQuestionFacts(questions, attempts, progressById) {
 
     const stats = typeStats.get(question.typeId) || {
       typeId: question.typeId,
+      attempts: 0,
       samples: 0,
       correct: 0,
       lastAttemptAt: 0,
       recent: []
     };
+    stats.attempts += 1;
     stats.lastAttemptAt = Math.max(
       stats.lastAttemptAt,
       Number(attempt.submittedAt || 0)
@@ -91,6 +87,145 @@ function recentAccuracy(stats) {
     stats.recent.length;
 }
 
+function buildTypeCoverage(questions, recentDailyQueues, date) {
+  const questionById = new Map(
+    questions.map(question => [question.id, question])
+  );
+  const queueValues = Array.isArray(recentDailyQueues)
+    ? recentDailyQueues
+    : Object.entries(recentDailyQueues || {}).map(([queueDate, queue]) => ({
+        ...queue,
+        date: queue?.date || queueDate
+      }));
+  const queueByDate = new Map();
+
+  for (const queue of queueValues) {
+    if (!queue?.date || queue.date >= date || !Array.isArray(queue.items)) {
+      continue;
+    }
+    queueByDate.set(queue.date, queue);
+  }
+
+  const history = [...queueByDate.values()].sort(
+    (left, right) => left.date.localeCompare(right.date)
+  );
+  const recentDates = new Set(
+    history
+      .map(queue => queue.date)
+      .sort((left, right) => right.localeCompare(left))
+      .slice(0, RECENT_DAILY_QUEUE_WINDOW)
+  );
+  const coverageByType = new Map();
+
+  for (const queue of history) {
+    const queueTypeIds = new Set();
+    for (const item of queue.items) {
+      const typeId = questionById.get(item?.questionId)?.typeId;
+      if (typeId) queueTypeIds.add(typeId);
+    }
+    for (const typeId of queueTypeIds) {
+      const coverage = coverageByType.get(typeId) || {
+        typeId,
+        queuedDays: 0,
+        recentQueuedDays: 0,
+        lastQueuedDate: ""
+      };
+      coverage.queuedDays += 1;
+      if (recentDates.has(queue.date)) coverage.recentQueuedDays += 1;
+      if (queue.date > coverage.lastQueuedDate) {
+        coverage.lastQueuedDate = queue.date;
+      }
+      coverageByType.set(typeId, coverage);
+    }
+  }
+
+  return coverageByType;
+}
+
+function compareTypeFairness(
+  leftTypeId,
+  rightTypeId,
+  { typeCoverage, typeStats, date, seedKey }
+) {
+  const leftCoverage = typeCoverage.get(leftTypeId) || {};
+  const rightCoverage = typeCoverage.get(rightTypeId) || {};
+  const leftStats = typeStats.get(leftTypeId) || {};
+  const rightStats = typeStats.get(rightTypeId) || {};
+
+  return Number(leftCoverage.recentQueuedDays || 0) -
+      Number(rightCoverage.recentQueuedDays || 0) ||
+    String(leftCoverage.lastQueuedDate || "").localeCompare(
+      String(rightCoverage.lastQueuedDate || "")
+    ) ||
+    Number(leftCoverage.queuedDays || 0) -
+      Number(rightCoverage.queuedDays || 0) ||
+    Number(leftStats.attempts || 0) - Number(rightStats.attempts || 0) ||
+    Number(leftStats.lastAttemptAt || 0) -
+      Number(rightStats.lastAttemptAt || 0) ||
+    stableRank(leftTypeId, `${date}:${seedKey}:type`) -
+      stableRank(rightTypeId, `${date}:${seedKey}:type`) ||
+    leftTypeId.localeCompare(rightTypeId);
+}
+
+function sortQuestionsWithinType(
+  questions,
+  attemptCounts,
+  date,
+  seedKey,
+  compareQuestions = null
+) {
+  return [...questions].sort((left, right) => {
+    const explicitDifference = compareQuestions
+      ? compareQuestions(left, right)
+      : 0;
+    return explicitDifference ||
+      (attemptCounts.get(left.id) || 0) -
+        (attemptCounts.get(right.id) || 0) ||
+      stableRank(left.id, `${date}:${seedKey}:question`) -
+        stableRank(right.id, `${date}:${seedKey}:question`) ||
+      left.id.localeCompare(right.id);
+  });
+}
+
+function sortTypeBalancedQuestions({
+  questions,
+  attemptCounts,
+  typeCoverage,
+  typeStats,
+  date,
+  seedKey,
+  compareQuestions = null,
+  compareTypes = null
+}) {
+  const questionsByType = new Map();
+  for (const question of questions) {
+    const items = questionsByType.get(question.typeId) || [];
+    items.push(question);
+    questionsByType.set(question.typeId, items);
+  }
+
+  const representatives = [...questionsByType.values()].map(items =>
+    sortQuestionsWithinType(
+      items,
+      attemptCounts,
+      date,
+      seedKey,
+      compareQuestions
+    )[0]
+  );
+
+  return representatives.sort((left, right) => {
+    const explicitDifference = compareTypes
+      ? compareTypes(left, right)
+      : 0;
+    return explicitDifference || compareTypeFairness(
+      left.typeId,
+      right.typeId,
+      { typeCoverage, typeStats, date, seedKey }
+    );
+  });
+}
+
 function challengeDifficulty(questions, attempts, questionById) {
   const eligible = (attempts || []).filter(attempt =>
     attempt?.eligibleForAbilityStats &&
@@ -112,6 +247,8 @@ function createSelector({
   excludedQuestionIds,
   blockedQuestionIds,
   attemptCounts,
+  typeCoverage,
+  typeStats,
   date,
   targetSize
 }) {
@@ -128,10 +265,6 @@ function createSelector({
     selectedIds.add(question.id);
     selectedTypes.add(question.typeId);
   }
-  const selectedTypeCounts = new Map(
-    [...selectedTypes].map(typeId => [typeId, 1])
-  );
-
   function add(question, reason) {
     if (!question ||
         blockedIds.has(question.id) ||
@@ -147,10 +280,6 @@ function createSelector({
     });
     selectedIds.add(question.id);
     selectedTypes.add(question.typeId);
-    selectedTypeCounts.set(
-      question.typeId,
-      (selectedTypeCounts.get(question.typeId) || 0) + 1
-    );
     return true;
   }
 
@@ -167,17 +296,13 @@ function createSelector({
   }
 
   function fill(targetSize) {
-    const candidates = [...questions].sort((left, right) => {
-      const typeDifference =
-        (selectedTypeCounts.get(left.typeId) || 0) -
-        (selectedTypeCounts.get(right.typeId) || 0);
-      if (typeDifference) return typeDifference;
-      const attemptDifference =
-        (attemptCounts.get(left.id) || 0) -
-        (attemptCounts.get(right.id) || 0);
-      if (attemptDifference) return attemptDifference;
-      return stableRank(left.id, `${date}:fill`) -
-        stableRank(right.id, `${date}:fill`);
+    const candidates = sortTypeBalancedQuestions({
+      questions: questions.filter(question => !blockedIds.has(question.id)),
+      attemptCounts,
+      typeCoverage,
+      typeStats,
+      date,
+      seedKey: "fill"
     });
     for (const question of candidates) {
       if (selectedIds.size >= targetSize) break;
@@ -189,48 +314,76 @@ function createSelector({
     selected,
     selectedIds,
     selectedTypes,
-    selectedTypeCounts,
     add,
     pick,
     fill
   };
 }
 
-function sortDueQuestions(questions, progressById, date) {
-  return [...questions]
-    .filter(question => isReviewDue(progressById.get(question.id), date))
-    .sort((left, right) => {
+function sortDueQuestions({
+  questions,
+  progressById,
+  attemptCounts,
+  typeCoverage,
+  typeStats,
+  date
+}) {
+  return sortTypeBalancedQuestions({
+    questions: questions.filter(
+      question => isReviewDue(progressById.get(question.id), date)
+    ),
+    attemptCounts,
+    typeCoverage,
+    typeStats,
+    date,
+    seedKey: "review",
+    compareQuestions: (left, right) => {
       const leftProgress = progressById.get(left.id);
       const rightProgress = progressById.get(right.id);
       return leftProgress.dueAt.localeCompare(rightProgress.dueAt) ||
-        leftProgress.level - rightProgress.level ||
-        stableRank(left.id, `${date}:review`) -
-          stableRank(right.id, `${date}:review`);
-    });
+        leftProgress.level - rightProgress.level;
+    },
+    compareTypes: (left, right) => {
+      const leftProgress = progressById.get(left.id);
+      const rightProgress = progressById.get(right.id);
+      return leftProgress.dueAt.localeCompare(rightProgress.dueAt) ||
+        leftProgress.level - rightProgress.level;
+    }
+  });
 }
 
 function pickWeakQuestions({
   questions,
   typeStats,
+  typeCoverage,
+  attemptCounts,
   selector,
   date,
   count
 }) {
   const weakTypes = [...typeStats.values()]
-    .filter(stats => stats.samples >= 2)
+    .filter(stats =>
+      stats.samples >= 2 &&
+      recentAccuracy(stats) < WEAK_TYPE_ACCURACY_THRESHOLD
+    )
     .sort((left, right) => {
-      return recentAccuracy(left) - recentAccuracy(right) ||
-        right.samples - left.samples ||
-        stableRank(left.typeId, `${date}:weak-type`) -
-          stableRank(right.typeId, `${date}:weak-type`);
+      return compareTypeFairness(
+        left.typeId,
+        right.typeId,
+        { typeCoverage, typeStats, date, seedKey: "weak" }
+      ) ||
+        recentAccuracy(left) - recentAccuracy(right) ||
+        right.samples - left.samples;
     });
 
   let picked = 0;
   for (const stats of weakTypes) {
     if (selector.selectedTypes.has(stats.typeId)) continue;
-    const candidates = sortStable(
+    const candidates = sortQuestionsWithinType(
       questions.filter(question => question.typeId === stats.typeId),
-      `${date}:weak-question`
+      attemptCounts,
+      date,
+      "weak"
     );
     const question = candidates.find(item =>
       !selector.selectedIds.has(item.id)
@@ -240,32 +393,37 @@ function pickWeakQuestions({
   }
 }
 
-function pickRecentTypes({
+function pickCoverageRefreshQuestions({
   questions,
   typeStats,
+  typeCoverage,
+  attemptCounts,
   selector,
   date,
   count
 }) {
-  const recentTypes = [...typeStats.values()]
+  const practicedTypes = [...typeStats.values()]
     .filter(stats => stats.lastAttemptAt > 0)
-    .sort((left, right) =>
-      right.lastAttemptAt - left.lastAttemptAt ||
-      stableRank(left.typeId, `${date}:recent-type`) -
-        stableRank(right.typeId, `${date}:recent-type`)
+    .sort((left, right) => compareTypeFairness(
+      left.typeId,
+      right.typeId,
+      { typeCoverage, typeStats, date, seedKey: "coverage-refresh" }
+    )
     );
 
   let picked = 0;
-  for (const stats of recentTypes) {
+  for (const stats of practicedTypes) {
     if (selector.selectedTypes.has(stats.typeId)) continue;
-    const candidates = sortStable(
+    const candidates = sortQuestionsWithinType(
       questions.filter(question => question.typeId === stats.typeId),
-      `${date}:recent-question`
+      attemptCounts,
+      date,
+      "coverage-refresh"
     );
     const question = candidates.find(item =>
       !selector.selectedIds.has(item.id)
     );
-    if (selector.add(question, "recent-type")) picked += 1;
+    if (selector.add(question, "coverage-refresh")) picked += 1;
     if (picked >= count) break;
   }
 }
@@ -275,6 +433,7 @@ export function buildDailyQueue({
   questions,
   attempts = [],
   questionProgress = [],
+  recentDailyQueues = [],
   targetSize = DEFAULT_DAILY_QUEUE_SIZE,
   excludedQuestionIds = [],
   blockedQuestionIds = []
@@ -296,15 +455,33 @@ export function buildDailyQueue({
     attempts,
     progressById
   );
+  const typeCoverage = buildTypeCoverage(
+    questions,
+    recentDailyQueues,
+    date
+  );
+  const blockedIds = new Set(blockedQuestionIds || []);
+  const selectableQuestions = questions.filter(
+    question => !blockedIds.has(question.id)
+  );
   const selector = createSelector({
     questions,
     excludedQuestionIds,
     blockedQuestionIds,
     attemptCounts,
+    typeCoverage,
+    typeStats,
     date,
     targetSize
   });
-  const dueQuestions = sortDueQuestions(questions, progressById, date);
+  const dueQuestions = sortDueQuestions({
+    questions: selectableQuestions,
+    progressById,
+    attemptCounts,
+    typeCoverage,
+    typeStats,
+    date
+  });
   const measuredTypes = [...typeStats.values()].filter(
     stats => stats.samples >= 2
   ).length;
@@ -319,19 +496,25 @@ export function buildDailyQueue({
   if (sufficientData) {
     selector.pick(dueQuestions, 4, "review-due");
     pickWeakQuestions({
-      questions,
+      questions: selectableQuestions,
       typeStats,
+      typeCoverage,
+      attemptCounts,
       selector,
       date,
       count: 3
     });
-    const newQuestions = sortStable(
-      questions.filter(question =>
+    const newQuestions = sortTypeBalancedQuestions({
+      questions: selectableQuestions.filter(question =>
         !progressById.has(question.id) &&
         (attemptCounts.get(question.id) || 0) === 0
       ),
-      `${date}:new`
-    );
+      attemptCounts,
+      typeCoverage,
+      typeStats,
+      date,
+      seedKey: "new"
+    });
     selector.pick(newQuestions, 2, "new-question");
 
     const targetDifficulty = challengeDifficulty(
@@ -339,12 +522,16 @@ export function buildDailyQueue({
       attempts,
       questionById
     );
-    const challenges = sortStable(
-      questions.filter(question =>
+    const challenges = sortTypeBalancedQuestions({
+      questions: selectableQuestions.filter(question =>
         Number(question.difficulty || 1) >= targetDifficulty
       ),
-      `${date}:challenge`
-    );
+      attemptCounts,
+      typeCoverage,
+      typeStats,
+      date,
+      seedKey: "challenge"
+    });
     selector.pick(challenges, 1, "challenge");
   } else {
     const reviewTarget = Math.min(2, dueQuestions.length);
@@ -356,18 +543,24 @@ export function buildDailyQueue({
         .filter(stats => stats.lastAttemptAt > 0)
         .map(stats => stats.typeId)
     );
-    const unseenQuestions = sortStable(
-      questions.filter(question =>
+    const unseenQuestions = sortTypeBalancedQuestions({
+      questions: selectableQuestions.filter(question =>
         !attemptedTypes.has(question.typeId) &&
         (attemptCounts.get(question.id) || 0) === 0
       ),
-      `${date}:unseen-type`
-    );
+      attemptCounts,
+      typeCoverage,
+      typeStats,
+      date,
+      seedKey: "unseen-type"
+    });
     selector.pick(unseenQuestions, unseenTarget, "unseen-type");
 
-    pickRecentTypes({
-      questions,
+    pickCoverageRefreshQuestions({
+      questions: selectableQuestions,
       typeStats,
+      typeCoverage,
+      attemptCounts,
       selector,
       date,
       count: 2
@@ -378,12 +571,16 @@ export function buildDailyQueue({
       attempts,
       questionById
     );
-    const challenges = sortStable(
-      questions.filter(question =>
+    const challenges = sortTypeBalancedQuestions({
+      questions: selectableQuestions.filter(question =>
         Number(question.difficulty || 1) >= targetDifficulty
       ),
-      `${date}:challenge`
-    );
+      attemptCounts,
+      typeCoverage,
+      typeStats,
+      date,
+      seedKey: "challenge"
+    });
     selector.pick(challenges, 2, "challenge");
   }
 
@@ -424,6 +621,7 @@ export function resolveDailyQueue({
   questions,
   attempts = [],
   questionProgress = [],
+  recentDailyQueues = [],
   storedQueue = null,
   targetSize = DEFAULT_DAILY_QUEUE_SIZE,
   now = Date.now()
@@ -463,6 +661,7 @@ export function resolveDailyQueue({
     questions,
     attempts,
     questionProgress,
+    recentDailyQueues,
     targetSize,
     excludedQuestionIds: keptIds,
     blockedQuestionIds: blockedIds

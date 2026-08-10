@@ -456,6 +456,9 @@ test("날짜별 일일 큐는 meta에 저장되어 다시 열어도 같은 순�
   };
 
   await store.saveDailyQueue(queue);
+  assert.deepEqual(await store.getDailyQueues(), {
+    "2026-07-25": queue
+  });
   assert.deepEqual(await store.getDailyQueue("2026-07-25"), queue);
 
   const reopened = new TrainingStore({
@@ -464,6 +467,9 @@ test("날짜별 일일 큐는 meta에 저장되어 다시 열어도 같은 순�
     now: () => Date.parse("2026-07-25T13:00:00")
   });
   await reopened.initialize({ bankVersion: "test-bank" });
+  assert.deepEqual(await reopened.getDailyQueues(), {
+    "2026-07-25": queue
+  });
   assert.deepEqual(await reopened.getDailyQueue("2026-07-25"), queue);
 });
 

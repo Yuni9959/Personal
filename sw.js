@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.6.1-retire-t26.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.6.2-daily-balance.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",

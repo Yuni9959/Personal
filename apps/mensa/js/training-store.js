@@ -535,18 +535,22 @@ export class TrainingStore {
     return [...this.attemptsById.values()].map(clone);
   }
 
-  async getDailyQueue(date) {
+  async getDailyQueues() {
     await this.writeChain;
     try {
       const queues = await this.repository.getMeta("dailyQueues");
-      const queue = queues && typeof queues === "object"
-        ? queues[date]
-        : null;
-      return queue ? clone(queue) : null;
+      return queues && typeof queues === "object"
+        ? clone(queues)
+        : {};
     } catch (error) {
       this.health.lastError = errorMessage(error);
-      return null;
+      return {};
     }
+  }
+
+  async getDailyQueue(date) {
+    const queues = await this.getDailyQueues();
+    return queues[date] || null;
   }
 
   async saveDailyQueue(queue) {
