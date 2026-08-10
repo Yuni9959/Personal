@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { gradingFingerprint } from "./bank-utils.mjs";
 
 export const CONTENT_QUALITY_VERSION = 2;
-export const TARGET_BANK_VERSION = "2026.07.28-content.3";
+export const TARGET_BANK_VERSION = "2026.08.10-content.4";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const mensaRoot = path.resolve(here, "..");
@@ -35,11 +35,6 @@ export const COGNITIVE_DOMAINS = Object.freeze([
     id: "counting-attention",
     label: "개수·주의",
     description: "포함 도형을 체계적으로 세고 방해 자극을 억제합니다."
-  },
-  {
-    id: "verbal-symbolic",
-    label: "언어·기호 추론",
-    description: "문자 위치와 기호 치환 규칙을 귀납해 새로운 입력에 적용합니다."
   }
 ]);
 
@@ -178,11 +173,6 @@ export const ERROR_TAXONOMY = Object.freeze({
     label: "보기 순서 대조 오류",
     diagnosis: "구한 요소는 비슷하지만 보기의 배열 순서가 다른 선택입니다.",
     action: "구한 순서를 처음부터 끝까지 보기와 한 칸씩 대조하세요."
-  },
-  "symbol-transformation": {
-    label: "문자·기호 변환 오류",
-    diagnosis: "문자 재배열과 위치별 이동 가운데 일부만 적용한 선택입니다.",
-    action: "위치 순서를 먼저 확정한 뒤 각 자리의 이동값을 차례로 적용하세요."
   },
   "fold-overlap-misread": {
     label: "전개도 면 겹침 오판",
@@ -340,13 +330,7 @@ const TYPE_CONFIG = Object.freeze({
     "가장 작은 삼각형부터 크기별로 세어 보세요.",
     "밑변 점의 모든 두 점 조합을 빠짐없이 포함하세요.",
     "연속하지 않은 밑변 점으로 만든 큰 삼각형과 중복을 검산합니다.",
-    [3, 3, 4, 4, 4], ["count-omission", "count-duplication", "condition-misread"]),
-  T26: config("verbal-symbolic",
-    "문자 위치의 재배열과 알파벳 이동값을 분리해 두 예시에 공통인 변환을 찾습니다.",
-    "먼저 입력 글자의 위치가 어떤 순서로 재배열되는지 표시하세요.",
-    "재배열된 각 자리에서 알파벳이 몇 칸 이동했는지 대조하세요.",
-    "찾은 규칙이 두 예시를 모두 만들고 새 문자열에도 같은 방식으로 적용되는지 검산합니다.",
-    [4, 4, 4, 1, 4], ["symbol-transformation", "sequence-offset", "rule-overfit"])
+    [3, 3, 4, 4, 4], ["count-omission", "count-duplication", "condition-misread"])
 });
 
 export const SOURCE_ERROR_TAG_MAP = Object.freeze({
@@ -378,7 +362,6 @@ export const SOURCE_ERROR_TAG_MAP = Object.freeze({
   "sequence-attribute-error": "attribute-incomplete",
   "shape-role-swapped": "layer-order",
   "sides-swapped": "direction-reversal",
-  "string-transform-error": "symbol-transformation",
   "stroop-sequence-error": "semantic-interference",
   "tilt-ignored": "attribute-incomplete",
   "union-error": "operation-confusion",

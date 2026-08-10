@@ -23,8 +23,7 @@ const warnings = new Map();
 const LEGACY_TYPE_IDS = [
   "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
   "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
-  "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25",
-  "T26"
+  "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25"
 ];
 const MENSA_NO_TYPE_IDS = Array.from(
   { length: 35 },
@@ -39,13 +38,13 @@ const EXPECTED_TYPE_COUNTS = {
   T06: 27, T07: 27, T08: 26, T09: 27, T10: 27,
   T11: 27, T12: 27, T13: 27, T14: 27, T15: 27,
   T16: 27, T17: 27, T18: 23, T20: 27, T21: 27,
-  T22: 27, T23: 27, T24: 27, T25: 27, T26: 12,
+  T22: 27, T23: 27, T24: 27, T25: 27,
   ...Object.fromEntries(MENSA_NO_TYPE_IDS.map(typeId => [typeId, 10]))
 };
 const EXPECTED_SOURCE_COUNTS = {
   "foundation-v1": 120,
   "advanced-v1": 232,
-  "mkat-original-300-v1": 300,
+  "mkat-original-300-v1": 288,
   "mkat-mensano-350-v1": 350
 };
 
@@ -108,21 +107,22 @@ if (typeof data.bankVersion !== "string" || !data.bankVersion.trim()) {
 if (data.contentQualityVersion !== 2) {
   errors.push(`콘텐츠 품질 버전이 2가 아닙니다: ${data.contentQualityVersion}`);
 }
-if (!Array.isArray(data.types) || data.types.length !== 60) {
-  errors.push(`유형 수가 60이 아닙니다: ${data.types?.length}`);
+if (!Array.isArray(data.types) || data.types.length !== 59) {
+  errors.push(`유형 수가 59가 아닙니다: ${data.types?.length}`);
 }
-if (!Array.isArray(data.questions) || data.questions.length !== 1002) {
-  errors.push(`문제 수가 1002가 아닙니다: ${data.questions?.length}`);
+if (!Array.isArray(data.questions) || data.questions.length !== 990) {
+  errors.push(`문제 수가 990이 아닙니다: ${data.questions?.length}`);
 }
 if (!Array.isArray(data.cognitiveDomains) ||
-    data.cognitiveDomains.length !== 6) {
+    data.cognitiveDomains.length !== 5) {
   errors.push(
-    `인지 영역 수가 6이 아닙니다: ${data.cognitiveDomains?.length}`
+    `인지 영역 수가 5가 아닙니다: ${data.cognitiveDomains?.length}`
   );
 }
 if (data.policy?.generalKnowledgeExcluded !== true ||
-    !data.policy?.retiredTypeIds?.includes("T19")) {
-  errors.push("T19 일반지식 제외 정책 메타데이터가 없습니다.");
+    !data.policy?.retiredTypeIds?.includes("T19") ||
+    !data.policy?.retiredTypeIds?.includes("T26")) {
+  errors.push("T19·T26 제외 정책 메타데이터가 없습니다.");
 }
 if (!Array.isArray(data.retiredQuestions) ||
     data.retiredQuestions.length !== 8) {
@@ -228,8 +228,8 @@ for (const question of data.questions || []) {
   } else if (typeById.get(question.typeId).title !== question.typeTitle) {
     errors.push(`유형 제목 불일치: ${question.id}`);
   }
-  if (question.typeId === "T19") {
-    errors.push(`폐기 유형 T19 문항 포함: ${question.id}`);
+  if (["T19", "T26"].includes(question.typeId)) {
+    errors.push(`폐기 유형 문항 포함: ${question.id}`);
   }
   const sourceId = question.provenance?.sourceId;
   if (!EXPECTED_SOURCE_COUNTS[sourceId]) {
@@ -418,8 +418,8 @@ for (const type of data.types || []) {
   }
 }
 
-if (optionIds.size !== 6370) {
-  errors.push(`전체 옵션 수가 6370이 아닙니다: ${optionIds.size}`);
+if (optionIds.size !== 6298) {
+  errors.push(`전체 옵션 수가 6298이 아닙니다: ${optionIds.size}`);
 }
 for (const [sourceId, expectedCount] of Object.entries(
   EXPECTED_SOURCE_COUNTS

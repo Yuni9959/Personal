@@ -25,10 +25,10 @@ test("콘텐츠 고도화 변환은 두 번 실행해도 결과가 바뀌지 않
   assert.doesNotThrow(() => assertGradingInvariants(bank, rerun));
 });
 
-test("1002문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
+test("990문제의 구조화 해설·2단계 힌트·난이도 프로필이 완성됐다", () => {
   assert.equal(bank.bankVersion, TARGET_BANK_VERSION);
   assert.equal(bank.contentQualityVersion, CONTENT_QUALITY_VERSION);
-  assert.equal(bank.questions.length, 1002);
+  assert.equal(bank.questions.length, 990);
 
   for (const question of bank.questions) {
     assert.equal(
@@ -61,8 +61,8 @@ test("1002문제의 구조화 해설·2단계 힌트·난이도 프로필이 완
   }
 });
 
-test("6개 인지 영역과 핵심·보조 점수 그룹이 문항까지 일관된다", () => {
-  assert.equal(bank.cognitiveDomains.length, 6);
+test("5개 인지 영역과 핵심·보조 점수 그룹이 문항까지 일관된다", () => {
+  assert.equal(bank.cognitiveDomains.length, 5);
   const typeById = new Map(bank.types.map(type => [type.id, type]));
   assert.deepEqual(
     bank.types
@@ -71,7 +71,7 @@ test("6개 인지 영역과 핵심·보조 점수 그룹이 문항까지 일관�
     ["T23"]
   );
   assert.equal(typeById.has("T19"), false);
-  assert.equal(typeById.has("T26"), true);
+  assert.equal(typeById.has("T26"), false);
   assert.equal(typeById.has("S01"), true);
   assert.equal(typeById.has("S35"), true);
 
@@ -100,5 +100,5 @@ test("모든 오답 보기에 표준 오류 태그와 선택지 피드백이 있
     }
   }
 
-  assert.equal(wrongOptionCount, 5368);
+  assert.equal(wrongOptionCount, 5308);
 });

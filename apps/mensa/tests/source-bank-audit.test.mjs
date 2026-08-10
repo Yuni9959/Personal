@@ -613,7 +613,7 @@ test("기존 심화 수리·개수 문항도 표시 정답과 산식을 독립 �
   }
 });
 
-test("심화 원본의 실질 중복 8개만 폐기하고 최종 1002문항에는 중복이 없다", () => {
+test("심화 중복 8개와 비출제 T26을 제외한 최종 990문항에는 중복이 없다", () => {
   const advancedActiveCandidates = advanced.questions.filter(
     question => question.typeId !== "T19"
   );
@@ -630,13 +630,18 @@ test("심화 원본의 실질 중복 8개만 폐기하고 최종 1002문항에�
     assert.ok(group, `${duplicateId} → ${originalId}`);
   }
 
-  assert.equal(bank.questions.length, 1002);
+  assert.equal(bank.questions.length, 990);
   assert.equal(duplicateGroups(bank.questions).length, 0);
   assert.equal(completeVisualDuplicateGroups(bank.questions).length, 0);
   assert.equal(bank.questions.some(question => question.typeId === "T19"), false);
+  assert.equal(bank.questions.some(question => question.typeId === "T26"), false);
   const finalIds = new Set(bank.questions.map(question => question.id));
   for (const question of original300.questions) {
-    assert.ok(finalIds.has(question.id), question.id);
+    assert.equal(
+      finalIds.has(question.id),
+      question.typeId !== "T26",
+      question.id
+    );
   }
   for (const question of mensaNo350.questions) {
     assert.ok(finalIds.has(question.id), question.id);
@@ -652,4 +657,13 @@ test("심화 원본의 실질 중복 8개만 폐기하고 최종 1002문항에�
     new Map(bank.retiredQuestions.map(item => [item.id, item.duplicateOf])),
     RETIRED_DUPLICATES
   );
+  assert.deepEqual(
+    bank.retiredTypes.map(type => type.id),
+    ["T19", "T26"]
+  );
+  const originalPackage = bank.sourcePackages.find(
+    item => item.sourceId === "mkat-original-300-v1"
+  );
+  assert.equal(originalPackage.activeQuestionCount, 288);
+  assert.equal(originalPackage.retiredQuestionCount, 12);
 });

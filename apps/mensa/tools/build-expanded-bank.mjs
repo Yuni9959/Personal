@@ -39,9 +39,10 @@ const mensaNoGzipPath = path.join(
 const LEGACY_TYPE_IDS = Object.freeze([
   "T01", "T02", "T03", "T04", "T05", "T06", "T07", "T08",
   "T09", "T10", "T11", "T12", "T13", "T14", "T15", "T16",
-  "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25",
-  "T26"
+  "T17", "T18", "T20", "T21", "T22", "T23", "T24", "T25"
 ]);
+const RETIRED_TYPE_IDS = Object.freeze(["T19", "T26"]);
+const RETIRED_TYPE_ID_SET = new Set(RETIRED_TYPE_IDS);
 const MENSA_NO_TYPE_IDS = Object.freeze(Array.from(
   { length: 35 },
   (_, index) => `S${String(index + 1).padStart(2, "0")}`
@@ -53,8 +54,8 @@ const EXPECTED_TYPE_IDS = Object.freeze([
 const TYPE_ORDER = new Map(
   EXPECTED_TYPE_IDS.map((typeId, index) => [typeId, index])
 );
-const EXPECTED_QUESTION_COUNT = 1002;
-const EXPECTED_OPTION_COUNT = 6370;
+const EXPECTED_QUESTION_COUNT = 990;
+const EXPECTED_OPTION_COUNT = 6298;
 const RETIRED_DUPLICATE_QUESTIONS = Object.freeze([
   {
     id: "T03-10",
@@ -433,12 +434,6 @@ function expectedIdsForType(typeId) {
       (_, index) => `${typeId}-${String(index + 1).padStart(2, "0")}`
     );
   }
-  if (typeId === "T26") {
-    return Array.from(
-      { length: 12 },
-      (_, index) => `${typeId}-${String(index + 1).padStart(2, "0")}`
-    );
-  }
   return [
     ...Array.from(
       { length: 5 },
@@ -462,16 +457,14 @@ function sourceRangesForType(typeId) {
       range: `${typeId}-01~${typeId}-10`
     }];
   }
-  return typeId === "T26"
-    ? [{ sourceId: "mkat-original-300-v1", range: "T26-01~T26-12" }]
-    : [
-        { sourceId: "foundation-v1", range: `${typeId}-01~${typeId}-05` },
-        { sourceId: "advanced-v1", range: `${typeId}-06~${typeId}-15` },
-        {
-          sourceId: "mkat-original-300-v1",
-          range: `${typeId}-16~${typeId}-27`
-        }
-      ];
+  return [
+    { sourceId: "foundation-v1", range: `${typeId}-01~${typeId}-05` },
+    { sourceId: "advanced-v1", range: `${typeId}-06~${typeId}-15` },
+    {
+      sourceId: "mkat-original-300-v1",
+      range: `${typeId}-16~${typeId}-27`
+    }
+  ];
 }
 
 function assertExpandedBank(bank) {
@@ -623,7 +616,7 @@ function assertExpandedBank(bank) {
   const expectedProvenance = {
     "foundation-v1": 120,
     "advanced-v1": 232,
-    "mkat-original-300-v1": 300,
+    "mkat-original-300-v1": 288,
     "mkat-mensano-350-v1": 350
   };
   if (Object.entries(expectedProvenance).some(
@@ -662,24 +655,25 @@ export function buildExpandedBank({
   }
   const foundationQuestions = currentBank.questions
     .filter(question =>
-      question.typeId !== "T19" &&
+      !RETIRED_TYPE_ID_SET.has(question.typeId) &&
       question.originalPracticeItem === true &&
       sourceQuestionNumber(question) <= 5
     )
     .map(normalizeFoundationQuestion);
   const advancedQuestions = advancedBank.questions
     .filter(question =>
-      question.typeId !== "T19" &&
+      !RETIRED_TYPE_ID_SET.has(question.typeId) &&
       !RETIRED_DUPLICATE_IDS.has(question.id)
     )
     .map(normalizeAdvancedQuestion);
   const originalQuestions = original300.questions
+    .filter(question => !RETIRED_TYPE_ID_SET.has(question.typeId))
     .map(normalizeOriginal300Question);
   const mensaNoQuestions = mensaNo350.questions
     .map(normalizeMensaNo350Question);
   if (foundationQuestions.length !== 120 ||
       advancedQuestions.length !== 232 ||
-      originalQuestions.length !== 300 ||
+      originalQuestions.length !== 288 ||
       mensaNoQuestions.length !== 350) {
     throw new Error(
       "출처별 문항 수 불일치: " +
@@ -697,7 +691,7 @@ export function buildExpandedBank({
     ...mensaNoQuestions
   ].sort(typeSort);
   const legacyTypes = original300.types
-    .filter(type => type.id !== "T19")
+    .filter(type => !RETIRED_TYPE_ID_SET.has(type.id))
     .map(type => {
       const {
         sourceRange,
@@ -748,28 +742,40 @@ export function buildExpandedBank({
     title: "MKAT 통합 추론 문제은행",
     basis:
       "Foundation 120문항, 중복 제거 심화 232문항, 신규 오리지널 " +
-      "300문항과 Mensa Norway 35개 원형 기반 독자 생성 350문항을 " +
-      "T19 일반지식 제외 정책에 따라 통합한 앱 실행용 문제은행",
+      "활성 288문항과 Mensa Norway 35개 원형 기반 독자 생성 350문항을 " +
+      "T19 일반지식 및 T26 비출제 문자 변환 제외 정책에 따라 통합한 앱 실행용 문제은행",
     policy: {
       totalQuestions: EXPECTED_QUESTION_COUNT,
       activeTypes: EXPECTED_TYPE_IDS.length,
       generalKnowledgeExcluded: true,
-      retiredTypeIds: ["T19"],
+      retiredTypeIds: RETIRED_TYPE_IDS,
       runtimeDifficultyRange: [1, 5],
       singleCorrectAnswer: true,
       stableGlobalOptionIds: true,
       sourceQuestionCounts: {
         foundation: 120,
         advanced: 232,
-        original300: 300,
+        original300: 288,
         mensaNo350: 350
       },
       importedQuestionCount: 1025,
       duplicateQuestionCount: RETIRED_DUPLICATE_QUESTIONS.length,
       excludedGeneralKnowledgeQuestionCount: 15,
+      excludedNonMensaQuestionCount: 12,
       exactCrossSourceDuplicateQuestionCount: 0
     },
-    retiredTypes: original300.retiredTypes,
+    retiredTypes: [
+      ...original300.retiredTypes.map(type => {
+        const { replacementTypeId, ...retiredType } = type;
+        return retiredType;
+      }),
+      {
+        id: "T26",
+        title: "문자·기호 규칙 추론",
+        status: "retired",
+        reason: "실제 멘사 테스트에 출제되지 않는 네 글자 알파벳 변환 유형을 훈련에서 제외"
+      }
+    ],
     retiredQuestions: RETIRED_DUPLICATE_QUESTIONS.map(question => ({
       ...question,
       sourceId: "advanced-v1",
@@ -794,8 +800,8 @@ export function buildExpandedBank({
         sourceVersion: sourceManifest.packageVersion,
         sourceJsonSha256: sourceManifest.jsonSha256,
         sourceZipSha256: sourceManifest.zipSha256,
-        activeQuestionCount: 300,
-        retiredQuestionCount: 0
+        activeQuestionCount: 288,
+        retiredQuestionCount: 12
       },
       {
         sourceId: mensaNoManifest.sourceId,

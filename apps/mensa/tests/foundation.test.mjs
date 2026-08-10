@@ -27,25 +27,26 @@ const activeBaseline = baseline.questions.filter(
   question => question.typeId !== "T19"
 );
 
-test("v2 활성 문제은행의 1002문항·6370보기 ID가 안정적이다", () => {
+test("v2 활성 문제은행의 990문항·6298보기 ID가 안정적이다", () => {
   assert.equal(bank.schemaVersion, 2);
-  assert.equal(bank.types.length, 60);
-  assert.equal(bank.questions.length, 1002);
+  assert.equal(bank.types.length, 59);
+  assert.equal(bank.questions.length, 990);
   assert.equal(
     bank.questions.reduce((sum, question) => sum + question.options.length, 0),
-    6370
+    6298
   );
   assert.equal(
     new Set(bank.questions.flatMap(question =>
       question.options.map(option => option.id)
     )).size,
-    6370
+    6298
   );
   assert.equal(
     bank.questions.filter(question => "answerIndex" in question).length,
-    1002
+    990
   );
   assert.equal(bank.questions.some(question => question.typeId === "T19"), false);
+  assert.equal(bank.questions.some(question => question.typeId === "T26"), false);
   assert.equal(bank.questions.filter(
     question => question.provenance.sourceId === "foundation-v1"
   ).length, 120);
@@ -54,7 +55,7 @@ test("v2 활성 문제은행의 1002문항·6370보기 ID가 안정적이다", (
   ).length, 232);
   assert.equal(bank.questions.filter(
     question => question.provenance.sourceId === "mkat-original-300-v1"
-  ).length, 300);
+  ).length, 288);
   assert.equal(bank.questions.filter(
     question => question.provenance.sourceId === "mkat-mensano-350-v1"
   ).length, 350);
