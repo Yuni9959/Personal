@@ -356,24 +356,113 @@ async function run() {
     });
 
     const baseUrl = `http://127.0.0.1:${serverPort}`;
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 1250,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
       "document.querySelectorAll('.app-card').length === 6"
     );
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
+    assert.equal(
+      await evaluate(
+        client,
+        "getComputedStyle(document.querySelector('.app-grid')).gridTemplateColumns.split(' ').filter(Boolean).length"
+      ),
+      3
+    );
+    const hubAccessibility = await evaluate(client, `(() => {
+      const enabled = [...document.querySelectorAll(".app-card.enabled")];
+      const disabled = [...document.querySelectorAll(".app-card.disabled")];
+      const first = enabled[0];
+      first.focus();
+      const descriptionsResolve = [...document.querySelectorAll(".app-card")].every(card =>
+        (card.getAttribute("aria-describedby") || "").split(/\\s+/).every(id => document.getElementById(id))
+      );
+      return {
+        enabledAreLinks: enabled.every(card => card.tagName === "A" && card.href),
+        disabledAreInert: disabled.every(card => card.tagName === "ARTICLE" && card.getAttribute("aria-disabled") === "true"),
+        keyboardFocus: document.activeElement === first,
+        actionHeight: first.querySelector(".app-action").getBoundingClientRect().height,
+        descriptionsResolve,
+        touchAction: getComputedStyle(first).touchAction
+      };
+    })()`);
+    assert.equal(hubAccessibility.enabledAreLinks, true);
+    assert.equal(hubAccessibility.disabledAreInert, true);
+    assert.equal(hubAccessibility.keyboardFocus, true);
+    assert.equal(hubAccessibility.descriptionsResolve, true);
+    assert.equal(hubAccessibility.actionHeight >= 44, true);
+    assert.equal(hubAccessibility.touchAction, "manipulation");
     const volatilityCard = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
         .find(item => item.textContent.includes("Volatility"));
       return { href: card?.getAttribute("href"), text: card?.textContent || "" };
     })()`);
     assert.equal(volatilityCard.href, "./apps/volatility/");
-    assert.match(volatilityCard.text, /1\.758%/);
+    assert.match(volatilityCard.text, /실전선.*상승 0\.360%.*하락 0\.295%/s);
+    await evaluate(client, "document.activeElement?.blur(); true");
+    await captureOptionalScreenshot(client, "hub-desktop");
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 760,
+      height: 1000,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
+    assert.equal(
+      await evaluate(
+        client,
+        "getComputedStyle(document.querySelector('.app-grid')).gridTemplateColumns.split(' ').filter(Boolean).length"
+      ),
+      2
+    );
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 1000,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    await navigate(client, `${baseUrl}/?hub-mobile-smoke=1`);
+    await waitForCondition(
+      client,
+      "document.querySelectorAll('.app-card').length === 6"
+    );
+    const mobileHubLayout = await evaluate(client, `(() => {
+      document.querySelector(".section-block").scrollIntoView();
+      const cardRects = [...document.querySelectorAll(".app-card")].map(card => {
+        const rect = card.getBoundingClientRect();
+        return { top: Math.round(rect.top), bottom: Math.round(rect.bottom), height: Math.round(rect.height) };
+      });
+      return {
+        columns: getComputedStyle(document.querySelector(".app-grid"))
+          .gridTemplateColumns.split(" ").filter(Boolean).length,
+        fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
+        cardWidth: document.querySelector(".app-card").getBoundingClientRect().width,
+        cardRects
+      };
+    })()`);
+    assert.equal(mobileHubLayout.columns, 1);
+    assert.equal(mobileHubLayout.fitsViewport, true);
+    assert.equal(mobileHubLayout.cardWidth >= 350, true);
+    assert.equal(
+      mobileHubLayout.cardRects.every((rect, index, cards) =>
+        rect.height >= 250 &&
+        (index === 0 || (rect.top > cards[index - 1].bottom && rect.top - cards[index - 1].bottom <= 16))
+      ),
+      true,
+      JSON.stringify(mobileHubLayout.cardRects)
+    );
+    await captureOptionalScreenshot(client, "hub-mobile");
+    await client.send("Emulation.clearDeviceMetricsOverride");
     await navigate(client, `${baseUrl}/apps/volatility/`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
     assert.equal(await evaluate(client, "document.title"), "Volatility | Personal Tap");
     assert.equal(await evaluate(client, "document.querySelector('#currentPrice').textContent !== '—'"), true);
-    assert.match(await evaluate(client, "document.querySelector('#bullRemaining').textContent"), /pt/);
+    assert.match(await evaluate(client, "document.querySelector('#operationalUpLine').textContent"), /pt/);
     const manualApplied = await evaluate(client, `(() => {
       document.querySelector("#manualToggleBtn").click();
       const values = { manualOpen: 30000, manualHigh: 30100, manualLow: 29900, manualCurrent: 30050, manualAtr: 20 };
@@ -387,6 +476,18 @@ async function run() {
     })()`);
     assert.match(manualApplied.status, /수동 입력/);
     assert.equal(manualApplied.current, "30,050.00");
+    const safeLines = await evaluate(client, `({
+      up: document.querySelector("#operationalUpLine").textContent,
+      down: document.querySelector("#operationalDownLine").textContent,
+      bullConditional: document.querySelector("#bullSafeLine").textContent,
+      bearConditional: document.querySelector("#bearSafeLine").textContent
+    })`);
+    assert.equal(safeLines.up, "30,000.00 + 107.75 pt = 30,107.75");
+    assert.equal(safeLines.down, "30,000.00 − 88.50 pt = 29,911.50");
+    assert.equal(safeLines.bullConditional, "30,000.00 + 212.25 = 30,212.25");
+    assert.equal(safeLines.bearConditional, "30,000.00 − 244.50 = 29,755.50");
+    await evaluate(client, "document.querySelector('#scenarioTitle').scrollIntoView(); true");
+    await captureOptionalScreenshot(client, "volatility-safe-lines-desktop");
     const volatilityResult = await evaluate(client, `(() => {
       const current = Number(document.querySelector("#currentPrice").textContent.replaceAll(",", ""));
       const set = (selector, value) => {

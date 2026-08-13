@@ -32,6 +32,21 @@ test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않
   assert.doesNotMatch(app, /P6 금지 · 진입 차단|OR 강제차단 발동/);
 });
 
+test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분리한다", () => {
+  const html = read("apps/volatility/index.html");
+  const app = read("apps/volatility/js/app.js");
+  assert.match(html, /장중 실전 기본선/);
+  assert.match(html, /종가 방향을 모르는 상태의 전체 거래일 기준/);
+  assert.match(html, /평균 H−L 범위 예산/);
+  assert.match(html, /조건부 안전측 상승폭/);
+  assert.match(html, /조건부 안전측 하락폭/);
+  assert.match(html, /도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다/);
+  assert.match(app, /REFERENCE\.exAnte\.up\.safePercent/);
+  assert.match(app, /REFERENCE\.exAnte\.down\.safePercent/);
+  assert.match(app, /최근 52주 OOS/);
+  assert.doesNotMatch(html, /1\.409%.*안전측/);
+});
+
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
   for (const asset of [

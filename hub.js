@@ -181,6 +181,14 @@
     apps.forEach(app => {
       const card = document.createElement(app.enabled ? "a" : "article");
       card.className = `app-card ${app.accent || "violet"} ${app.enabled ? "enabled" : "disabled"}${app.featured ? " featured" : ""}`;
+      card.dataset.appId = app.id;
+
+      const safeId = String(app.id || "app").replace(/[^a-z0-9_-]/gi, "-");
+      const titleId = `${safeId}-title`;
+      const descriptionId = `${safeId}-description`;
+      const metricId = `${safeId}-metric`;
+      card.setAttribute("aria-labelledby", titleId);
+      card.setAttribute("aria-describedby", `${descriptionId} ${metricId}`);
 
       if (app.enabled) {
         card.href = app.href;
@@ -194,19 +202,24 @@
       }
 
       const metric = app.metric === "mkat" ? mkatMetricText() :
-        app.metric === "volatility" ? "이번 주 기준 · 양봉 1.758% · 음봉 1.969%" :
+        app.metric === "volatility" ? "실전선 · 상승 0.360% · 하락 0.295%" :
         app.enabled ? "탭해서 바로 열기" : "연결할 주소가 정해지면 활성화됩니다.";
 
       card.innerHTML = `
-        <div class="app-copy">
-          <div class="app-topline"><span class="app-badge">${app.badge || "APP"}</span></div>
-          <span class="app-subtitle">${app.subtitle || "Personal App"}</span>
-          <h3>${app.title}</h3>
-          <p class="app-description">${app.description || ""}</p>
-          <p class="app-metric">${metric}</p>
-          <span class="app-action">${app.enabled ? (app.external ? "새 창에서 열기 ↗" : "앱으로 들어가기 →") : "준비 중"}</span>
+        <div class="app-card-topline">
+          <div class="app-visual" aria-hidden="true">${app.icon || "◻"}</div>
+          <span class="app-badge">${app.badge || "APP"}</span>
         </div>
-        <div class="app-visual" aria-hidden="true">${app.icon || "◻"}</div>
+        <div class="app-copy">
+          <span class="app-subtitle">${app.subtitle || "Personal App"}</span>
+          <h3 id="${titleId}">${app.title}</h3>
+          <p id="${descriptionId}" class="app-description">${app.description || ""}</p>
+          <p id="${metricId}" class="app-metric">${metric}</p>
+          <span class="app-action" aria-hidden="true">
+            <span>${app.enabled ? (app.external ? "새 창에서 열기" : "앱으로 들어가기") : "준비 중"}</span>
+            <span class="app-action-icon">${app.enabled ? (app.external ? "↗" : "→") : "·"}</span>
+          </span>
+        </div>
       `;
 
       els.appGrid.appendChild(card);
