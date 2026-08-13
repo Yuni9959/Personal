@@ -25,6 +25,18 @@ window.PERSONAL_TAP_APPS = [
     accent: "rose"
   },
   {
+    id: "volatility",
+    title: "Volatility",
+    subtitle: "MNQ 매매 점검",
+    description: "오늘 MNQ 시세와 주간 양봉·음봉 변동폭을 비교하고, 포지션 손절선과 P6·P7 위험을 점검합니다.",
+    href: "./apps/volatility/",
+    icon: "〽️",
+    badge: "BETA",
+    enabled: true,
+    accent: "mint",
+    metric: "volatility"
+  },
+  {
     id: "touchbebe",
     title: "TouchBebe",
     subtitle: "육아 도구",

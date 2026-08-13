@@ -8,9 +8,11 @@
     "enrich:content": "node apps/mensa/tools/enrich-content-v2.mjs",
     "generate:answer-key": "node apps/mensa/tools/generate-answer-key.mjs",
     "sync:bank": "node apps/mensa/tools/sync-bank.mjs",
+    "update:market": "node apps/volatility/tools/update-market-data.mjs",
+    "test:volatility": "node --test apps/volatility/tests/*.test.mjs",
     "test:browser": "node apps/mensa/tests/browser-smoke.mjs",
     "validate:bank": "node apps/mensa/tests/validate-bank.mjs --profile=content-complete",
-    "test": "node --test apps/mensa/tests/*.test.mjs && npm run build:bank:check && node apps/mensa/tests/validate-bank.mjs --profile=content-complete && node apps/mensa/tools/generate-answer-key.mjs --check",
+    "test": "node --test apps/mensa/tests/*.test.mjs && npm run test:volatility && npm run build:bank:check && node apps/mensa/tests/validate-bank.mjs --profile=content-complete && node apps/mensa/tools/generate-answer-key.mjs --check",
     "test:release": "npm run test && npm run test:browser"
   }
 }

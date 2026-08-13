@@ -37,7 +37,7 @@ test("브라우저 문제은행 로더가 JSON v2를 검사해 반환한다", as
 });
 
 test("HTML의 모든 로컬 href와 src가 존재한다", () => {
-  const htmlFiles = ["index.html", "apps/mensa/index.html"];
+  const htmlFiles = ["index.html", "apps/mensa/index.html", "apps/volatility/index.html"];
 
   for (const relativeHtmlPath of htmlFiles) {
     const html = read(relativeHtmlPath);
@@ -78,6 +78,9 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   assert.ok(assets.includes("./apps/mensa/js/stats-model.js"));
   assert.ok(assets.includes("./apps/mensa/js/training-store.js"));
   assert.ok(assets.includes("./pwa-update.js"));
+  assert.ok(assets.includes("./apps/volatility/index.html"));
+  assert.ok(assets.includes("./apps/volatility/js/calculator.js"));
+  assert.ok(assets.includes("./apps/volatility/data/market.json"));
   assert.ok(!assets.some(asset => asset.endsWith("question-bank.js")));
 
   for (const asset of assets) {
@@ -93,6 +96,7 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   assert.match(source, /url\.origin !== scopeUrl\.origin/);
   assert.match(source, /url\.pathname\.startsWith\(scopeUrl\.pathname\)/);
   assert.match(source, /event\.data\?\.type === "SKIP_WAITING"/);
+  assert.match(source, /url\.pathname\.endsWith\("\/apps\/volatility\/data\/market\.json"\)/);
 });
 
 test("런타임은 IndexedDB를 사실 원본으로 쓰고 v2 요약 캐시를 허브에 제공한다", () => {

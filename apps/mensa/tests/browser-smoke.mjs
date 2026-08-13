@@ -359,9 +359,84 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 5"
+      "document.querySelectorAll('.app-card').length === 6"
     );
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
+    const volatilityCard = await evaluate(client, `(() => {
+      const card = [...document.querySelectorAll(".app-card")]
+        .find(item => item.textContent.includes("Volatility"));
+      return { href: card?.getAttribute("href"), text: card?.textContent || "" };
+    })()`);
+    assert.equal(volatilityCard.href, "./apps/volatility/");
+    assert.match(volatilityCard.text, /1\.758%/);
+    await navigate(client, `${baseUrl}/apps/volatility/`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    assert.equal(await evaluate(client, "document.title"), "Volatility | Personal Tap");
+    assert.equal(await evaluate(client, "document.querySelector('#currentPrice').textContent !== '—'"), true);
+    assert.match(await evaluate(client, "document.querySelector('#bullRemaining').textContent"), /pt/);
+    const manualApplied = await evaluate(client, `(() => {
+      document.querySelector("#manualToggleBtn").click();
+      const values = { manualOpen: 30000, manualHigh: 30100, manualLow: 29900, manualCurrent: 30050, manualAtr: 20 };
+      for (const [id, value] of Object.entries(values)) document.querySelector("#" + id).value = value;
+      document.querySelector("#manualPanel").requestSubmit();
+      document.querySelector("#manualToggleBtn").click();
+      return {
+        status: document.querySelector("#dataStatus").textContent,
+        current: document.querySelector("#currentPrice").textContent
+      };
+    })()`);
+    assert.match(manualApplied.status, /수동 입력/);
+    assert.equal(manualApplied.current, "30,050.00");
+    const volatilityResult = await evaluate(client, `(() => {
+      const current = Number(document.querySelector("#currentPrice").textContent.replaceAll(",", ""));
+      const set = (selector, value) => {
+        const element = document.querySelector(selector);
+        element.value = value;
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      set("#positionDirection", "long");
+      set("#entryPrice", current - 100);
+      set("#quantity", 2);
+      set("#positionAtr", 20);
+      set("#ema1h", "bearish");
+      set("#rsi1h", 44);
+      set("#atrPercentile", 80);
+      set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
+      const favorable = document.querySelector("#noFavorableExcursion");
+      favorable.checked = true;
+      favorable.dispatchEvent(new Event("input", { bubbles: true }));
+      const hesitation = document.querySelector("#stopHesitation");
+      hesitation.checked = true;
+      hesitation.dispatchEvent(new Event("input", { bubbles: true }));
+      return {
+        positionVisible: !document.querySelector("#positionResults").hidden,
+        p6: document.querySelector("#p6Result strong").textContent,
+        kill: document.querySelector("#killResult strong").textContent,
+        p7: document.querySelector("#p7Result strong").textContent
+      };
+    })()`);
+    assert.equal(volatilityResult.positionVisible, true);
+    assert.match(volatilityResult.p6, /P6 shadow 경고 후보/);
+    assert.match(volatilityResult.kill, /기존 OR 규칙 감지 · 비활성/);
+    assert.match(volatilityResult.p7, /P7 입력 기반 안전 알림 · 미검증/);
+    await captureOptionalScreenshot(client, "volatility-desktop");
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    assert.equal(
+      await evaluate(client, "document.documentElement.scrollWidth <= window.innerWidth"),
+      true
+    );
+    await captureOptionalScreenshot(client, "volatility-mobile");
+    await evaluate(client, "document.querySelector('#positionTitle').scrollIntoView(); true");
+    await captureOptionalScreenshot(client, "volatility-position-mobile");
+    await evaluate(client, "document.querySelector('#riskTitle').scrollIntoView(); true");
+    await captureOptionalScreenshot(client, "volatility-risk-mobile");
+    await client.send("Emulation.clearDeviceMetricsOverride");
+    await navigate(client, `${baseUrl}/`);
     await evaluate(client, `new Promise((resolve, reject) => {
       const request = indexedDB.deleteDatabase("mkat98-training-v2");
       request.onsuccess = () => resolve(true);
@@ -855,7 +930,7 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 5"
+      "document.querySelectorAll('.app-card').length === 6"
     );
     const mkatMetric = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
@@ -1243,6 +1318,16 @@ async function run() {
       "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 59",
       15000
     );
+    await navigate(client, `${baseUrl}/apps/volatility/?offline-smoke=1`);
+    await waitForCondition(
+      client,
+      "document.body.dataset.ready === 'true' && document.querySelector('#currentPrice').textContent !== '—'",
+      15000
+    );
+    assert.match(
+      await evaluate(client, "document.querySelector('#dataStatus').textContent"),
+      /수동 입력|프록시|데이터/
+    );
     await client.send("Network.emulateNetworkConditions", {
       offline: false,
       latency: 0,
@@ -1253,12 +1338,12 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 5카드, 유형 59개, " +
+      "브라우저 스모크 성공: 허브 6카드·Volatility 데스크톱/모바일, 유형 59개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "v2 요약 캐시, 오프라인 로드"
+      "v2 요약 캐시, MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

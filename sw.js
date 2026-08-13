@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.6.2-daily-balance.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.7.0-volatility.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -26,7 +26,14 @@ const CORE_ASSETS = [
   "./apps/mensa/js/stats-model.js",
   "./apps/mensa/js/training-store.js",
   "./apps/mensa/data/question-bank.json",
-  "./apps/mensa/icons/icon-192.png"
+  "./apps/mensa/icons/icon-192.png",
+  "./apps/volatility/",
+  "./apps/volatility/index.html",
+  "./apps/volatility/styles.css",
+  "./apps/volatility/js/app.js",
+  "./apps/volatility/js/calculator.js",
+  "./apps/volatility/js/market-provider.js",
+  "./apps/volatility/data/market.json"
 ];
 
 self.addEventListener("install", event => {
@@ -65,6 +72,25 @@ self.addEventListener("fetch", event => {
     return;
   }
 
+  if (url.pathname.endsWith("/apps/volatility/data/market.json")) {
+    event.respondWith((async () => {
+      const canonicalRequest = new Request(
+        new URL("./apps/volatility/data/market.json", scopeUrl).href
+      );
+      try {
+        const response = await fetch(request);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(canonicalRequest, response.clone());
+        }
+        return response;
+      } catch {
+        return (await caches.match(canonicalRequest)) || Response.error();
+      }
+    })());
+    return;
+  }
+
   if (request.mode === "navigate") {
     event.respondWith((async () => {
       try {
@@ -78,9 +104,13 @@ self.addEventListener("fetch", event => {
         const cached = await caches.match(request);
         if (cached) return cached;
 
-        return request.url.includes("/apps/mensa/")
-          ? caches.match("./apps/mensa/index.html")
-          : caches.match("./index.html");
+        if (request.url.includes("/apps/mensa/")) {
+          return caches.match("./apps/mensa/index.html");
+        }
+        if (request.url.includes("/apps/volatility/")) {
+          return caches.match("./apps/volatility/index.html");
+        }
+        return caches.match("./index.html");
       }
     })());
     return;

@@ -194,6 +194,7 @@
       }
 
       const metric = app.metric === "mkat" ? mkatMetricText() :
+        app.metric === "volatility" ? "이번 주 기준 · 양봉 1.758% · 음봉 1.969%" :
         app.enabled ? "탭해서 바로 열기" : "연결할 주소가 정해지면 활성화됩니다.";
 
       card.innerHTML = `

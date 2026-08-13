@@ -8,12 +8,13 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 
 | 항목 | 상태 |
 | --- | --- |
-| 확인일 | 2026-08-10 (Asia/Seoul) |
+| 확인일 | 2026-08-13 (Asia/Seoul) |
 | 문제은행 | `2026.08.10-content.4`, 59개 유형·990문제·6,298개 보기 |
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
-| 자동 검증 | `npm run test:release` 성공 — 73/73 및 Chromium·오프라인 검증 통과 |
-| PWA 캐시 | `v2.6.2-daily-balance.1` |
+| 신규 앱 | `Volatility` — MNQ 양봉·음봉 범위, 포지션·P6/P7 점검 |
+| 자동 검증 | `npm run test:release` 성공 — Node 90/90 및 Chromium·오프라인·390px 검증 통과 |
+| PWA 캐시 | `v2.7.0-volatility.1` |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -23,6 +24,12 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 최근 6회 큐의 유형 노출 횟수와 마지막 출제일을 기준으로 덜 나온 유형을 먼저
 선택합니다. 30일 연속 정답 시뮬레이션에서도 특정 유형의 자기강화 반복과
 전날 유형 쏠림이 생기지 않는지 회귀 검증합니다.
+
+`Volatility`는 2026-08-10 계산 NQ 연속선물 프록시 주간 기준(양봉
+1.758%, 음봉 1.969%)과 오늘 MNQ=F 지연 프록시를 비교합니다.
+양봉·음봉을 사전에 단정하지 않고 두 시나리오를 항상 함께 보여줍니다.
+포지션 결과는 남은 범위가 모두 유리하게 이동한 경우의 상한 가정이며
+목표가나 통계적 기대수익으로 표시하지 않습니다.
 
 ## 핵심 구조
 
@@ -36,12 +43,14 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 ├── pwa-update.js              # 대기 중인 업데이트 적용 제어
 ├── manifest.webmanifest       # Personal Tap PWA 설정
 ├── sw.js                      # 허브와 하위 앱 공통 오프라인 캐시
+├── .github/workflows/
+│   └── deploy-pages.yml       # MNQ 스냅샷 갱신 및 Pages 배포
 ├── package.json               # 빌드 없는 검증·생성 명령
 ├── icons/
 │   ├── icon-192.png
 │   └── icon-512.png
 └── apps/
-    └── mensa/
+    ├── mensa/
         ├── index.html         # MKAT 98 앱
         ├── styles.css
         ├── js/
@@ -61,15 +70,23 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
         ├── docs/
         ├── tests/
         └── tools/
+    └── volatility/
+        ├── index.html, styles.css
+        ├── js/                 # 계산·시세 재구성·UI
+        ├── data/market.json    # 동일 출처 지연 스냅샷
+        ├── tests/
+        └── tools/              # 스냅샷 갱신기
 ```
 
 런타임은 여전히 빌드 과정이나 외부 라이브러리가 필요하지 않습니다.
-`package.json`은 문제은행 생성·검증과 자동 테스트 명령만 제공합니다.
+`package.json`은 문제은행 생성·검증, 시세 스냅샷 갱신과 자동 테스트
+명령만 제공합니다.
 
 ## 현재 연결된 카드
 
 - **MKAT 98**: Repository 내부의 `./apps/mensa/`
 - **Diary for my Wife**: 기존 GitHub Pages 주소
+- **Volatility**: Repository 내부의 `./apps/volatility/`
 - **TouchBebe**: 준비 중 카드
 - **YML Studio**: 준비 중 카드
 - **새 앱 연결**: 다음 앱을 위한 빈 슬롯
@@ -177,15 +194,22 @@ http://localhost:8080
 
 - Personal Tap: `http://localhost:8080/`
 - MKAT 98: `http://localhost:8080/apps/mensa/`
+- Volatility: `http://localhost:8080/apps/volatility/`
 
 ## GitHub Pages 배포
 
-1. 이 폴더 안의 파일과 폴더를 새 Repository 루트에 올립니다.
-2. GitHub의 **Settings → Pages**로 이동합니다.
-3. `Deploy from a branch`를 선택합니다.
-4. `main` 브랜치와 `/ (root)`를 선택한 뒤 저장합니다.
-5. 생성된 HTTPS 주소를 휴대전화에서 엽니다.
-6. 브라우저 메뉴의 **홈 화면에 추가** 또는 화면의 **앱 설치** 버튼을 사용합니다.
+1. 이 폴더를 Repository 루트로 푸시합니다.
+2. GitHub의 **Settings → Pages → Build and deployment → Source**를
+   **GitHub Actions**로 선택합니다.
+3. `Deploy Personal Tap with market snapshot` workflow를 한 번 수동 실행하거나
+   `main` push 실행이 완료될 때까지 기다립니다.
+4. 생성된 HTTPS 주소를 휴대전화에서 열고 **홈 화면에 추가** 또는
+   **앱 설치** 버튼을 사용합니다.
+
+workflow는 `main` push와 UTC 일요일~금요일 30분 간격 스케줄에서 실행되며,
+`MNQ=F` 2일치 5분봉을 Chicago 세션으로 재구성한 스냅샷을 함께
+배포합니다. GitHub 스케줄과 외부 프록시는 지연·실패할 수 있어 앱에서
+갱신시각·stale·수동 입력 상태를 구분합니다.
 
 모든 내부 경로는 상대경로로 작성되어 있어 `https://사용자명.github.io/Repository명/` 형태에서도 동작합니다.
 
@@ -244,6 +268,10 @@ Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
    쌓인 뒤 문제 난이도와 제한시간을 재평가합니다.
 4. **선택적 기기 간 동기화 설계**: 현재 JSON 내보내기 계약을 유지하면서
    Supabase 등 원격 동기화의 범위와 개인정보 정책을 먼저 정합니다.
+5. **Volatility 실사용 검증**: GitHub Pages Actions 배포를 활성화하고
+   증권사 MNQ 월물 O/H/L·ATR과 프록시 차이를 여러 세션에서 기록합니다.
+6. **P1–P5 자동분류 확장**: 신뢰할 수 있는 1m/5m/15m/1h/1d
+   데이터 공급과 누출 방지 검증 후에 진행합니다.
 
 ## 작업 완료 및 Git 게시
 

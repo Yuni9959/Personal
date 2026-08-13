@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-13T13:12:59.502Z",
+  "provider": {
+    "name": "Yahoo Finance chart proxy",
+    "requestedSymbol": "MNQ=F",
+    "returnedSymbol": "MNQ=F",
+    "interval": "5m",
+    "range": "2d",
+    "delayed": true,
+    "unofficial": true
+  },
+  "session": {
+    "label": "2026-08-12 17:00 CT ~ 16:00 CT",
+    "date": "2026-08-12",
+    "timeZone": "America/Chicago",
+    "start": "2026-08-12T22:00:00.000Z",
+    "end": "2026-08-13T21:00:00.000Z",
+    "barCount": 181
+  },
+  "market": {
+    "open": 29820.25,
+    "high": 29924.25,
+    "low": 29780.5,
+    "current": 29897,
+    "latestBarAt": "2026-08-13T13:02:57.000Z",
+    "atr5m14": 22.270728,
+    "atrLastCompletedBarAt": "2026-08-13T13:00:00.000Z"
+  },
+  "limitations": [
+    "MNQ=F/NQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
+    "제공자가 공식 거래소 피드나 무지연 시세를 보장하지 않습니다.",
+    "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다."
+  ]
+}

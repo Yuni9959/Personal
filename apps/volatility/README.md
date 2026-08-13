@@ -1,0 +1,63 @@
+# Volatility
+
+Personal Tap의 MNQ 일중 변동폭·포지션 점검 앱입니다. 매매 신호를
+생성하거나 주문을 전송하지 않으며, 사용자가 정한 규칙을 한 화면에서
+점검하는 최소 기능입니다.
+
+## 계산 계약
+
+- 주간 고정 변동폭: 2026-08-10~2026-08-16, 양봉 1.758%, 음봉
+  1.969%.
+- 출처: `nasdaq_daily.csv` NQ 연속선물 프록시, 최근 5년 방향별
+  `(H-L)/O×100`의 2σ 범위 내 평균. 기준은 매주 월요일에 수동
+  갱신하는 계약이다.
+- 소진률: `(오늘 고가-저가) / (시가×주간 변동폭%)`.
+- 남은 범위: `max(일중 범위 예산-이미 사용한 고저범위, 0)`.
+- 포지션 시나리오는 남은 범위가 현재가에서 모두 유리한 방향으로
+  이동한다는 **상한 가정**이다. 확률가중 통계적 기대수익이 아니다.
+- 계약 승수 $2/point, 최소호가 0.25 point는
+  [CME 공식 MNQ 상품 명세](https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html)를
+  따른다.
+- 손절선은 진입가에서 1.0×5분 Wilder ATR(14)이며 보수적인 방향으로
+  0.25 tick에 맞춘다. 수수료는 사용자가 입력한 총액만 1회 차감한다.
+
+## 시세 공급과 폴백
+
+`tools/update-market-data.mjs`는 Yahoo Finance chart proxy에서 `MNQ=F` 2일치 5분봉을
+우선 조회하고, 실패하면 `NQ=F`를 사용한다. 최신 가격봉이 속한
+`America/Chicago` 17:00~익일 16:00 세션을 timezone-aware로 다시 만들어
+`data/market.json`을 생성한다. 5분 ATR은 완료된 봉만 사용한다.
+
+브라우저는 다음 순서로 시도한다.
+
+1. GitHub Pages와 동일 출처의 `data/market.json`.
+2. 저장된 마지막 자동 스냅샷.
+3. 스냅샷이 없거나 사용자가 오래된 값을 새로고침하면 키 없는
+   Yahoo 직접 조회를 best-effort로 시도.
+4. CORS·호출 제한·네트워크 오류가 있으면 사용자 수동 O/H/L/현재가·5분
+   ATR.
+
+Yahoo endpoint는 공식 거래소 피드가 아니고 브라우저 CORS를 보장하지 않는다.
+따라서 화면은 `실시간`으로 표시하지 않고 갱신 시각과 stale 상태를 항상
+같이 표시한다. 실제 주문 전에는 반드시 증권사의 월물 시세와 대조해야 한다.
+
+## GitHub Pages 자동 갱신
+
+`.github/workflows/deploy-pages.yml`은 `main` push와 일요일~금요일 UTC 기준
+30분 간격으로 스냅샷을 갱신한 정적 사이트를 배포한다. 시세 호출이
+일시 실패하면 저장소에 포함된 이전 스냅샷을 그대로 배포하고, 앱이
+오래된 데이터로 표시하게 한다. 비밀키는 사용하지 않는다.
+
+처음 배포할 때 GitHub Repository `Settings → Pages → Source`를 **GitHub Actions**로
+설정해야 한다. GitHub 스케줄 실행은 지연될 수 있으므로 30분 갱신과 시세
+신규도는 보장되지 않는다.
+
+## P1–P7 입구
+
+최소 버전은 P6 AND `High Vol AND Bearish Regime`, 기존 OR 규칙
+`High Vol OR EMA bearish OR RSI<45`, P7 `10분 초과 AND 무반응 AND 손절
+주저`를 서로 분리해 보여준다. 보고서 실증에서 P6 AND는 검증 표본이
+각 1건이므로 자동 차단이 아닌 **shadow 경고 후보**다. OR 규칙은
+과잉차단으로 hard kill이 기각돼 **비활성 비교용**으로만 남긴다. P7은 직접
+관리 로그가 부족해 **사용자 입력 기반 미검증 안전 알림**이다. P1~P5
+자동분류과 지표 자동수집은 후속 확장 범위다.
