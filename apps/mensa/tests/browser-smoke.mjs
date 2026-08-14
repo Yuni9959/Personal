@@ -456,6 +456,31 @@ async function run() {
     })()`);
     assert.equal(volatilityCard.href, "./apps/volatility/");
     assert.match(volatilityCard.text, /실전선.*상승 0\.360%.*하락 0\.295%/s);
+    const universityAdmissionCard = await evaluate(client, `(() => {
+      const card = document.querySelector('[data-app-id="university-admission"]');
+      const describedBy = (card?.getAttribute("aria-describedby") || "")
+        .split(/\\s+/).filter(Boolean);
+      return {
+        tag: card?.tagName,
+        href: card?.href,
+        target: card?.target,
+        rel: card?.rel,
+        labelResolves: Boolean(document.getElementById(card?.getAttribute("aria-labelledby"))),
+        descriptionsResolve: describedBy.length > 0 && describedBy.every(id => document.getElementById(id)),
+        text: card?.textContent || ""
+      };
+    })()`);
+    assert.deepEqual(universityAdmissionCard, {
+      tag: "A",
+      href: "https://university-admission-private-preview-yuni14.vercel.app/",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      labelResolves: true,
+      descriptionsResolve: true,
+      text: universityAdmissionCard.text
+    });
+    assert.match(universityAdmissionCard.text, /대학 입학정보/);
+    assert.match(universityAdmissionCard.text, /새 창에서 열기/);
     await evaluate(client, "document.activeElement?.blur(); true");
     await captureOptionalScreenshot(client, "hub-desktop");
     await client.send("Emulation.setDeviceMetricsOverride", {
@@ -1679,6 +1704,21 @@ async function run() {
     assert.equal(offlineVolatility.calculationsHidden, true);
     assert.equal(offlineVolatility.current, "—");
     assert.equal(offlineVolatility.manualPanelVisible, true);
+    await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
+    await waitForCondition(
+      client,
+      "document.querySelectorAll('.app-card').length === 6",
+      15000
+    );
+    const offlineUniversityCard = await evaluate(client, `(() => {
+      const card = document.querySelector('[data-app-id="university-admission"]');
+      return { href: card?.href, target: card?.target, rel: card?.rel };
+    })()`);
+    assert.deepEqual(offlineUniversityCard, {
+      href: "https://university-admission-private-preview-yuni14.vercel.app/",
+      target: "_blank",
+      rel: "noopener noreferrer"
+    });
     const offlineNetworkErrors = browserErrors.splice(errorsBeforeOffline);
     assert.equal(offlineNetworkErrors.every(message =>
       /Failed to load resource: net::ERR_INTERNET_DISCONNECTED/.test(message)
@@ -1693,12 +1733,12 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 6카드·Volatility 데스크톱/모바일, 유형 59개, " +
+      "브라우저 스모크 성공: 허브 6카드·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "v2 요약 캐시, MKAT·Volatility 오프라인 로드"
+      "v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

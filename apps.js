@@ -59,14 +59,15 @@ window.PERSONAL_TAP_APPS = [
     accent: "amber"
   },
   {
-    id: "new-slot",
-    title: "새 앱 연결",
-    subtitle: "다음 프로젝트",
-    description: "새로운 웹앱과 자주 쓰는 서비스를 이곳에 연결합니다.",
-    href: "#",
-    icon: "＋",
-    badge: "EMPTY",
-    enabled: false,
+    id: "university-admission",
+    title: "대학 입학정보",
+    subtitle: "작곡과 입시 가이드",
+    description: "검증된 대학별 작곡과 입학 보고서를 한곳에서 확인합니다.",
+    href: "https://university-admission-private-preview-yuni14.vercel.app/",
+    icon: "🎓",
+    badge: "VERCEL",
+    enabled: true,
+    external: true,
     accent: "violet"
   }
 ];

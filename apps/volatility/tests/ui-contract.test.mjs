@@ -15,6 +15,15 @@ test("Personal Tap 허브에 Volatility 앱 입구가 활성화돼 있다", () =
   assert.match(apps, /enabled: true/);
 });
 
+test("Personal Tap 허브에 안정 Vercel 입학정보 주소가 안전한 외부 링크로 등록돼 있다", () => {
+  const apps = read("apps.js");
+  assert.match(apps, /id: "university-admission"/);
+  assert.match(apps, /href: "https:\/\/university-admission-private-preview-yuni14\.vercel\.app\/"/);
+  assert.match(apps, /badge: "VERCEL"/);
+  assert.match(apps, /external: true/);
+  assert.doesNotMatch(apps, /university-admission-private-preview-[a-z0-9]+-yuni14\.vercel\.app/);
+});
+
 test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않는다", () => {
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
@@ -94,7 +103,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.0\.1-security-efficiency\.1/);
+  assert.match(sw, /v3\.1\.0-vercel-entry\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

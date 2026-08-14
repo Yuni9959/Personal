@@ -16,11 +16,11 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
-| 신규 앱 | `Volatility` — MNQ 평균 범위·안전측 도달선, 포지션·P6/P7 점검 |
+| 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 `대학 입학정보` |
 | Volatility 시세 | 페이지 진입·버튼 클릭 때만 Yahoo CME 약 10분 지연 프록시를 조회; 예약·백그라운드 갱신 없음 |
-| 자동 검증 | `npm run test:release` 성공 — Node 142/142 및 Chromium·오프라인·320/390px 검증 통과 |
+| 자동 검증 | `npm run test:release` 성공 — Node 143/143 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.0.1-security-efficiency.1` — 버전 정적 자산 cache-first |
+| PWA 캐시 | `v3.1.0-vercel-entry.1` — Vercel 입구를 포함한 버전 정적 자산 cache-first |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -101,9 +101,11 @@ Web Storage origin을 공유합니다. 따라서 같은 계정의 다른 Pages �
 - **Volatility**: Repository 내부의 `./apps/volatility/`
 - **TouchBebe**: 준비 중 카드
 - **YML Studio**: 준비 중 카드
-- **새 앱 연결**: 다음 앱을 위한 빈 슬롯
+- **대학 입학정보**: 안정 Vercel 별칭 `https://university-admission-private-preview-yuni14.vercel.app/`
 
-`Diary for my Wife` 주소를 사용하지 않을 경우 `apps.js`에서 해당 항목을 삭제하거나 수정하면 됩니다.
+외부 카드는 새 창에서 열리며 `noopener noreferrer`가 자동 적용됩니다. 배포마다
+바뀌는 고유 Vercel 주소가 아니라 프로젝트의 안정 별칭을 사용하므로 후속
+릴리스에도 Personal Tap 링크를 다시 수정할 필요가 없습니다.
 
 ## 앱 하나 더 연결하기
 
@@ -262,8 +264,9 @@ npm run test:release
 `npm run test:browser`는 Chromium 기반 헤드리스 브라우저에서 기존 훈련 모드,
 v1 안전 이전, IndexedDB 응시 이벤트, v2 요약 캐시, JSON 로드와 PWA
 오프라인 실행, S35 신규 문제 모바일 렌더링과 오늘의 10문제 유형 고유성을
-함께 확인합니다. Node 회귀 테스트는 최근 큐만 있는 6일 순환과 30일 연속
-정답 분포도 함께 검사합니다.
+함께 확인합니다. 또한 대학 입학정보 카드가 안정 Vercel 주소를 새 창으로
+안전하게 여는지 확인합니다. Node 회귀 테스트는 최근 큐만 있는 6일 순환과
+30일 연속 정답 분포도 함께 검사합니다.
 
 ## PWA 업데이트
 

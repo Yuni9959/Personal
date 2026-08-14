@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.0.1-security-efficiency.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.1.0-vercel-entry.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
