@@ -1,9 +1,9 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.8.0-safe-volatility.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.9.0-three-column-grid.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
-  "./hub.css",
+  "./hub.css?v=2.9.0-three-column-grid.1",
   "./apps.js",
   "./hub.js",
   "./pwa-update.css",

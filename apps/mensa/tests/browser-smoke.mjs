@@ -375,6 +375,22 @@ async function run() {
       ),
       3
     );
+    const desktopHubLayout = await evaluate(client, `(() => {
+      const grid = document.querySelector(".app-grid");
+      const welcome = document.querySelector(".welcome-panel");
+      const cards = [...document.querySelectorAll(".app-card")];
+      const rowTops = [...new Set(cards.map(card => Math.round(card.getBoundingClientRect().top)))];
+      return {
+        gridBeforeWelcome: grid.getBoundingClientRect().top < welcome.getBoundingClientRect().top,
+        rows: rowTops.length,
+        firstRowSize: cards.filter(card => Math.abs(card.getBoundingClientRect().top - cards[0].getBoundingClientRect().top) < 2).length
+      };
+    })()`);
+    assert.deepEqual(desktopHubLayout, {
+      gridBeforeWelcome: true,
+      rows: 2,
+      firstRowSize: 3
+    });
     const hubAccessibility = await evaluate(client, `(() => {
       const enabled = [...document.querySelectorAll(".app-card.enabled")];
       const disabled = [...document.querySelectorAll(".app-card.disabled")];
@@ -389,7 +405,8 @@ async function run() {
         keyboardFocus: document.activeElement === first,
         actionHeight: first.querySelector(".app-action").getBoundingClientRect().height,
         descriptionsResolve,
-        touchAction: getComputedStyle(first).touchAction
+        touchAction: getComputedStyle(first).touchAction,
+        headingOrder: [...document.querySelectorAll("main h1, main h2")].map(heading => heading.tagName)
       };
     })()`);
     assert.equal(hubAccessibility.enabledAreLinks, true);
@@ -398,6 +415,7 @@ async function run() {
     assert.equal(hubAccessibility.descriptionsResolve, true);
     assert.equal(hubAccessibility.actionHeight >= 44, true);
     assert.equal(hubAccessibility.touchAction, "manipulation");
+    assert.deepEqual(hubAccessibility.headingOrder, ["H1", "H2"]);
     const volatilityCard = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
         .find(item => item.textContent.includes("Volatility"));
@@ -418,11 +436,11 @@ async function run() {
         client,
         "getComputedStyle(document.querySelector('.app-grid')).gridTemplateColumns.split(' ').filter(Boolean).length"
       ),
-      2
+      3
     );
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
-      height: 1000,
+      height: 700,
       deviceScaleFactor: 1,
       mobile: true
     });
@@ -432,31 +450,66 @@ async function run() {
       "document.querySelectorAll('.app-card').length === 6"
     );
     const mobileHubLayout = await evaluate(client, `(() => {
-      document.querySelector(".section-block").scrollIntoView();
       const cardRects = [...document.querySelectorAll(".app-card")].map(card => {
         const rect = card.getBoundingClientRect();
-        return { top: Math.round(rect.top), bottom: Math.round(rect.bottom), height: Math.round(rect.height) };
+        return {
+          left: Math.round(rect.left),
+          right: Math.round(rect.right),
+          top: Math.round(rect.top),
+          bottom: Math.round(rect.bottom),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height)
+        };
       });
+      const rowTops = [...new Set(cardRects.map(card => card.top))];
       return {
         columns: getComputedStyle(document.querySelector(".app-grid"))
           .gridTemplateColumns.split(" ").filter(Boolean).length,
         fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
         cardWidth: document.querySelector(".app-card").getBoundingClientRect().width,
+        gridBeforeWelcome: document.querySelector(".app-grid").getBoundingClientRect().top <
+          document.querySelector(".welcome-panel").getBoundingClientRect().top,
+        rows: rowTops.length,
+        cardsPerRow: rowTops.map(top => cardRects.filter(card => Math.abs(card.top - top) < 2).length),
+        allCardsAboveFold: Math.max(...cardRects.map(card => card.bottom)) <= window.innerHeight,
         cardRects
       };
     })()`);
-    assert.equal(mobileHubLayout.columns, 1);
+    assert.equal(mobileHubLayout.columns, 3);
     assert.equal(mobileHubLayout.fitsViewport, true);
-    assert.equal(mobileHubLayout.cardWidth >= 350, true);
+    assert.equal(mobileHubLayout.cardWidth >= 110, true);
+    assert.equal(mobileHubLayout.gridBeforeWelcome, true);
+    assert.equal(mobileHubLayout.rows, 2);
+    assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3]);
+    assert.equal(mobileHubLayout.allCardsAboveFold, true);
     assert.equal(
-      mobileHubLayout.cardRects.every((rect, index, cards) =>
-        rect.height >= 250 &&
-        (index === 0 || (rect.top > cards[index - 1].bottom && rect.top - cards[index - 1].bottom <= 16))
+      mobileHubLayout.cardRects.every(rect =>
+        rect.height >= 168 && rect.width >= 110 && rect.left >= 0 && rect.right <= 390
       ),
       true,
       JSON.stringify(mobileHubLayout.cardRects)
     );
     await captureOptionalScreenshot(client, "hub-mobile");
+    await client.send("Emulation.setDeviceMetricsOverride", {
+      width: 320,
+      height: 700,
+      deviceScaleFactor: 1,
+      mobile: true
+    });
+    const narrowHubLayout = await evaluate(client, `(() => ({
+      columns: getComputedStyle(document.querySelector(".app-grid"))
+        .gridTemplateColumns.split(" ").filter(Boolean).length,
+      fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
+      cardsPerRow: [...document.querySelectorAll(".app-card")]
+        .filter((card, _, cards) => Math.abs(
+          card.getBoundingClientRect().top - cards[0].getBoundingClientRect().top
+        ) < 2).length
+    }))()`);
+    assert.deepEqual(narrowHubLayout, {
+      columns: 3,
+      fitsViewport: true,
+      cardsPerRow: 3
+    });
     await client.send("Emulation.clearDeviceMetricsOverride");
     await navigate(client, `${baseUrl}/apps/volatility/`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");

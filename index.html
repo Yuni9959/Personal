@@ -9,7 +9,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./hub.css" />
+  <link rel="stylesheet" href="./hub.css?v=2.9.0-three-column-grid.1" />
   <link rel="stylesheet" href="./pwa-update.css" />
 </head>
 <body>
@@ -33,26 +33,11 @@
     </header>
 
     <main>
-      <section class="welcome-panel">
-        <div class="welcome-copy">
-          <p id="todayLabel" class="eyebrow">오늘</p>
-          <h1><span id="greeting">좋은 아침이에요.</span><br />필요한 곳으로 <em>바로 들어가세요.</em></h1>
-          <p>공부, 기록, 육아, 개인 프로젝트를 흩어두지 않고 하나의 첫 화면에서 연결합니다.</p>
-        </div>
-        <div class="focus-card" aria-label="오늘의 집중 앱">
-          <span class="focus-label">TODAY'S FOCUS</span>
-          <div class="focus-icon">🧠</div>
-          <strong>MKAT 98</strong>
-          <p id="focusSummary">오늘 첫 문제를 시작해 보세요.</p>
-          <a href="./apps/mensa/">훈련 시작 <span>→</span></a>
-        </div>
-      </section>
-
-      <section class="section-block" aria-labelledby="appsTitle">
+      <section class="section-block app-launcher" aria-labelledby="appsTitle">
         <div class="section-heading">
           <div>
             <p class="eyebrow">MY APPS</p>
-            <h2 id="appsTitle">내가 쓰는 것들의 입구</h2>
+            <h1 id="appsTitle">내가 쓰는 것들의 입구</h1>
           </div>
           <p id="lastOpened" class="last-opened">아직 방문 기록이 없습니다.</p>
         </div>
@@ -68,6 +53,21 @@
           </div>
         </div>
         <span class="guide-note">GitHub Pages · PWA · 오프라인 지원</span>
+      </section>
+
+      <section class="welcome-panel">
+        <div class="welcome-copy">
+          <p id="todayLabel" class="eyebrow">오늘</p>
+          <h2><span id="greeting">좋은 아침이에요.</span><br />필요한 곳으로 <em>바로 들어가세요.</em></h2>
+          <p>공부, 기록, 육아, 개인 프로젝트를 흩어두지 않고 하나의 첫 화면에서 연결합니다.</p>
+        </div>
+        <div class="focus-card" aria-label="오늘의 집중 앱">
+          <span class="focus-label">TODAY'S FOCUS</span>
+          <div class="focus-icon">🧠</div>
+          <strong>MKAT 98</strong>
+          <p id="focusSummary">오늘 첫 문제를 시작해 보세요.</p>
+          <a href="./apps/mensa/">훈련 시작 <span>→</span></a>
+        </div>
       </section>
     </main>
 

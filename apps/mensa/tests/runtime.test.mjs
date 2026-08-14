@@ -64,8 +64,10 @@ test("MKAT는 JSON과 ES 모듈만 사용하고 v1 실행 파일은 제거됐다
 
 test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔진을 포함한다", () => {
   const source = read("sw.js");
+  const hubHtml = read("index.html");
   const assetBlock = source.match(/const CORE_ASSETS = \[(.*?)\];/s)?.[1] || "";
   const assets = [...assetBlock.matchAll(/"([^"]+)"/g)].map(match => match[1]);
+  const versionedHubCss = hubHtml.match(/href="(\.\/hub\.css[^"]*)"/)?.[1];
 
   assert.ok(assets.includes("./apps/mensa/data/question-bank.json"));
   assert.ok(assets.includes("./apps/mensa/js/analytics-model.js"));
@@ -81,10 +83,12 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   assert.ok(assets.includes("./apps/volatility/index.html"));
   assert.ok(assets.includes("./apps/volatility/js/calculator.js"));
   assert.ok(assets.includes("./apps/volatility/data/market.json"));
+  assert.ok(versionedHubCss);
+  assert.ok(assets.includes(versionedHubCss));
   assert.ok(!assets.some(asset => asset.endsWith("question-bank.js")));
 
   for (const asset of assets) {
-    const relativePath = asset.replace(/^\.\//, "");
+    const relativePath = asset.replace(/^\.\//, "").split(/[?#]/)[0];
     assert.ok(fs.existsSync(path.join(projectRoot, relativePath)), asset);
   }
 
