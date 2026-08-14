@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.9.0-three-column-grid.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-on-demand-delayed.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -33,7 +33,8 @@ const CORE_ASSETS = [
   "./apps/volatility/js/app.js",
   "./apps/volatility/js/calculator.js",
   "./apps/volatility/js/market-provider.js",
-  "./apps/volatility/data/market.json"
+  "./apps/volatility/js/request-guard.js",
+  "./apps/volatility/js/snapshot-policy.js"
 ];
 
 self.addEventListener("install", event => {
@@ -72,24 +73,10 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  if (url.pathname.endsWith("/apps/volatility/data/market.json")) {
-    event.respondWith((async () => {
-      const canonicalRequest = new Request(
-        new URL("./apps/volatility/data/market.json", scopeUrl).href
-      );
-      try {
-        const response = await fetch(request);
-        if (response.ok) {
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put(canonicalRequest, response.clone());
-        }
-        return response;
-      } catch {
-        return (await caches.match(canonicalRequest)) || Response.error();
-      }
-    })());
-    return;
-  }
+  // Never cache a present or future same-origin market-data API response.
+  // A local bridge may later serve /api/* below this scope; it must remain
+  // network-only so a stale quote cannot be replayed by the PWA cache.
+  if (/\/api(?:\/|$)/.test(url.pathname)) return;
 
   if (request.mode === "navigate") {
     event.respondWith((async () => {

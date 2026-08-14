@@ -17,8 +17,9 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
 | 신규 앱 | `Volatility` — MNQ 평균 범위·안전측 도달선, 포지션·P6/P7 점검 |
-| 자동 검증 | `npm run test:release` 성공 — Node 95/95 및 Chromium·오프라인·320/390px 검증 통과 |
-| PWA 캐시 | `v2.9.0-three-column-grid.1` |
+| Volatility 시세 | 페이지 진입·버튼 클릭 때만 Yahoo CME 약 10분 지연 프록시를 조회; 예약·백그라운드 갱신 없음 |
+| 자동 검증 | `npm run test:release` 성공 — Node 142/142 및 Chromium·오프라인·320/390px 검증 통과 |
+| PWA 캐시 | `v3.0.0-on-demand-delayed.1` |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -50,7 +51,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 ├── manifest.webmanifest       # Personal Tap PWA 설정
 ├── sw.js                      # 허브와 하위 앱 공통 오프라인 캐시
 ├── .github/workflows/
-│   └── deploy-pages.yml       # MNQ 스냅샷 갱신 및 Pages 배포
+│   └── deploy-pages.yml       # Node 검증 후 예약 시세 수집 없이 Pages 배포
 ├── package.json               # 빌드 없는 검증·생성 명령
 ├── icons/
 │   ├── icon-192.png
@@ -79,14 +80,13 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
     └── volatility/
         ├── index.html, styles.css
         ├── js/                 # 계산·시세 재구성·UI
-        ├── data/market.json    # 동일 출처 지연 스냅샷
-        ├── tests/
-        └── tools/              # 스냅샷 갱신기
+        ├── docs/               # 요청형 지연 시세 설계·작업 기록
+        └── tests/
 ```
 
 런타임은 여전히 빌드 과정이나 외부 라이브러리가 필요하지 않습니다.
-`package.json`은 문제은행 생성·검증, 시세 스냅샷 갱신과 자동 테스트
-명령만 제공합니다.
+`package.json`은 문제은행 생성·검증과 자동 테스트 명령을 제공합니다. 공개
+배포물에는 Yahoo 원시·파생 시세 스냅샷을 저장하지 않습니다.
 
 ## 현재 연결된 카드
 
@@ -207,15 +207,19 @@ http://localhost:8080
 1. 이 폴더를 Repository 루트로 푸시합니다.
 2. GitHub의 **Settings → Pages → Build and deployment → Source**를
    **GitHub Actions**로 선택합니다.
-3. `Deploy Personal Tap with market snapshot` workflow를 한 번 수동 실행하거나
+3. `Deploy Personal Tap` workflow를 한 번 수동 실행하거나
    `main` push 실행이 완료될 때까지 기다립니다.
 4. 생성된 HTTPS 주소를 휴대전화에서 열고 **홈 화면에 추가** 또는
    **앱 설치** 버튼을 사용합니다.
 
-workflow는 `main` push와 UTC 일요일~금요일 30분 간격 스케줄에서 실행되며,
-`MNQ=F` 2일치 5분봉을 Chicago 세션으로 재구성한 스냅샷을 함께
-배포합니다. GitHub 스케줄과 외부 프록시는 지연·실패할 수 있어 앱에서
-갱신시각·stale·수동 입력 상태를 구분합니다.
+workflow는 `main` push 또는 수동 실행에서 정적 PWA만 배포합니다. 기존
+UTC 일요일~금요일 30분 예약 갱신과 배포 중 Yahoo 호출은 제거했습니다.
+Volatility 페이지는 최초 진입 또는 사용자가 **새 데이터 확인** 버튼을 누를
+때만 `MNQ=F` 지연 프록시를 best-effort로 조회하며, 60초 cooldown 동안
+반복 호출을 막습니다. 원천시각이 오래됐거나 MNQ가 아닌 NQ 대체값이면
+자동 계산을 잠그고 수동 입력을 안내합니다. 자세한 계약은
+[`apps/volatility/docs/on-demand-delayed-data.md`](./apps/volatility/docs/on-demand-delayed-data.md)에
+있습니다.
 
 모든 내부 경로는 상대경로로 작성되어 있어 `https://사용자명.github.io/Repository명/` 형태에서도 동작합니다.
 
@@ -274,9 +278,10 @@ Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
    쌓인 뒤 문제 난이도와 제한시간을 재평가합니다.
 4. **선택적 기기 간 동기화 설계**: 현재 JSON 내보내기 계약을 유지하면서
    Supabase 등 원격 동기화의 범위와 개인정보 정책을 먼저 정합니다.
-5. **Volatility 실사용 검증**: 이미 활성화한 GitHub Pages Actions의
-   지연 프록시와 증권사 MNQ 실제 월물 O/H/L·ATR·가격선 도달을 여러 세션에서
-   나란히 기록하고, 월별 coverage 저하가 확인될 때만 다음 정책을 재선택합니다.
+5. **Volatility 요청형 조회 실사용 검증**: 페이지 진입·버튼 단발 조회의
+   성공률, 429/CORS 실패율과 원천시각 지연을 기록하고, 영웅문 모바일의 실제
+   MNQ 월물 O/H/L·ATR·가격선과 나란히 대조합니다. 정식 공급원을 확보하면
+   UI 대신 provider 어댑터만 교체합니다.
 6. **P1–P5 자동분류 확장**: 신뢰할 수 있는 1m/5m/15m/1h/1d
    데이터 공급과 누출 방지 검증 후에 진행합니다.
 

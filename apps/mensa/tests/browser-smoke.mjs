@@ -22,6 +22,38 @@ const mimeTypes = {
   ".webmanifest": "application/manifest+json; charset=utf-8"
 };
 
+function delayedMnqFixture() {
+  const start = Date.parse("2026-08-13T22:00:00.000Z") / 1000;
+  const end = Date.parse("2026-08-14T06:20:00.000Z") / 1000;
+  const timestamp = [];
+  for (let value = start; value <= end; value += 300) timestamp.push(value);
+  const open = timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
+  const close = open.map((value, index) => value + (index % 2 === 0 ? 0.25 : -0.25));
+  return {
+    chart: {
+      error: null,
+      result: [{
+        meta: {
+          symbol: "MNQ=F",
+          dataGranularity: "5m",
+          instrumentType: "FUTURE",
+          exchangeName: "CME",
+          exchangeTimezoneName: "America/New_York",
+          exchangeDataDelayedBy: 10,
+          currency: "USD"
+        },
+        timestamp,
+        indicators: { quote: [{
+          open,
+          high: open.map((value, index) => Math.max(value, close[index]) + 1),
+          low: open.map((value, index) => Math.min(value, close[index]) - 1),
+          close
+        }] }
+      }]
+    }
+  };
+}
+
 function findBrowser() {
   const candidates = [];
   if (process.env.CHROMIUM_PATH) candidates.push(process.env.CHROMIUM_PATH);
@@ -511,15 +543,102 @@ async function run() {
       cardsPerRow: 3
     });
     await client.send("Emulation.clearDeviceMetricsOverride");
+    const fixedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const NativeDate = Date;
+        const fixedNow = Date.parse("2026-08-14T06:30:00.000Z");
+        class FixedDate extends NativeDate {
+          constructor(...args) { super(...(args.length ? args : [fixedNow])); }
+          static now() { return fixedNow; }
+        }
+        globalThis.Date = FixedDate;
+      })();`
+    });
+    let yahooRequestCount = 0;
+    const fixtureBody = Buffer.from(JSON.stringify(delayedMnqFixture())).toString("base64");
+    const removeYahooFixture = client.on("Fetch.requestPaused", params => {
+      yahooRequestCount += 1;
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 200,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: fixtureBody
+      }).catch(error => browserErrors.push(`Yahoo fixture: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://query1.finance.yahoo.com/*", requestStage: "Request" }]
+    });
+    const errorsBeforeVolatility = browserErrors.length;
     await navigate(client, `${baseUrl}/apps/volatility/`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removeYahooFixture();
     assert.equal(await evaluate(client, "document.title"), "Volatility | Personal Tap");
     assert.equal(await evaluate(client, "document.querySelector('#currentPrice').textContent !== '—'"), true);
-    assert.match(await evaluate(client, "document.querySelector('#operationalUpLine').textContent"), /pt/);
+    const delayedQuoteGate = await evaluate(client, `({
+      locked: !document.querySelector("#calculationLock").hidden,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      status: document.querySelector("#dataStatus").textContent,
+      notice: document.querySelector("#dataNotice").textContent,
+      upLine: document.querySelector("#operationalUpLine").textContent
+    })`);
+    assert.equal(yahooRequestCount, 1);
+    assert.equal(delayedQuoteGate.locked, false);
+    assert.equal(delayedQuoteGate.calculationsHidden, false);
+    assert.match(delayedQuoteGate.status, /요청 시 지연 시세/);
+    assert.match(delayedQuoteGate.upLine, /pt/);
+    const webLockGate = await evaluate(client, `(async () => {
+      const guard = await import("./js/request-guard.js");
+      let releaseFirst;
+      let operationCount = 0;
+      const first = guard.withExclusiveRequest(async () => {
+        operationCount += 1;
+        return new Promise(resolve => { releaseFirst = resolve; });
+      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const second = await guard.withExclusiveRequest(async () => { operationCount += 1; });
+      releaseFirst("done");
+      const firstResult = await first;
+      return {
+        firstAcquired: firstResult.acquired,
+        secondAcquired: second.acquired,
+        operationCount
+      };
+    })()`);
+    assert.deepEqual(webLockGate, {
+      firstAcquired: true,
+      secondAcquired: false,
+      operationCount: 1
+    });
+    const volatilityNetworkErrors = browserErrors.splice(errorsBeforeVolatility);
+    assert.deepEqual(volatilityNetworkErrors, []);
+    await evaluate(client, `(() => {
+      const future = Date.now() + 10_000;
+      localStorage.setItem("personal-tap-volatility-last-request-v1", JSON.stringify(future));
+      document.querySelector("#refreshBtn").click();
+      return true;
+    })()`);
+    await waitForCondition(client, `
+      JSON.parse(localStorage.getItem("personal-tap-volatility-last-request-v1")) === Date.now() &&
+      /60초|중복 요청/.test(document.querySelector("#dataNotice").textContent)
+    `);
+    const rollbackGuard = await evaluate(client, `(() => ({
+        stored: JSON.parse(localStorage.getItem("personal-tap-volatility-last-request-v1")),
+        now: Date.now(),
+        notice: document.querySelector("#dataNotice").textContent
+    }))()`);
+    assert.equal(rollbackGuard.stored, rollbackGuard.now);
+    assert.match(rollbackGuard.notice, /60초|중복 요청/);
+    assert.equal(yahooRequestCount, 1);
     const manualApplied = await evaluate(client, `(() => {
       document.querySelector("#manualToggleBtn").click();
-      const values = { manualOpen: 30000, manualHigh: 30100, manualLow: 29900, manualCurrent: 30050, manualAtr: 20 };
+      const values = { manualOpen: 30000, manualHigh: 30100, manualLow: 29900, manualCurrent: 30050, manualAtr: 40.34778 };
       for (const [id, value] of Object.entries(values)) document.querySelector("#" + id).value = value;
+      document.querySelector("#manualConfirm").checked = true;
       document.querySelector("#manualPanel").requestSubmit();
       document.querySelector("#manualToggleBtn").click();
       return {
@@ -551,11 +670,11 @@ async function run() {
       set("#positionDirection", "long");
       set("#entryPrice", current - 100);
       set("#quantity", 2);
+      set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
       set("#positionAtr", 20);
       set("#ema1h", "bearish");
       set("#rsi1h", 44);
       set("#atrPercentile", 80);
-      set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
       const favorable = document.querySelector("#noFavorableExcursion");
       favorable.checked = true;
       favorable.dispatchEvent(new Event("input", { bubbles: true }));
@@ -573,6 +692,28 @@ async function run() {
     assert.match(volatilityResult.p6, /P6 shadow 경고 후보/);
     assert.match(volatilityResult.kill, /기존 OR 규칙 감지 · 비활성/);
     assert.match(volatilityResult.p7, /P7 입력 기반 안전 알림 · 미검증/);
+    const fixedAtrBefore = await evaluate(client, `(() => ({
+      atr: document.querySelector("#positionAtr").value,
+      stop: document.querySelector("#positionSummary article:nth-child(2) strong").textContent
+    }))()`);
+    const fixedAtrAfter = await evaluate(client, `(() => {
+      const values = {
+        manualOpen: 30000,
+        manualHigh: 30125,
+        manualLow: 29875,
+        manualCurrent: 30075,
+        manualAtr: 80.12345
+      };
+      for (const [id, value] of Object.entries(values)) document.querySelector("#" + id).value = value;
+      document.querySelector("#manualConfirm").checked = true;
+      document.querySelector("#manualPanel").requestSubmit();
+      return {
+        atr: document.querySelector("#positionAtr").value,
+        stop: document.querySelector("#positionSummary article:nth-child(2) strong").textContent
+      };
+    })()`);
+    assert.deepEqual(fixedAtrBefore, fixedAtrAfter);
+    assert.equal(fixedAtrAfter.atr, "20");
     await captureOptionalScreenshot(client, "volatility-desktop");
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
@@ -590,6 +731,52 @@ async function run() {
     await evaluate(client, "document.querySelector('#riskTitle').scrollIntoView(); true");
     await captureOptionalScreenshot(client, "volatility-risk-mobile");
     await client.send("Emulation.clearDeviceMetricsOverride");
+    const errorsBeforeLockedFallback = browserErrors.length;
+    const removeYahooFailure = client.on("Fetch.requestPaused", params => {
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 429,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: Buffer.from("{}").toString("base64")
+      }).catch(error => browserErrors.push(`Yahoo failure fixture: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://query1.finance.yahoo.com/*", requestStage: "Request" }]
+    });
+    await evaluate(client, `localStorage.setItem(
+      "personal-tap-volatility-last-request-v1",
+      JSON.stringify(Date.now() - 60_001)
+    ); true`);
+    await navigate(client, `${baseUrl}/apps/volatility/?provider-failure-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removeYahooFailure();
+    const lockedFallback = await evaluate(client, `(() => ({
+      locked: !document.querySelector("#calculationLock").hidden,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      atr: document.querySelector("#atrValue").textContent,
+      current: document.querySelector("#currentPrice").textContent,
+      manualValues: ["manualOpen", "manualHigh", "manualLow", "manualCurrent", "manualAtr"]
+        .map(id => document.querySelector("#" + id).value),
+      manualConfirmed: document.querySelector("#manualConfirm").checked,
+      notice: document.querySelector("#dataNotice").textContent
+    }))()`);
+    assert.equal(lockedFallback.locked, true);
+    assert.equal(lockedFallback.calculationsHidden, true);
+    assert.equal(lockedFallback.atr, "—");
+    assert.notEqual(lockedFallback.current, "—");
+    assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
+    assert.equal(lockedFallback.manualConfirmed, false);
+    assert.match(lockedFallback.notice, /이전 참고값|계산에는 사용하지 않습니다/);
+    const lockedFallbackErrors = browserErrors.splice(errorsBeforeLockedFallback);
+    assert.equal(lockedFallbackErrors.every(message => /429/.test(message)), true);
+    await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+      identifier: fixedTimeScript.identifier
+    });
     await navigate(client, `${baseUrl}/`);
     await evaluate(client, `new Promise((resolve, reject) => {
       const request = indexedDB.deleteDatabase("mkat98-training-v2");
@@ -1459,6 +1646,7 @@ async function run() {
       "navigator.serviceWorker.controller !== null",
       15000
     );
+    const errorsBeforeOffline = browserErrors.length;
     await client.send("Network.emulateNetworkConditions", {
       offline: true,
       latency: 0,
@@ -1475,13 +1663,25 @@ async function run() {
     await navigate(client, `${baseUrl}/apps/volatility/?offline-smoke=1`);
     await waitForCondition(
       client,
-      "document.body.dataset.ready === 'true' && document.querySelector('#currentPrice').textContent !== '—'",
+      "document.body.dataset.ready === 'true'",
       15000
     );
-    assert.match(
-      await evaluate(client, "document.querySelector('#dataStatus').textContent"),
-      /수동 입력|프록시|데이터/
-    );
+    const offlineVolatility = await evaluate(client, `(() => ({
+      status: document.querySelector("#dataStatus").textContent,
+      locked: !document.querySelector("#calculationLock").hidden,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      current: document.querySelector("#currentPrice").textContent,
+      manualPanelVisible: !document.querySelector("#manualPanel").hidden
+    }))()`);
+    assert.match(offlineVolatility.status, /계산 중지/);
+    assert.equal(offlineVolatility.locked, true);
+    assert.equal(offlineVolatility.calculationsHidden, true);
+    assert.equal(offlineVolatility.current, "—");
+    assert.equal(offlineVolatility.manualPanelVisible, true);
+    const offlineNetworkErrors = browserErrors.splice(errorsBeforeOffline);
+    assert.equal(offlineNetworkErrors.every(message =>
+      /Failed to load resource: net::ERR_INTERNET_DISCONNECTED/.test(message)
+    ), true);
     await client.send("Network.emulateNetworkConditions", {
       offline: false,
       latency: 0,

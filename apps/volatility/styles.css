@@ -91,6 +91,7 @@ h1 em { color: var(--mint); font-style: normal; }
 .secondary-button, .primary-button, .manual-panel button { min-height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; background: rgba(255,255,255,.045); font-size: 12px; font-weight: 850; }
 .primary-button { color: #05221b; border-color: transparent; background: var(--mint); }
 .secondary-button:hover, .manual-panel button:hover { background: rgba(255,255,255,.08); }
+.secondary-button:disabled { cursor: wait; opacity: .62; }
 .notice { min-height: 22px; margin: 18px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .notice.error { color: var(--red); }
 .notice.warning { color: var(--amber); }
@@ -100,7 +101,7 @@ h1 em { color: var(--mint); font-style: normal; }
 .quote-grid strong { display: block; margin-top: 6px; font-size: clamp(23px, 3vw, 31px); letter-spacing: -.035em; }
 .quote-grid .current { border-color: rgba(98,226,189,.25); background: var(--mint-soft); }
 .quote-grid .current strong { color: var(--mint); }
-.quote-meta { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-top: 15px; }
+.quote-meta { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-top: 15px; }
 .quote-meta p { margin: 0; }
 .quote-meta span, .quote-meta strong { display: block; }
 .quote-meta span { color: #708d8e; font-size: 10px; }
@@ -116,8 +117,10 @@ label > span { display: block; margin-bottom: 7px; color: var(--muted); font-siz
 input, select { width: 100%; min-height: 45px; padding: 0 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--text); background: rgba(1,12,17,.56); }
 input::placeholder { color: #597173; }
 .form-error { min-height: 18px; margin: 10px 0; color: var(--red); font-size: 11px; }
+.manual-confirm { margin-top: 14px; color: var(--text); font-size: 11px; }
 
 .scenario-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+.calculation-lock { margin-bottom: 14px; padding: 20px; border: 1px solid rgba(255,198,109,.3); border-radius: 18px; color: var(--amber); background: var(--amber-soft); font-size: 12px; font-weight: 750; line-height: 1.7; }
 .operational-card { margin-bottom: 14px; padding: clamp(22px,4vw,32px); border: 1px solid rgba(255,198,109,.24); border-radius: 24px; background: linear-gradient(135deg, rgba(255,198,109,.08), rgba(13,35,42,.84)); box-shadow: var(--shadow); }
 .operational-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .operational-heading h3 { margin: 0; font-size: clamp(23px,3vw,31px); letter-spacing: -.04em; }

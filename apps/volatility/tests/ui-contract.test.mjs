@@ -47,21 +47,71 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.doesNotMatch(html, /1\.409%.*안전측/);
 });
 
+test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값은 계산에서 차단한다", () => {
+  const html = read("apps/volatility/index.html");
+  const app = read("apps/volatility/js/app.js");
+  const policy = read("apps/volatility/js/snapshot-policy.js");
+  assert.match(html, /요청 시 지연 시세 확인/);
+  assert.match(html, /페이지 최초 진입과 버튼을 누른 때에만/);
+  assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
+  assert.match(html, /제공자 가격시각/);
+  assert.match(html, /이번 조회시각/);
+  assert.match(html, /지연·사용 상태/);
+  assert.match(html, /방금 영웅문 모바일에서/);
+  assert.match(html, /id="manualConfirm"/);
+  assert.match(html, /Content-Security-Policy/);
+  assert.match(html, /connect-src 'self' https:\/\/query1\.finance\.yahoo\.com/);
+  assert.match(html, /name="referrer" content="no-referrer"/);
+  assert.match(html, /id="manualAtr"[^>]+step="any"/);
+  assert.match(html, /id="positionAtr"[^>]+step="any"/);
+  assert.doesNotMatch(html, /자동 시세 새로고침|실시간 시세|LIVE DEFAULT/);
+  assert.match(app, /REQUEST_COOLDOWN_MS/);
+  assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
+  assert.match(app, /fetchYahooSnapshot\(fetch, new Date\(\), \{\s*timeoutMs: REQUEST_DEADLINE_MS\s*\}\)/);
+  assert.match(app, /forceLockReason: reason/);
+  assert.match(app, /clearManualQuoteInputs\(\)/);
+  assert.match(app, /scheduleExpiryCheck\(\)/);
+  assert.match(app, /visibilitychange/);
+  assert.match(app, /actualContractConfirmed: true/);
+  assert.match(app, /withExclusiveRequest/);
+  assert.match(app, /A wall-clock rollback must not turn the request guard into a bypass/);
+  assert.match(app, /A later quote must/);
+  assert.match(app, /positionAtrBinding/);
+  assert.match(app, /source: "user-fixed"/);
+  assert.match(app, /isValidAtrBinding/);
+  assert.doesNotMatch(app, /Number\.isFinite\(Number\(state\.autoAtr\)\)/);
+  assert.doesNotMatch(app, /populateManual/);
+  assert.match(policy, /MAX_SOURCE_AGE_MINUTES = 25/);
+  assert.match(policy, /NQ 대체 프록시는 MNQ가 아니므로 자동 계산에 사용하지 않습니다/);
+  assert.match(policy, /requested === "MNQ=F" && returned === "MNQ=F"/);
+  assert.match(policy, /provider\.tier === "mnq-continuous-proxy"/);
+  assert.doesNotMatch(policy, /provider\.tier === undefined/);
+  assert.match(policy, /MNQ=F로 검증되지 않은 종목·출처 식별값이어서 자동 계산을 중지했습니다/);
+  assert.match(policy, /새 기준을 검증·배포하기 전 계산을 중지합니다/);
+  assert.match(app, /이전 값으로 자동 계산하지 않습니다/);
+  assert.doesNotMatch(app, /setInterval\s*\(/);
+});
+
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",
-    "./apps/volatility/js/market-provider.js", "./apps/volatility/data/market.json"
+    "./apps/volatility/js/market-provider.js", "./apps/volatility/js/request-guard.js",
+    "./apps/volatility/js/snapshot-policy.js"
   ]) assert.ok(sw.includes(`"${asset}"`), asset);
   assert.match(sw, /request\.url\.includes\("\/apps\/volatility\/"\)/);
-  assert.match(sw, /url\.pathname\.endsWith\("\/apps\/volatility\/data\/market\.json"\)/);
+  assert.doesNotMatch(sw, /apps\/volatility\/data\/market\.json/);
 });
 
-test("GitHub Pages workflow가 비밀키 없이 정적 시세를 새로 만들어 배포한다", () => {
+test("GitHub Pages workflow는 push·수동 실행 때만 비밀키 없이 정적 앱을 배포한다", () => {
   const workflow = read(".github/workflows/deploy-pages.yml");
-  assert.match(workflow, /update-market-data\.mjs --allow-stale/);
+  assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /actions\/upload-pages-artifact@v4/);
   assert.match(workflow, /actions\/deploy-pages@v4/);
+  assert.match(workflow, /actions\/setup-node@v4/);
+  assert.match(workflow, /run: npm run test:release/);
+  assert.doesNotMatch(workflow, /\bschedule:/);
+  assert.doesNotMatch(workflow, /update-market-data\.mjs/);
   assert.doesNotMatch(workflow, /\bsecrets\./);
 });

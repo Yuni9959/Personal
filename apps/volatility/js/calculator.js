@@ -122,6 +122,11 @@ export function validateMarketBar(candidate) {
   for (const field of ["open", "high", "low", "current"]) {
     if (values[field] === null || values[field] <= 0) {
       errors.push(`${field}는 0보다 큰 숫자여야 합니다.`);
+    } else {
+      const tickUnits = values[field] / MNQ_CONTRACT.tickSize;
+      if (Math.abs(tickUnits - Math.round(tickUnits)) > 1e-6) {
+        errors.push(`${field}는 MNQ 0.25포인트 틱에 맞아야 합니다.`);
+      }
     }
   }
   if (errors.length === 0) {
@@ -225,6 +230,9 @@ export function calculatePositionScenario(position, bar, scenario) {
   if (entry === null || entry <= 0 || current === null || current <= 0) {
     throw new Error("진입가와 현재가가 필요합니다.");
   }
+  if (Math.abs(entry / MNQ_CONTRACT.tickSize - Math.round(entry / MNQ_CONTRACT.tickSize)) > 1e-6) {
+    throw new Error("진입가는 MNQ 0.25포인트 틱에 맞아야 합니다.");
+  }
   if (quantity === null || quantity < 1 || !Number.isInteger(quantity)) {
     throw new Error("계약 수는 1 이상의 정수여야 합니다.");
   }
@@ -275,13 +283,28 @@ export function classifySnapshotStatus(snapshot, now = new Date()) {
   if (snapshot?.mode === "manual") {
     return { key: "manual", label: "수동 입력", ageMinutes: null };
   }
-  const generatedAt = new Date(snapshot?.generatedAt || "");
-  if (!Number.isFinite(generatedAt.getTime())) {
+  // A request timestamp says when we downloaded the payload, not how fresh the
+  // market observation is.  Yahoo's CME values are delayed, so freshness must
+  // be measured from the last source bar and must fail closed when it is absent.
+  const observedAt = new Date(snapshot?.market?.latestBarAt || "");
+  const requestedAt = new Date(snapshot?.generatedAt || "");
+  if (!Number.isFinite(observedAt.getTime())) {
     return { key: "error", label: "시각 불명", ageMinutes: null };
   }
-  const ageMinutes = Math.max(0, (now.getTime() - generatedAt.getTime()) / 60000);
-  if (ageMinutes <= 30) return { key: "delayed", label: "지연 프록시 · 신규", ageMinutes };
-  if (ageMinutes <= 240) return { key: "aging", label: "지연 프록시 · 갱신 지연", ageMinutes };
+  const rawAgeMinutes = (now.getTime() - observedAt.getTime()) / 60000;
+  if (rawAgeMinutes < -5) {
+    return { key: "error", label: "미래 시각 오류", ageMinutes: rawAgeMinutes };
+  }
+  const ageMinutes = Math.max(0, rawAgeMinutes);
+  const requestAgeMinutes = Number.isFinite(requestedAt.getTime())
+    ? Math.max(0, (now.getTime() - requestedAt.getTime()) / 60000)
+    : null;
+  if (ageMinutes <= 25) {
+    return { key: "delayed", label: "약 10분 지연 참고", ageMinutes, requestAgeMinutes };
+  }
+  if (ageMinutes <= 45) {
+    return { key: "aging", label: "지연 참고 · 갱신 늦음", ageMinutes, requestAgeMinutes };
+  }
   return { key: "stale", label: "오래된 데이터", ageMinutes };
 }
 

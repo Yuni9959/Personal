@@ -70,7 +70,7 @@ test("안전측 도달선은 평균 H-L 예산과 섞지 않고 시가에서 방
 });
 
 test("MNQ tick 변환은 안전측 선을 더 어려운 방향으로 밀지 않는다", () => {
-  const uneven = { open: 30000.13, high: 30100, low: 29800, current: 30000, atr5m14: 20 };
+  const uneven = { open: 30000.25, high: 30100, low: 29800, current: 30000, atr5m14: 20 };
   const bull = calculateSafeReachScenario(uneven, "bull", 1);
   const bear = calculateSafeReachScenario(uneven, "bear", 1);
   assert.ok(bull.priceLine <= uneven.open * 1.01);
@@ -80,6 +80,14 @@ test("MNQ tick 변환은 안전측 선을 더 어려운 방향으로 밀지 않�
 test("오류가 있는 O/H/L/current를 조용히 보정하지 않는다", () => {
   assert.equal(validateMarketBar({ open: 30000, high: 29900, low: 29800, current: 30000 }).valid, false);
   assert.equal(validateMarketBar({ open: 30000, high: 30100, low: 29800, current: 30200 }).valid, false);
+});
+
+test("MNQ 가격은 0.25포인트 틱에 맞지 않으면 거부한다", () => {
+  const result = validateMarketBar({
+    open: 30000, high: 30100, low: 29900, current: 30000.1, atr5m14: 20
+  });
+  assert.equal(result.valid, false);
+  assert.match(result.errors.join(" "), /0\.25포인트 틱/);
 });
 
 test("포지션 상한 가정과 1 ATR 손절을 MNQ $2/point로 계산한다", () => {
@@ -92,6 +100,17 @@ test("포지션 상한 가정과 1 ATR 손절을 MNQ $2/point로 계산한다", 
   assert.equal(result.projectedNetUsd, 1305);
   assert.equal(result.stopPrice, 29880);
   assert.equal(result.stopNetUsd, -84);
+});
+
+test("포지션 진입가는 0.25 tick을 강제하지만 ATR 평균은 소수 정밀도를 허용한다", () => {
+  const scenario = calculateVolatilityScenario(bar, 1.758);
+  assert.throws(() => calculatePositionScenario({
+    direction: "long", entry: 29900.1, quantity: 1, fees: 0, atr5m14: 40.34778
+  }, bar, scenario), /0\.25포인트 틱/);
+  const valid = calculatePositionScenario({
+    direction: "long", entry: 29900.25, quantity: 1, fees: 0, atr5m14: 40.34778
+  }, bar, scenario);
+  assert.equal(valid.atr, 40.34778);
 });
 
 test("안전측 가격선의 포지션 손익은 기대수익이 아닌 부호 있는 임계선 시나리오다", () => {
@@ -107,9 +126,19 @@ test("안전측 가격선의 포지션 손익은 기대수익이 아닌 부호 �
 
 test("순시세 스냅샷은 실시간으로 표시하지 않는다", () => {
   const now = new Date("2026-08-13T12:30:00Z");
-  assert.equal(classifySnapshotStatus({ generatedAt: "2026-08-13T12:10:00Z" }, now).key, "delayed");
-  assert.equal(classifySnapshotStatus({ generatedAt: "2026-08-13T10:00:00Z" }, now).key, "aging");
-  assert.equal(classifySnapshotStatus({ generatedAt: "2026-08-12T12:00:00Z" }, now).key, "stale");
+  const snapshot = latestBarAt => ({
+    generatedAt: "2026-08-13T12:29:00Z",
+    market: { latestBarAt }
+  });
+  const delayed = classifySnapshotStatus(snapshot("2026-08-13T12:10:00Z"), now);
+  assert.equal(delayed.key, "delayed");
+  assert.equal(delayed.label, "약 10분 지연 참고");
+  assert.equal(delayed.ageMinutes, 20);
+  assert.equal(delayed.requestAgeMinutes, 1);
+  assert.equal(classifySnapshotStatus(snapshot("2026-08-13T12:00:00Z"), now).key, "aging");
+  assert.equal(classifySnapshotStatus(snapshot("2026-08-13T10:00:00Z"), now).key, "stale");
+  assert.equal(classifySnapshotStatus({ generatedAt: "2026-08-13T12:29:00Z" }, now).key, "error");
+  assert.equal(classifySnapshotStatus(snapshot("2026-08-13T12:40:00Z"), now).key, "error");
   assert.equal(classifySnapshotStatus({ mode: "manual" }, now).key, "manual");
 });
 

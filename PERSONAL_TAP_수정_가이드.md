@@ -2,7 +2,7 @@
 
 > 대상: `C:\Users\tmddb\Desktop\남표니\멘사 준비\personal-tap-v2\personal-tap-v2`
 >
-> 기준: 2026-08-14, `main`, 전 화면 3열 허브 릴리스 `v2.9.0-three-column-grid.1`
+> 기준: 2026-08-14, `main`, 요청형 지연 시세 릴리스 `v3.0.0-on-demand-delayed.1`
 >
 > 성격: Personal Tap 허브·Mensa·Volatility를 안전하게 수정하기 위한 파일 지도와 검증 절차
 
@@ -157,12 +157,13 @@ git log -5 --oneline --decorate
 
 ### 4.1 `sw.js`
 
-[`sw.js`](./sw.js)의 현재 3열 고정 허브 cache는
-`personal-tap-v2.9.0-three-column-grid.1`이다.
+[`sw.js`](./sw.js)의 현재 전체 PWA cache는
+`personal-tap-v3.0.0-on-demand-delayed.1`이다. 허브 CSS URL의
+`v2.9.0-three-column-grid.1`은 3열 레이아웃 자산 버전으로 별도 유지한다.
 `index.html`의 `hub.css?v=2.9.0-three-column-grid.1`과 `CORE_ASSETS`의 동일 URL을
 함께 유지해야 새 CSS와 cache key가 어긋나지 않는다.
-`CORE_ASSETS`에는 허브, MKAT 필수 JS·문제은행, Volatility HTML·CSS·JS·시세 JSON이
-포함된다.
+`CORE_ASSETS`에는 허브, MKAT 필수 JS·문제은행, Volatility HTML·CSS·JS만
+포함된다. 실제 시장 스냅샷은 공개 cache에 넣지 않는다.
 
 다음 변경에는 `CACHE_NAME` 갱신을 검토한다.
 
@@ -175,7 +176,7 @@ Service Worker의 정책:
 - 현재 scope의 동일 출처 GET만 처리
 - navigation은 network 우선, 실패하면 해당 하위 앱의 cached `index.html`
 - 일반 정적 자산은 cache 우선 후 network 갱신
-- `apps/volatility/data/market.json`은 network 우선, 성공 시 canonical request에 저장
+- `/api/*` 경로는 현재와 향후 모두 Service Worker cache에서 제외
 - activate 시 `personal-tap-` prefix의 이전 cache만 정리
 - 새 worker는 자동 강제 전환하지 않고 업데이트 배너의 사용자 선택으로 `SKIP_WAITING`
 
@@ -260,13 +261,14 @@ npm run validate:bank
 | 파일 | 책임 |
 | --- | --- |
 | [`apps/volatility/README.md`](./apps/volatility/README.md) | 계산·시세·P1~P7 운영 계약 |
+| [`apps/volatility/docs/on-demand-delayed-data.md`](./apps/volatility/docs/on-demand-delayed-data.md) | 요청형 지연 시세 흐름·검증·한계·교체 지점 |
 | [`apps/volatility/index.html`](./apps/volatility/index.html) | 평균·실전선·복기선·포지션·경고 UI |
 | `apps/volatility/styles.css` | 반응형 카드와 상태 스타일 |
 | `apps/volatility/js/calculator.js` | MNQ 계약값, 주간 기준, 가격선·손익·손절·P6/P7 계산 |
 | `apps/volatility/js/market-provider.js` | Chicago 세션, DST, O/H/L/current, 완료봉 ATR 재구성 |
-| `apps/volatility/js/app.js` | 자동·저장·수동 시세 연결과 UI 상태 |
-| `apps/volatility/data/market.json` | 배포 시점의 지연 시세 스냅샷 |
-| `apps/volatility/tools/update-market-data.mjs` | 키 없는 MNQ=F → NQ=F 폴백 갱신기 |
+| `apps/volatility/js/request-guard.js` | 60초 cooldown 경계, 시계 rollback, 탭 간 단발 요청 잠금 |
+| `apps/volatility/js/snapshot-policy.js` | 종목·원천시각·25분 만료·주간 기준 fail-closed 판정 |
+| `apps/volatility/js/app.js` | 진입·버튼 단발 조회, cooldown, 저장·수동 폴백과 UI 잠금 |
 | `apps/volatility/tests/*.test.mjs` | 계산·공급자·UI·허브·PWA·workflow 계약 |
 
 ### 6.2 반드시 분리할 세 수치
@@ -295,18 +297,29 @@ npm run validate:bank
 
 ### 6.4 시세 공급
 
-갱신 도구는 Yahoo Finance chart proxy의 `MNQ=F` 2일치 5분봉을 먼저 사용하고,
-실패하면 `NQ=F`로 폴백한다. 최신 봉이 속한 `America/Chicago` 17:00~익일 16:00
-세션을 DST-aware로 잘라 O/H/L/current와 완료봉 ATR을 만든다.
+화면 최초 진입 또는 사용자가 버튼을 누를 때만 Yahoo Finance chart proxy의
+`MNQ=F` 2일치 5분봉을 한 번 조회한다. 60초 cooldown 동안 반복 요청을 막고,
+예약·주기·백그라운드 갱신은 하지 않는다. MNQ 응답이 데이터 없음일 때만
+`NQ=F`를 한 번 더 확인하지만, NQ는 **MNQ가 아닌 표시 전용 대체 프록시**로
+잠근다. 최신 봉이 속한 `America/Chicago` 17:00~익일 16:00 세션을
+DST-aware로 잘라 O/H/L/current와 완료봉 ATR을 만든다.
 
 ```powershell
-npm run update:market
 npm run test:volatility
 ```
 
-Yahoo endpoint는 공식 거래소 피드도 무지연 피드도 아니며 브라우저 CORS를 보장하지
-않는다. 화면은 `실시간`이라는 표현 대신 생성시각·최신봉·stale·수동 상태를 보여야 한다.
-실제 주문 전에는 증권사 MNQ 실제 월물과 대조한다.
+실제 Yahoo 시세를 담은 정적 파일과 갱신 도구는 공개 재배포를 피하려고 제거했다.
+응답은 전체 timeout, JSON Content-Type, FUTURE/CME/USD/5분/10분 지연 메타,
+반환심볼, 원천시각, 현재 세션 5분봉 연속성, OHLC와 0.25 tick을 검증한다.
+원천시각이 25분을 넘거나 미래이거나 NQ 대체값, 429·CORS·검증 오류이면 자동
+계산을 잠그고 빈 수동 입력을 안내한다. 잠긴 이전값을 수동값으로 승격하지 않는다.
+
+Yahoo endpoint는 공식 거래소 피드도 무지연 피드도 아니며 브라우저 CORS를
+보장하지 않는다. 공식 안내상 CME는 약 10분 지연이다. 화면은 `실시간`이라는
+표현 대신 요청시각·원천 가격시각·지연·계산 잠금·수동 상태를 보여야 한다.
+실제 주문 전에는 증권사 MNQ 실제 월물과 대조한다. 상세 계약은
+[`on-demand-delayed-data.md`](./apps/volatility/docs/on-demand-delayed-data.md)를
+참조한다.
 
 ### 6.5 P1~P7 표시의 한계
 
@@ -326,8 +339,8 @@ npm run test:release
 2026-08-14 재검증 기준:
 
 - Mensa·공통 Node `73/73`
-- Volatility `22/22`
-- 총 Node `95/95`
+- Volatility `69/69`
+- 총 Node `142/142`
 - 문제은행 59유형·990문제·6,298보기, 오류 0, 품질 경고 0
 - answer-key 990개 일치
 - Chromium에서 허브 6카드, desktop·390px·320px 모두 3열, 모바일 3×2, MKAT·Volatility offline load 성공
@@ -350,21 +363,19 @@ npm run validate:bank       # content-complete 품질
 [`deploy-pages.yml`](./.github/workflows/deploy-pages.yml)은 다음 때 실행된다.
 
 - `main` push
-- UTC 일요일~금요일 30분 간격 schedule
 - 수동 `workflow_dispatch`
 
 workflow 순서:
 
 1. checkout
-2. Node 22 설정
-3. `update-market-data.mjs --allow-stale`
-4. 정적 `_site` 구성
-5. Pages artifact 업로드
-6. GitHub Pages 배포
+2. Node 22에서 `npm run test:release` 전체 회귀·Chromium·오프라인 검증
+3. 정적 `_site` 구성
+4. Pages artifact 업로드
+5. GitHub Pages 배포
 
-Repository의 **Settings → Pages → Source**는 **GitHub Actions**여야 한다. schedule은
-정확히 30분마다 시작된다는 보장이 없고 프록시 실패 시 이전 snapshot이 배포될 수 있다.
-앱의 stale 경고를 제거해서 문제를 숨기지 않는다.
+Repository의 **Settings → Pages → Source**는 **GitHub Actions**여야 한다.
+workflow는 시장데이터를 요청하지 않는다. 시세 요청은 Volatility 페이지 진입
+또는 버튼 클릭에서만 발생하며, 실패 시 이전 표본을 새 값으로 가장하지 않는다.
 
 ## 9. 변경 종류별 파일 지도
 
@@ -379,9 +390,9 @@ Repository의 **Settings → Pages → Source**는 **GitHub Actions**여야 한�
 | MKAT 저장 방식 수정 | `storage-model.md`, repository/store | v1 이전, recovery, transaction, IndexedDB tests |
 | 오늘의 10문제 변경 | `daily-queue-engine.js` | 같은 날 고정, 10개 고유 유형, 30일 균형 |
 | Volatility 기준 갱신 | 분석 `12_app_contract.json`, `calculator.js` | README, UI 계약, q25와 평균 분리, cache bump |
-| 시세 세션·ATR 변경 | `market-provider.js`, update tool | Chicago DST, 완료봉, MNQ→NQ 폴백 |
+| 시세 요청·세션·ATR 변경 | `on-demand-delayed-data.md`, `market-provider.js`, `app.js` | 단발 요청, cooldown, Chicago DST, 완료봉, NQ 계산 잠금 |
 | P6/P7 경고 변경 | `calculator.js`, UI, P1~P7 보고서 | shadow/비활성/미검증 상태 유지 |
-| 배포 갱신 | workflow | secret-free, allow-stale, Pages run 확인 |
+| 배포 갱신 | workflow | secret-free, 예약 시세 호출 없음, Pages run 확인 |
 
 ## 10. 작업 완료 규칙
 

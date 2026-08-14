@@ -82,7 +82,9 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   assert.ok(assets.includes("./pwa-update.js"));
   assert.ok(assets.includes("./apps/volatility/index.html"));
   assert.ok(assets.includes("./apps/volatility/js/calculator.js"));
-  assert.ok(assets.includes("./apps/volatility/data/market.json"));
+  assert.ok(assets.includes("./apps/volatility/js/request-guard.js"));
+  assert.ok(assets.includes("./apps/volatility/js/snapshot-policy.js"));
+  assert.ok(!assets.includes("./apps/volatility/data/market.json"));
   assert.ok(versionedHubCss);
   assert.ok(assets.includes(versionedHubCss));
   assert.ok(!assets.some(asset => asset.endsWith("question-bank.js")));
@@ -99,8 +101,9 @@ test("Service Worker 핵심 자산과 업데이트 정책이 현재 저장 엔�
   assert.match(source, /key\.startsWith\(CACHE_PREFIX\)/);
   assert.match(source, /url\.origin !== scopeUrl\.origin/);
   assert.match(source, /url\.pathname\.startsWith\(scopeUrl\.pathname\)/);
+  assert.match(source, /\/\\\/api\(\?:\\\/\|\$\)\//);
   assert.match(source, /event\.data\?\.type === "SKIP_WAITING"/);
-  assert.match(source, /url\.pathname\.endsWith\("\/apps\/volatility\/data\/market\.json"\)/);
+  assert.doesNotMatch(source, /apps\/volatility\/data\/market\.json/);
 });
 
 test("런타임은 IndexedDB를 사실 원본으로 쓰고 v2 요약 캐시를 허브에 제공한다", () => {

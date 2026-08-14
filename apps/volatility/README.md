@@ -36,36 +36,50 @@ Personal Tap의 MNQ 일중 변동폭·포지션 점검 앱입니다. 매매 신�
 - 손절선은 진입가에서 1.0×5분 Wilder ATR(14)이며 보수적인 방향으로
   0.25 tick에 맞춘다. 수수료는 사용자가 입력한 총액만 1회 차감한다.
 
-## 시세 공급과 폴백
+## 요청형 지연 시세와 폴백
 
-`tools/update-market-data.mjs`는 Yahoo Finance chart proxy에서 `MNQ=F` 2일치 5분봉을
-우선 조회하고, 실패하면 `NQ=F`를 사용한다. 최신 가격봉이 속한
-`America/Chicago` 17:00~익일 16:00 세션을 timezone-aware로 다시 만들어
-`data/market.json`을 생성한다. 5분 ATR은 완료된 봉만 사용한다.
+Volatility는 화면을 열어 두는 동안 시세를 추적하지 않는다. 페이지 최초 진입
+또는 사용자가 **새 데이터 확인** 버튼을 누를 때만 Yahoo Finance chart proxy에
+한 번의 조회 시퀀스를 시작한다. 60초 안의 반복 요청은 기기 로컬 cooldown으로
+막고, 예약 실행·주기 폴링·백그라운드 갱신은 하지 않는다.
 
-브라우저는 다음 순서로 시도한다.
+조회는 `MNQ=F` 2일치 5분봉을 우선 사용한다. 유효 JSON이 MNQ 데이터 없음을
+명시할 때만 `NQ=F`를 최대 한 번 추가 확인하며, 429·HTML·네트워크·timeout
+오류에서는 재호출하지 않는다. NQ는 **MNQ가 아닌 대체 프록시**로 표시하고
+자동 계산을 잠근다. `America/Chicago` 17:00~익일 16:00 세션을
+timezone-aware로 재구성하며 5분 ATR은 완료된 봉만 사용한다.
 
-1. GitHub Pages와 동일 출처의 `data/market.json`.
-2. 저장된 마지막 자동 스냅샷.
-3. 스냅샷이 없거나 사용자가 오래된 값을 새로고침하면 키 없는
-   Yahoo 직접 조회를 best-effort로 시도.
-4. CORS·호출 제한·네트워크 오류가 있으면 사용자 수동 O/H/L/현재가·5분
-   ATR.
+응답은 HTTP·JSON Content-Type·FUTURE/CME/USD/정확한 5분봉/10분 지연
+메타·반환심볼·시각·OHLC·0.25 tick을 검증한다. 현재 세션의 첫 봉이나 중간
+5분 bucket, OHLC가 하나라도 빠지면 범위를 축소 추정하지 않고 잠근다.
+응답 JSON은 512 KiB를 넘으면 읽기를 중단한다. 429는 서버의
+`Retry-After`만 대기정보로 보존할 뿐 자동 재시도하지 않는다.
+신규도는 다운로드 시각이 아니라 원천 5분봉 시각을 기준으로 한다.
+MNQ 원천 관측값이 25분을 넘거나 미래시각·불일치·429·timeout·CORS 오류가
+있으면 fail-closed하고 수동 입력을 안내한다. 이 기기에서 앞서 검증된 로컬
+캐시는 이전 참고값으로만 보여 주며 성공한 새 조회처럼 사용하지 않는다.
+잠긴 값은 수동 폼에 미리 채우지 않고, 실제 MNQ 월물 확인란과 전 필드 재입력을
+요구한다. 수동값도 25분 뒤 만료된다.
+동시 탭은 Web Locks 또는 로컬 storage lease로 한 요청만 허용한다. 두 기능을
+모두 쓸 수 없는 환경에서는 중복 호출 방지를 위해 네트워크 조회를 잠근다.
 
-Yahoo endpoint는 공식 거래소 피드가 아니고 브라우저 CORS를 보장하지 않는다.
-따라서 화면은 `실시간`으로 표시하지 않고 갱신 시각과 stale 상태를 항상
-같이 표시한다. 실제 주문 전에는 반드시 증권사의 월물 시세와 대조해야 한다.
+Yahoo 공식 안내상 CME 데이터는 약 10분 지연이고 정보용이다. endpoint의
+가용성·CORS·호출 제한·정확성은 보장되지 않으며 `MNQ=F`도 실제 월물이 아닌
+연속선물 프록시다. 요청 횟수를 줄여도 자동 수집에 관한 Yahoo 약관 문제가
+없어지는 것은 아니다. 실제 주문 전에는 반드시 영웅문 모바일의 실제 MNQ
+월물 O/H/L/현재가와 대조해야 한다.
 
-## GitHub Pages 자동 갱신
+상세 흐름과 안전 계약은
+[`docs/on-demand-delayed-data.md`](./docs/on-demand-delayed-data.md)에 기록한다.
+공개 재배포를 피하기 위해 실제 Yahoo 시세가 든 정적 `market.json`과 갱신
+도구는 제거했다. Service Worker와 Pages artifact에도 시장 스냅샷을 넣지 않는다.
 
-`.github/workflows/deploy-pages.yml`은 `main` push와 일요일~금요일 UTC 기준
-30분 간격으로 스냅샷을 갱신한 정적 사이트를 배포한다. 시세 호출이
-일시 실패하면 저장소에 포함된 이전 스냅샷을 그대로 배포하고, 앱이
-오래된 데이터로 표시하게 한다. 비밀키는 사용하지 않는다.
+## GitHub Pages 배포
 
-처음 배포할 때 GitHub Repository `Settings → Pages → Source`를 **GitHub Actions**로
-설정해야 한다. GitHub 스케줄 실행은 지연될 수 있으므로 30분 갱신과 시세
-신규도는 보장되지 않는다.
+`.github/workflows/deploy-pages.yml`은 `main` push 또는 수동 실행 때 정적 PWA만
+배포한다. 기존 일요일~금요일 30분 예약 시세 갱신과 배포 중 Yahoo 호출은
+제거했다. 처음 배포할 때 GitHub Repository
+`Settings → Pages → Source`를 **GitHub Actions**로 설정한다.
 
 ## P1–P7 입구
 
