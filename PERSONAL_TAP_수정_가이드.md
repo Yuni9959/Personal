@@ -299,9 +299,9 @@ npm run validate:bank
 
 화면 최초 진입 또는 사용자가 버튼을 누를 때만 Yahoo Finance chart proxy의
 `MNQ=F` 2일치 5분봉을 한 번 조회한다. 60초 cooldown 동안 반복 요청을 막고,
-예약·주기·백그라운드 갱신은 하지 않는다. MNQ 응답이 데이터 없음일 때만
-`NQ=F`를 한 번 더 확인하지만, NQ는 **MNQ가 아닌 표시 전용 대체 프록시**로
-잠근다. 최신 봉이 속한 `America/Chicago` 17:00~익일 16:00 세션을
+예약·주기·백그라운드 갱신은 하지 않는다. MNQ 응답이 데이터 없음이거나
+오류면 계산에 쓸 수 없는 NQ를 추가 조회하지 않고 즉시 잠근다. 최신 봉이
+속한 `America/Chicago` 17:00~익일 16:00 세션을
 DST-aware로 잘라 O/H/L/current와 완료봉 ATR을 만든다.
 
 ```powershell

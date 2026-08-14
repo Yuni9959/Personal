@@ -19,7 +19,8 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `Volatility` — MNQ 평균 범위·안전측 도달선, 포지션·P6/P7 점검 |
 | Volatility 시세 | 페이지 진입·버튼 클릭 때만 Yahoo CME 약 10분 지연 프록시를 조회; 예약·백그라운드 갱신 없음 |
 | 자동 검증 | `npm run test:release` 성공 — Node 142/142 및 Chromium·오프라인·320/390px 검증 통과 |
-| PWA 캐시 | `v3.0.0-on-demand-delayed.1` |
+| 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안 |
+| PWA 캐시 | `v3.0.1-security-efficiency.1` — 버전 정적 자산 cache-first |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -87,6 +88,11 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 런타임은 여전히 빌드 과정이나 외부 라이브러리가 필요하지 않습니다.
 `package.json`은 문제은행 생성·검증과 자동 테스트 명령을 제공합니다. 공개
 배포물에는 Yahoo 원시·파생 시세 스냅샷을 저장하지 않습니다.
+
+GitHub Pages project site는 `yuni9959.github.io` 아래 다른 project site와
+Web Storage origin을 공유합니다. 따라서 같은 계정의 다른 Pages 앱도 신뢰하는
+현재 개인용 배포를 전제로 하며, 앱별 저장소를 보안 경계로 분리하려면 향후
+서로 다른 custom origin으로 옮겨야 합니다.
 
 ## 현재 연결된 카드
 
@@ -216,8 +222,8 @@ workflow는 `main` push 또는 수동 실행에서 정적 PWA만 배포합니다
 UTC 일요일~금요일 30분 예약 갱신과 배포 중 Yahoo 호출은 제거했습니다.
 Volatility 페이지는 최초 진입 또는 사용자가 **새 데이터 확인** 버튼을 누를
 때만 `MNQ=F` 지연 프록시를 best-effort로 조회하며, 60초 cooldown 동안
-반복 호출을 막습니다. 원천시각이 오래됐거나 MNQ가 아닌 NQ 대체값이면
-자동 계산을 잠그고 수동 입력을 안내합니다. 자세한 계약은
+반복 호출을 막습니다. MNQ 데이터가 없거나 원천시각이 오래되면 다른 종목을
+추가 조회하지 않고 자동 계산을 잠근 뒤 수동 입력을 안내합니다. 자세한 계약은
 [`apps/volatility/docs/on-demand-delayed-data.md`](./apps/volatility/docs/on-demand-delayed-data.md)에
 있습니다.
 

@@ -94,6 +94,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
+  assert.match(sw, /v3\.0\.1-security-efficiency\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",
@@ -101,19 +102,26 @@ test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포�
     "./apps/volatility/js/snapshot-policy.js"
   ]) assert.ok(sw.includes(`"${asset}"`), asset);
   assert.match(sw, /request\.url\.includes\("\/apps\/volatility\/"\)/);
+  assert.match(sw, /const cached = await caches\.match\(request\);\s*if \(cached\) return cached;/);
   assert.doesNotMatch(sw, /apps\/volatility\/data\/market\.json/);
 });
 
 test("GitHub Pages workflow는 push·수동 실행 때만 비밀키 없이 정적 앱을 배포한다", () => {
   const workflow = read(".github/workflows/deploy-pages.yml");
+  const dependabot = read(".github/dependabot.yml");
   assert.match(workflow, /workflow_dispatch:/);
-  assert.match(workflow, /actions\/checkout@v7/);
-  assert.match(workflow, /actions\/upload-pages-artifact@v5/);
-  assert.match(workflow, /actions\/deploy-pages@v5/);
-  assert.match(workflow, /actions\/setup-node@v7/);
-  assert.match(workflow, /actions\/configure-pages@v6/);
+  for (const action of [
+    "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1",
+    "actions/setup-node@820762786026740c76f36085b0efc47a31fe5020",
+    "actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d",
+    "actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9",
+    "actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128"
+  ]) assert.ok(workflow.includes(action), action);
+  assert.doesNotMatch(workflow, /uses:\s+[^\s]+@v\d+/);
   assert.match(workflow, /run: npm run test:release/);
   assert.doesNotMatch(workflow, /\bschedule:/);
   assert.doesNotMatch(workflow, /update-market-data\.mjs/);
   assert.doesNotMatch(workflow, /\bsecrets\./);
+  assert.match(dependabot, /package-ecosystem:\s+github-actions/);
+  assert.match(dependabot, /interval:\s+weekly/);
 });

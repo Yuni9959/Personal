@@ -2,7 +2,6 @@ const CHICAGO_TIME_ZONE = "America/Chicago";
 const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"]);
 const YAHOO_HOST = "query1.finance.yahoo.com";
 const PRIMARY_SYMBOL = "MNQ=F";
-const FALLBACK_SYMBOL = "NQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
 const BAR_SECONDS = 5 * 60;
@@ -15,9 +14,8 @@ function abortError(message) {
   return error;
 }
 
-function providerError(message, { fallbackEligible = false, metadata = null } = {}) {
+function providerError(message, { metadata = null } = {}) {
   const error = new Error(message);
-  Object.defineProperty(error, "fallbackEligible", { value: fallbackEligible });
   if (metadata && typeof metadata === "object") {
     Object.defineProperty(error, "metadata", {
       value: Object.freeze({ ...metadata }),
@@ -157,7 +155,6 @@ function validateJsonResponse(response, referenceDate) {
       });
     }
     throw providerError(`HTTP ${status || "오류"}`, {
-      fallbackEligible: status === 404,
       metadata: { code: "http-error", status: Number.isFinite(status) ? status : null }
     });
   }
@@ -263,7 +260,6 @@ function isTickAligned(value, tick = CME_EQUITY_TICK) {
 
 function symbolTier(symbol) {
   if (symbol === PRIMARY_SYMBOL) return "mnq-continuous-proxy";
-  if (symbol === FALLBACK_SYMBOL) return "nq-continuous-fallback-proxy";
   throw new Error(`지원하지 않는 Yahoo 프록시 종목입니다: ${symbol}`);
 }
 
@@ -442,14 +438,10 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
     throw new Error("Yahoo chart 응답 스키마가 올바르지 않습니다.");
   }
   if (payload.chart.error) {
-    const code = String(payload.chart.error.code || "");
-    const description = String(payload.chart.error.description || "");
-    const noData = code === "Not Found" || /\b(?:no data|not found|delisted)\b/i.test(description);
-    // Provider description may include upstream internals. It is used only for eligibility, never exposed.
-    throw providerError("Yahoo chart 공급자 오류가 발생했습니다.", { fallbackEligible: noData });
+    throw providerError("Yahoo chart 공급자 오류가 발생했습니다.");
   }
   if (!Array.isArray(payload.chart.result) || !payload.chart.result.length) {
-    throw providerError("시세 응답에 차트 결과가 없습니다.", { fallbackEligible: true });
+    throw providerError("시세 응답에 차트 결과가 없습니다.");
   }
 
   const result = payload.chart.result[0];
@@ -522,7 +514,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       requestMode: "user-initiated-single-shot",
       instrumentType: "continuous-futures-proxy",
       tier,
-      fallback: tier === "nq-continuous-fallback-proxy",
+      fallback: false,
       unofficial: true
     },
     session: {
@@ -543,7 +535,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       atrLastCompletedBarAt: completedBars.at(-1)?.at.toISOString() || null
     },
     limitations: [
-      "MNQ=F/NQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
+      "MNQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
       `Yahoo의 CME 선물 시세는 약 ${CME_DELAY_MINUTES}분 지연이며 무결점 시세가 아닙니다.`,
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
       "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다."
@@ -554,45 +546,18 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
 export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date(), options = {}) {
   if (typeof fetchImpl !== "function") throw new TypeError("fetch 구현이 필요합니다.");
   const timeoutMs = normalizeTimeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
-  const symbols = options.allowNqFallback === false ? [PRIMARY_SYMBOL] : [PRIMARY_SYMBOL, FALLBACK_SYMBOL];
 
   return withRequestTimeout(async signal => {
-    const failures = [];
-    let terminalError = null;
-    for (const symbol of symbols) {
-      const url = `https://${YAHOO_HOST}/v8/finance/chart/${encodeURIComponent(symbol)}` +
-        "?interval=5m&range=2d&includePrePost=true&events=div%2Csplits";
-      try {
-        const response = await fetchImpl(url, {
-          headers: { "Accept": "application/json" },
-          cache: "no-store",
-          credentials: "omit",
-          referrerPolicy: "no-referrer",
-          signal
-        });
-        validateJsonResponse(response, fetchedAt);
-        const snapshot = parseYahooChart(await readBoundedJson(response), symbol, fetchedAt);
-        if (symbol === FALLBACK_SYMBOL) {
-          snapshot.provider.fallbackFrom = PRIMARY_SYMBOL;
-          snapshot.provider.fallbackReason = failures[0] || "MNQ 프록시 조회 실패";
-          snapshot.limitations.unshift("MNQ 조회 실패로 NQ 연속선물 대체 프록시를 사용했습니다.");
-        }
-        return snapshot;
-      } catch (error) {
-        if (signal.aborted) throw signal.reason || abortError("시세 요청이 취소되었습니다.");
-        failures.push(`${symbol}: ${error.message}`);
-        if (symbol === PRIMARY_SYMBOL && symbols.length > 1 && error?.fallbackEligible === true) continue;
-        terminalError = error;
-        break;
-      }
-    }
-    const error = new Error(failures.join(" | "));
-    if (terminalError?.metadata) {
-      Object.defineProperty(error, "metadata", {
-        value: terminalError.metadata,
-        enumerable: true
-      });
-    }
-    throw error;
+    const url = `https://${YAHOO_HOST}/v8/finance/chart/${encodeURIComponent(PRIMARY_SYMBOL)}` +
+      "?interval=5m&range=2d&includePrePost=true&events=div%2Csplits";
+    const response = await fetchImpl(url, {
+      headers: { "Accept": "application/json" },
+      cache: "no-store",
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+      signal
+    });
+    validateJsonResponse(response, fetchedAt);
+    return parseYahooChart(await readBoundedJson(response), PRIMARY_SYMBOL, fetchedAt);
   }, options.signal, timeoutMs);
 }

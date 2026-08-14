@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-on-demand-delayed.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.1-security-efficiency.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -103,16 +103,14 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  const network = fetch(request).then(async response => {
+  event.respondWith((async () => {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    const response = await fetch(request);
     if (response?.status === 200 && response.type !== "opaque") {
       const cache = await caches.open(CACHE_NAME);
       await cache.put(request, response.clone());
     }
     return response;
-  });
-
-  event.waitUntil(network.then(() => undefined).catch(() => undefined));
-  event.respondWith(
-    caches.match(request).then(cached => cached || network)
-  );
+  })());
 });

@@ -224,44 +224,26 @@ test("MNQ 성공 시 한 번만 조회하고 인증정보·캐시 없이 요청�
   assert.equal(snapshot.provider.tier, "mnq-continuous-proxy");
 });
 
-test("MNQ no-data일 때만 NQ를 최대 한 번 조회하며 하나의 timeout signal을 공유한다", async () => {
+test("MNQ no-data는 NQ로 대체하지 않고 한 번의 요청으로 종료한다", async () => {
   const urls = [];
-  const signals = [];
-  const snapshot = await fetchYahooSnapshot(async (url, options) => {
+  await assert.rejects(fetchYahooSnapshot(async (url) => {
     urls.push(url);
-    signals.push(options.signal);
-    if (url.includes("MNQ%3DF")) return jsonResponse({ chart: { error: null, result: [] } });
-    return jsonResponse(payload("NQ=F"));
-  }, new Date("2026-08-13T01:00:00Z"));
-  assert.equal(snapshot.provider.requestedSymbol, "NQ=F");
-  assert.equal(snapshot.provider.tier, "nq-continuous-fallback-proxy");
-  assert.equal(snapshot.provider.fallback, true);
-  assert.equal(snapshot.provider.fallbackFrom, "MNQ=F");
-  assert.match(snapshot.provider.fallbackReason, /차트 결과가 없습니다/);
-  assert.match(snapshot.limitations[0], /NQ 연속선물 대체/);
-  assert.equal(urls.length, 2);
-  assert.strictEqual(signals[0], signals[1]);
-  assert.ok(urls.every(url => url.includes("range=2d")));
+    return jsonResponse({ chart: { error: null, result: [] } });
+  }, new Date("2026-08-13T01:00:00Z")), /차트 결과가 없습니다/);
+  assert.equal(urls.length, 1);
+  assert.match(urls[0], /MNQ%3DF/);
 });
 
-test("MNQ와 조건부 NQ fallback 전체가 하나의 총 timeout budget을 사용한다", async () => {
+test("MNQ HTTP 오류도 다른 종목 재시도 없이 metadata를 보존한다", async () => {
   let calls = 0;
-  const startedAt = Date.now();
   await assert.rejects(
-    fetchYahooSnapshot(async (url, options) => {
+    fetchYahooSnapshot(async () => {
       calls += 1;
-      if (url.includes("MNQ%3DF")) {
-        await new Promise(resolve => setTimeout(resolve, 15));
-        return jsonResponse({ chart: { error: null, result: [] } });
-      }
-      return new Promise((resolve, reject) => {
-        options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true });
-      });
-    }, new Date("2026-08-13T01:00:00Z"), { timeoutMs: 30 }),
-    /총 30ms 제한시간/
+      return jsonResponse({}, { ok: false, status: 404 });
+    }, new Date("2026-08-13T01:00:00Z")),
+    error => error.message === "HTTP 404" && error.metadata?.code === "http-error"
   );
-  assert.equal(calls, 2);
-  assert.ok(Date.now() - startedAt < 80);
+  assert.equal(calls, 1);
 });
 
 test("Yahoo chart.error description은 외부 오류 메시지에 노출하지 않는다", async () => {
@@ -459,8 +441,7 @@ test("CME 0.25 tick에 맞지 않는 가격은 거부한다", () => {
 test("주입한 제한시간이 지나면 fetch 구현이 signal을 무시해도 종료한다", async () => {
   await assert.rejects(
     fetchYahooSnapshot(() => new Promise(() => {}), new Date("2026-08-13T01:00:00Z"), {
-      timeoutMs: 10,
-      allowNqFallback: false
+      timeoutMs: 10
     }),
     /총 10ms 제한시간/
   );
@@ -471,12 +452,12 @@ test("응답 본문 JSON 읽기까지 동일한 제한시간 안에 끝나야 �
     fetchYahooSnapshot(async () => ({
       ...jsonResponse(payload()),
       text: () => new Promise(() => {})
-    }), new Date("2026-08-13T01:00:00Z"), { timeoutMs: 10, allowNqFallback: false }),
+    }), new Date("2026-08-13T01:00:00Z"), { timeoutMs: 10 }),
     /총 10ms 제한시간/
   );
 });
 
-test("외부 AbortSignal 취소 뒤 NQ fallback을 시작하지 않는다", async () => {
+test("외부 AbortSignal 취소 뒤 추가 요청을 시작하지 않는다", async () => {
   const controller = new AbortController();
   let calls = 0;
   const pending = fetchYahooSnapshot((url, options) => {
