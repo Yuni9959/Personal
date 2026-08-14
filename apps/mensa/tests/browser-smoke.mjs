@@ -656,6 +656,15 @@ async function run() {
         document.querySelector("#bullConditionalLabel").textContent,
         document.querySelector("#bearConditionalLabel").textContent
       ],
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referenceLines: {
+        bullMean: [document.querySelector("#bullMeanReference").textContent, document.querySelector("#bullMeanMove").textContent, document.querySelector("#bullMeanPrice").textContent],
+        bearMean: [document.querySelector("#bearMeanReference").textContent, document.querySelector("#bearMeanMove").textContent, document.querySelector("#bearMeanPrice").textContent],
+        bullLive: [document.querySelector("#bullSafeReference").textContent, document.querySelector("#bullLiveMove").textContent, document.querySelector("#bullLivePrice").textContent],
+        bearLive: [document.querySelector("#bearSafeReference").textContent, document.querySelector("#bearLiveMove").textContent, document.querySelector("#bearLivePrice").textContent],
+        bullConditional: [document.querySelector("#bullConditionalReference").textContent, document.querySelector("#bullConditionalMove").textContent, document.querySelector("#bullConditionalPrice").textContent],
+        bearConditional: [document.querySelector("#bearConditionalReference").textContent, document.querySelector("#bearConditionalMove").textContent, document.querySelector("#bearConditionalPrice").textContent]
+      },
       atr: document.querySelector("#atrValue").textContent,
       autoAtrDisabled: document.querySelector("#useAutoAtrBtn").disabled,
       reachDisclaimer: document.querySelector(".scenario-warning").textContent
@@ -675,6 +684,15 @@ async function run() {
       "양봉 마감 조건부 복기선 · OOS 79.6%",
       "음봉 마감 조건부 복기선 · OOS 79.3%"
     ]);
+    assert.equal(delayedQuoteGate.referenceOpen, "30,000.00");
+    assert.deepEqual(delayedQuoteGate.referenceLines, {
+      bullMean: ["1.758%", "+527.25 pt", "30,527.25"],
+      bearMean: ["1.969%", "−590.50 pt", "29,409.50"],
+      bullLive: ["0.360%", "+107.75 pt", "30,107.75"],
+      bearLive: ["0.295%", "−88.50 pt", "29,911.50"],
+      bullConditional: ["0.708%", "+212.25 pt", "30,212.25"],
+      bearConditional: ["0.815%", "−244.50 pt", "29,755.50"]
+    });
     assert.equal(delayedQuoteGate.atr, "—");
     assert.equal(delayedQuoteGate.autoAtrDisabled, true);
     assert.match(delayedQuoteGate.notice, /5분봉 1개 결손/);
@@ -713,7 +731,7 @@ async function run() {
     })()`);
     await waitForCondition(client, `
       JSON.parse(localStorage.getItem("personal-tap-volatility-last-request-v1")) === Date.now() &&
-      /60초|중복 요청/.test(document.querySelector("#dataNotice").textContent)
+      /10초|반복 요청/.test(document.querySelector("#dataNotice").textContent)
     `);
     const rollbackGuard = await evaluate(client, `(() => ({
         stored: JSON.parse(localStorage.getItem("personal-tap-volatility-last-request-v1")),
@@ -721,7 +739,7 @@ async function run() {
         notice: document.querySelector("#dataNotice").textContent
     }))()`);
     assert.equal(rollbackGuard.stored, rollbackGuard.now);
-    assert.match(rollbackGuard.notice, /60초|중복 요청/);
+    assert.match(rollbackGuard.notice, /10초|반복 요청/);
     assert.equal(readerRequestCount, 1);
     const manualApplied = await evaluate(client, `(() => {
       document.querySelector("#manualToggleBtn").click();
@@ -810,32 +828,79 @@ async function run() {
       deviceScaleFactor: 1,
       mobile: true
     });
-    assert.equal(
-      await evaluate(client, "document.documentElement.scrollWidth <= window.innerWidth"),
-      true
-    );
+    await evaluate(client, "window.scrollTo(0, 0); true");
+    const volatilityReference390 = await evaluate(client, `(() => {
+      const card = document.querySelector(".reference-card").getBoundingClientRect();
+      const topbar = document.querySelector(".topbar").getBoundingClientRect();
+      const gridColumns = getComputedStyle(document.querySelector(".reference-grid"))
+        .gridTemplateColumns.trim().split(/\\s+/);
+      const priceIds = [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ];
+      return {
+        fitsWidth: document.documentElement.scrollWidth <= window.innerWidth,
+        twoColumns: gridColumns.length === 2,
+        startsBelowTopbar: card.top >= topbar.bottom,
+        endsInFirstViewport: card.bottom <= window.innerHeight,
+        openVisible: document.querySelector("#referenceOpenPrice").textContent.trim() === "30,000.00",
+        allPriceLinesVisible: priceIds.every(id =>
+          !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
+        )
+      };
+    })()`);
+    assert.deepEqual(volatilityReference390, {
+      fitsWidth: true,
+      twoColumns: true,
+      startsBelowTopbar: true,
+      endsInFirstViewport: true,
+      openVisible: true,
+      allPriceLinesVisible: true
+    });
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 320,
       height: 720,
       deviceScaleFactor: 1,
       mobile: true
     });
+    await evaluate(client, "window.scrollTo(0, 0); true");
     const volatilityTopbar320 = await evaluate(client, `(() => {
       const button = document.querySelector("#refreshBtn");
       const rect = button.getBoundingClientRect();
+      const card = document.querySelector(".reference-card").getBoundingClientRect();
+      const topbar = document.querySelector(".topbar").getBoundingClientRect();
+      const gridColumns = getComputedStyle(document.querySelector(".reference-grid"))
+        .gridTemplateColumns.trim().split(/\\s+/);
+      const priceIds = [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ];
       return {
         text: button.textContent.trim(),
         visible: rect.width > 0 && rect.height >= 40,
         inViewport: rect.left >= 0 && rect.right <= window.innerWidth,
-        fitsViewport: document.documentElement.scrollWidth <= window.innerWidth
+        fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
+        referenceTwoColumns: gridColumns.length === 2,
+        referenceStartsBelowTopbar: card.top >= topbar.bottom,
+        referenceEndsInFirstViewport: card.bottom <= window.innerHeight,
+        referenceOpenVisible: document.querySelector("#referenceOpenPrice").textContent.trim() === "30,000.00",
+        allReferencePriceLinesVisible: priceIds.every(id =>
+          !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
+        )
       };
     })()`);
     assert.deepEqual(volatilityTopbar320, {
       text: "오늘 시세 새로고침",
       visible: true,
       inViewport: true,
-      fitsViewport: true
+      fitsViewport: true,
+      referenceTwoColumns: true,
+      referenceStartsBelowTopbar: true,
+      referenceEndsInFirstViewport: true,
+      referenceOpenVisible: true,
+      allReferencePriceLinesVisible: true
     });
+    await captureOptionalScreenshot(client, "volatility-mobile-320");
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: 844,
@@ -879,6 +944,11 @@ async function run() {
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
       atr: document.querySelector("#atrValue").textContent,
       current: document.querySelector("#currentPrice").textContent,
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referencePrices: [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ].map(id => document.querySelector("#" + id).textContent),
       manualValues: ["manualOpen", "manualHigh", "manualLow", "manualCurrent", "manualAtr"]
         .map(id => document.querySelector("#" + id).value),
       manualConfirmed: document.querySelector("#manualConfirm").checked,
@@ -894,6 +964,8 @@ async function run() {
     assert.equal(lockedFallback.calculationsHidden, true);
     assert.equal(lockedFallback.atr, "—");
     assert.equal(lockedFallback.current, "—");
+    assert.equal(lockedFallback.referenceOpen, "—");
+    assert.deepEqual(lockedFallback.referencePrices, ["—", "—", "—", "—", "—", "—"]);
     assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
     assert.equal(lockedFallback.manualConfirmed, false);
     assert.match(lockedFallback.notice, /현재 시세 숫자는 숨겼으며|계산에 사용하지 않습니다/);
@@ -917,6 +989,107 @@ async function run() {
     removeYahooFailure();
     const lockedFallbackErrors = browserErrors.splice(errorsBeforeLockedFallback);
     assert.equal(lockedFallbackErrors.every(message => /429/.test(message)), true);
+
+    const storageBeforeBlockedRequest = await evaluate(client, `(() =>
+      Object.fromEntries([...Array(localStorage.length)].map((_, index) => {
+        const key = localStorage.key(index);
+        return [key, localStorage.getItem(key)];
+      }))
+    )()`);
+    await evaluate(client, `(() => {
+      localStorage.removeItem("personal-tap-volatility-last-request-v1");
+      localStorage.removeItem("personal-tap-volatility-rate-limit-until-v1");
+      return true;
+    })()`);
+    const blockedStorageScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const nativeGetItem = Storage.prototype.getItem;
+        const nativeSetItem = Storage.prototype.setItem;
+        const nativeRemoveItem = Storage.prototype.removeItem;
+        globalThis.__restoreVolatilityStorageMethodsForSmoke = () => {
+          Storage.prototype.getItem = nativeGetItem;
+          Storage.prototype.setItem = nativeSetItem;
+          Storage.prototype.removeItem = nativeRemoveItem;
+        };
+        Storage.prototype.getItem = () => { throw new DOMException("blocked", "SecurityError"); };
+        Storage.prototype.setItem = () => { throw new DOMException("blocked", "SecurityError"); };
+        Storage.prototype.removeItem = () => { throw new DOMException("blocked", "SecurityError"); };
+      })();`
+    });
+    const errorsBeforeBlockedStorage = browserErrors.length;
+    let blockedStorageRequestCount = 0;
+    const removeUnexpectedBlockedStorageRequest = client.on("Fetch.requestPaused", params => {
+      blockedStorageRequestCount += 1;
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 503,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: Buffer.from("{}").toString("base64")
+      }).catch(error => browserErrors.push(`Unexpected blocked-storage request: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+    });
+    await navigate(client, `${baseUrl}/apps/volatility/?blocked-storage-fail-closed-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    const blockedStorageGate = await evaluate(client, `(() => ({
+      status: document.querySelector("#dataStatus").textContent,
+      notice: document.querySelector("#dataNotice").textContent,
+      locked: !document.querySelector("#calculationLock").hidden,
+      lockText: document.querySelector("#calculationLock").textContent,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      manualPanelVisible: !document.querySelector("#manualPanel").hidden,
+      manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded"),
+      quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
+        .map(id => document.querySelector("#" + id).textContent),
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referencePrices: [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ].map(id => document.querySelector("#" + id).textContent)
+    }))()`);
+    assert.equal(blockedStorageRequestCount, 0);
+    assert.equal(blockedStorageGate.status, "시세 없음");
+    assert.match(blockedStorageGate.notice, /저장소/);
+    assert.match(blockedStorageGate.notice, /수동 입력/);
+    assert.equal(blockedStorageGate.locked, true);
+    assert.match(blockedStorageGate.lockText, /수동 입력/);
+    assert.equal(blockedStorageGate.calculationsHidden, true);
+    assert.equal(blockedStorageGate.manualPanelVisible, true);
+    assert.equal(blockedStorageGate.manualExpanded, "true");
+    assert.deepEqual(blockedStorageGate.quoteValues, ["—", "—", "—", "—"]);
+    assert.equal(blockedStorageGate.referenceOpen, "—");
+    assert.deepEqual(blockedStorageGate.referencePrices, ["—", "—", "—", "—", "—", "—"]);
+    await client.send("Fetch.disable");
+    removeUnexpectedBlockedStorageRequest();
+    const blockedStorageErrors = browserErrors.splice(errorsBeforeBlockedStorage);
+    assert.deepEqual(blockedStorageErrors, []);
+    const restoredStorage = await evaluate(client, `(() => {
+      globalThis.__restoreVolatilityStorageMethodsForSmoke();
+      localStorage.clear();
+      const previous = ${JSON.stringify(storageBeforeBlockedRequest)};
+      for (const [key, value] of Object.entries(previous)) localStorage.setItem(key, value);
+      const probe = "personal-tap-storage-restore-smoke";
+      localStorage.setItem(probe, "ok");
+      const writable = localStorage.getItem(probe) === "ok";
+      localStorage.removeItem(probe);
+      return {
+        writable,
+        values: Object.fromEntries([...Array(localStorage.length)].map((_, index) => {
+          const key = localStorage.key(index);
+          return [key, localStorage.getItem(key)];
+        }))
+      };
+    })()`);
+    assert.equal(restoredStorage.writable, true);
+    assert.deepEqual(restoredStorage.values, storageBeforeBlockedRequest);
+    await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+      identifier: blockedStorageScript.identifier
+    });
     await client.send("Page.removeScriptToEvaluateOnNewDocument", {
       identifier: fixedTimeScript.identifier
     });

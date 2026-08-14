@@ -81,7 +81,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 
 main { width: min(1160px, 100%); margin: 0 auto; padding: 30px 20px 70px; }
 .panel, .method-card { border: 1px solid var(--line); border-radius: 27px; background: var(--surface); box-shadow: var(--shadow); }
-.hero { display: grid; grid-template-columns: minmax(0,1fr) 270px; gap: 30px; padding: clamp(28px, 5vw, 56px); background: linear-gradient(130deg, rgba(33,160,139,.13), transparent 55%), var(--surface); }
+.hero { display: grid; grid-template-columns: minmax(260px,.72fr) minmax(520px,1.28fr); gap: 26px; padding: clamp(26px, 4vw, 48px); background: linear-gradient(130deg, rgba(33,160,139,.13), transparent 55%), var(--surface); }
 .hero-copy { align-self: center; }
 .eyebrow { margin: 0 0 10px; color: var(--mint); font-size: 11px; font-weight: 950; letter-spacing: .13em; }
 h1, h2 { margin: 0; letter-spacing: -.05em; }
@@ -90,15 +90,38 @@ h1 em { color: var(--mint); font-style: normal; }
 .mobile-break { display: none; }
 .hero-copy > p:last-child { max-width: 690px; margin: 22px 0 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
 .hero-copy > p strong { color: #d9eeea; }
-.reference-card { display: grid; align-content: center; gap: 10px; padding: 24px; border: 1px solid rgba(98,226,189,.17); border-radius: 23px; background: linear-gradient(145deg, rgba(33,160,139,.16), rgba(13,35,42,.72)); }
-.reference-card > span { color: var(--muted); font-size: 11px; font-weight: 850; }
-.reference-card .reference-direction { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 11px 0; border-bottom: 1px solid var(--line); }
-.reference-card .reference-direction > small { grid-column: 1/-1; color: #c4d8d6; font-weight: 850; }
-.reference-card .reference-direction p { margin: 0; }
-.reference-card .reference-direction p span { display: block; color: var(--muted); font-size: 9px; }
-.reference-card .reference-direction strong { display: block; margin-top: 3px; color: #c9dedb; font-size: 19px; letter-spacing: -.04em; }
-.reference-card .reference-direction .safe strong { color: var(--mint); }
-.reference-card p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
+.reference-card { min-width: 0; padding: 18px; border: 1px solid rgba(98,226,189,.17); border-radius: 23px; background: linear-gradient(145deg, rgba(33,160,139,.16), rgba(13,35,42,.72)); }
+.reference-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+.reference-header > div > span { color: #dcecea; font-size: 13px; font-weight: 900; }
+.reference-header p { margin: 3px 0 0; color: var(--muted); font-size: 9px; }
+.reference-open { flex: 0 0 auto; min-width: 126px; padding: 8px 10px; border: 1px solid rgba(98,226,189,.18); border-radius: 12px; background: rgba(5,22,27,.48); text-align: right; }
+.reference-open span, .reference-open strong { display: block; }
+.reference-open span { color: var(--muted); font-size: 9px; }
+.reference-open strong { margin-top: 2px; color: #fff; font-size: 20px; letter-spacing: -.04em; }
+.reference-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+.reference-direction { min-width: 0; padding: 11px; border: 1px solid var(--line); border-radius: 16px; background: rgba(4,19,24,.5); }
+.reference-direction h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 14px; letter-spacing: -.02em; }
+.reference-direction h2 span { display: grid; width: 23px; height: 23px; place-items: center; border-radius: 8px; font-size: 13px; }
+.bull-reference h2 { color: var(--mint); }
+.bull-reference h2 span { background: var(--mint-soft); }
+.bear-reference h2 { color: var(--blue); }
+.bear-reference h2 span { background: var(--blue-soft); }
+.reference-direction dl { display: grid; gap: 6px; margin: 0; }
+.reference-row { display: block; min-width: 0; padding: 8px; border-radius: 11px; background: rgba(255,255,255,.025); }
+.reference-row dt { min-height: 22px; color: #c8dcda; font-size: 9px; font-weight: 850; line-height: 1.25; }
+.reference-row dd { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 2px 6px; margin: 3px 0 0; }
+.reference-row dd strong { color: #d8e8e6; font-size: 13px; letter-spacing: -.025em; }
+.reference-row dd span { justify-self: end; color: var(--muted); font-size: 9px; font-weight: 800; }
+.reference-row dd b { grid-column: 1/-1; color: #f7fffd; font-size: clamp(16px,1.75vw,20px); letter-spacing: -.045em; line-height: 1.1; }
+.reference-row dd.reference-note { display: block; margin: 4px 0 0; color: #799394; font-size: 8px; line-height: 1.3; }
+.mean-row { border: 1px dashed rgba(190,224,224,.14); }
+.live-row { border: 1px solid rgba(98,226,189,.15); }
+.bear-reference .live-row { border-color: rgba(112,183,255,.17); }
+.reference-direction .conditional-row { border: 1px solid rgba(255,198,109,.13); }
+.bull-reference .live-row dd strong, .bull-reference .live-row dd b { color: var(--mint); }
+.bear-reference .live-row dd strong, .bear-reference .live-row dd b { color: var(--blue); }
+.conditional-row dd strong { color: var(--amber); }
+.reference-warning { margin: 9px 2px 0; color: #91aaab; font-size: 8px; line-height: 1.45; }
 
 .market-panel, main > .panel:not(.hero) { margin-top: 18px; padding: clamp(22px, 4vw, 34px); }
 .section-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
@@ -221,8 +244,7 @@ footer a { color: var(--mint); text-decoration: none; }
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
-  .reference-card { grid-template-columns: repeat(2,1fr); }
-  .reference-card > span, .reference-card > p { grid-column: 1/-1; }
+  .reference-card { order: -1; }
   .quote-grid { grid-template-columns: repeat(2,1fr); }
   .quote-meta { grid-template-columns: repeat(2,1fr); }
   .input-grid, .input-grid.five { grid-template-columns: repeat(2,1fr); }
@@ -234,12 +256,27 @@ footer a { color: var(--mint); text-decoration: none; }
   .brand small { display: none; }
   main { padding: 16px 10px 52px; }
   .panel, .method-card { border-radius: 21px; }
-  .hero { padding: 27px 21px; }
+  .hero { padding: 16px 12px 20px; }
   h1 { font-size: clamp(37px,11vw,50px); }
   .mobile-break { display: initial; }
-  .reference-card { padding: 19px; }
-  .reference-card .reference-direction { grid-template-columns: 1fr; }
-  .reference-card .reference-direction > small { grid-column: auto; margin-bottom: 2px; }
+  .reference-card { padding: 12px; border-radius: 17px; }
+  .reference-header { margin-bottom: 8px; }
+  .reference-header > div > span { font-size: 12px; }
+  .reference-open { min-width: 108px; padding: 6px 8px; }
+  .reference-open strong { font-size: 17px; }
+  .reference-grid { gap: 6px; }
+  .reference-direction { padding: 7px; border-radius: 13px; }
+  .reference-direction h2 { margin-bottom: 6px; font-size: 12px; }
+  .reference-direction h2 span { width: 20px; height: 20px; }
+  .reference-direction dl { gap: 4px; }
+  .reference-row { padding: 6px; border-radius: 9px; }
+  .reference-row dt { min-height: 23px; font-size: 8px; }
+  .reference-row dd { gap: 1px 4px; }
+  .reference-row dd strong { font-size: 11px; }
+  .reference-row dd span { font-size: 8px; }
+  .reference-row dd b { font-size: clamp(14px,4.8vw,17px); }
+  .reference-row dd.reference-note { font-size: 8px; }
+  .reference-warning { margin-top: 7px; font-size: 8px; }
   .section-heading { align-items: flex-start; flex-direction: column; }
   .toolbar { width: 100%; }
   .toolbar button { flex: 1; }

@@ -93,20 +93,23 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   요청과 canonical하게 일치해야 내부 Yahoo JSON을 파싱한다.
 - HTTP 오류, HTML 응답, 스키마 변경, 429, timeout은 모두 정상적인
   공급원 실패로 취급하며 응답 본문을 화면이나 로그에 노출하지 않는다.
-- 429에서는 `Retry-After`만 안전한 대기정보로 정규화하고 자동 재시도하지
-  않는다. Jina 외부 JSON과 그 안의 Yahoo 내부 JSON은 각각 512 KiB 상한을
-  검사하며, 초과하면 즉시 읽기를 취소한다. 전체 요청 deadline은 15초다.
+- 429의 유효한 `Retry-After`는 안전한 대기정보로 정규화하고, 없거나 무효하면
+  기본 60초를 적용한다. 자동 재시도하지 않는다. Jina 외부 JSON과 그 안의
+  Yahoo 내부 JSON은 각각 512 KiB 상한을 검사하며, 초과하면 즉시 읽기를
+  취소한다. 전체 요청 deadline은 15초다.
 - Yahoo `exchangeDataDelayedBy`가 있으면 숫자 10만 허용한다. 필드가 없으면
   10분이라고 추정해 채우지 않고 `delayMetadataVerified=false`로 기록한다.
 - 공개 PWA에 API 키, Yahoo 쿠키, 우회 프록시 또는 브라우저 자동화 코드를
   넣지 않는다.
 - 연속선물과 실제 월물, MNQ와 NQ를 서로 같은 것으로 표시하지 않는다.
 - 이전 캐시를 성공한 새 조회처럼 표시하지 않는다.
-- 탭 간 Web Locks와 60초 cooldown으로 중복 요청을 막고, 시스템 시계가
-  뒤로 바뀌어도 cooldown을 우회하지 않는다.
+- 탭 간 Web Locks와 일반 10초 cooldown으로 중복 요청을 막고, 시가가 없는
+  새 화면·새로고침·시스템 시계 rollback도 이 짧은 제한을 우회하지 못한다.
+  공급자 429 대기(최소 60초·최대 15분)는 별도로 더 길게 유지한다.
 - Web Locks를 쓸 수 없는 브라우저는 검증 가능한 로컬 storage lease를
-  사용한다. Web Locks와 로컬 저장소가 모두 막힌 환경에서는 요청을 보내지
-  않는 쪽으로 fail-closed한다.
+  사용한다. Web Locks가 있더라도 cooldown·429 대기를 새 navigation 뒤에
+  보존할 로컬 저장소의 쓰기·읽기·삭제 검증을 통과해야 한다. 저장소를 쓸 수
+  없으면 요청을 보내지 않는 쪽으로 fail-closed하고 수동 입력을 안내한다.
 - 화면을 열어 둔 중에도 로컬 만료 타이머·focus·pageshow에서 기존 값의
   신규도만 다시 검사하며, 이 이벤트로 네트워크를 요청하지 않는다. 원천
   관측시각이 25분을 넘거나 주간 기준이 만료되면 파생 계산과 ATR 표시를
@@ -139,7 +142,7 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 | 파일 | 역할 |
 |---|---|
 | `apps/volatility/js/market-provider.js` | Jina Reader 요청·Yahoo 응답 검증·세션 재구성·결손 정책·스냅샷 생성 |
-| `apps/volatility/js/request-guard.js` | 60초 경계·시계 rollback·동시 탭 요청 잠금 |
+| `apps/volatility/js/request-guard.js` | 일반 10초 경계·공급자 429 대기·시계 rollback·동시 탭 요청 잠금 |
 | `apps/volatility/js/snapshot-policy.js` | 25분 만료·심볼·주간 기준의 순수 fail-closed 판정 |
 | `apps/volatility/js/app.js` | 진입/버튼 단발 요청, 탭 잠금·cooldown, 로컬 폴백과 화면 상태 |
 | `apps/volatility/js/calculator.js` | 평균·안전측·포지션·손절 계산 계약 |

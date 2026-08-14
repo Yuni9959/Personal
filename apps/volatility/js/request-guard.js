@@ -1,12 +1,16 @@
-export const REQUEST_COOLDOWN_MS = 60_000;
+// This is only a short duplicate-click guard. Provider-directed 429 backoff is
+// deliberately independent and remains at least one minute below.
+export const REQUEST_COOLDOWN_MS = 10_000;
 // Jina Reader is deliberately used only for a user-triggered, one-shot read.
 // Its documented average latency is about eight seconds, so the old seven
 // second deadline rejected otherwise valid responses before they arrived.
 export const REQUEST_DEADLINE_MS = 15_000;
 export const REQUEST_LEASE_MS = REQUEST_DEADLINE_MS + 5_000;
+export const RATE_LIMIT_MINIMUM_MS = 60_000;
 export const MAX_RATE_LIMIT_BACKOFF_MS = 15 * 60_000;
 export const REQUEST_LOCK_NAME = "personal-tap-volatility-market-request-v1";
 export const REQUEST_LEASE_KEY = "personal-tap-volatility-request-lease-v1";
+export const REQUEST_STORAGE_PROBE_KEY = "personal-tap-volatility-storage-probe-v1";
 
 function finitePositive(value) {
   const numeric = Number(value);
@@ -21,7 +25,12 @@ export function calculateCooldown({
 }) {
   const current = Number(now);
   if (!Number.isFinite(current)) throw new TypeError("현재 시각은 유효한 숫자여야 합니다.");
-  const requestedAt = Math.max(finitePositive(memoryRequestedAt), finitePositive(storedRequestedAt));
+  const memoryAt = finitePositive(memoryRequestedAt);
+  const storedAt = finitePositive(storedRequestedAt);
+  // The ordinary guard is short enough to preserve across reloads and tabs.
+  // This prevents a just-finished request or a wall-clock rollback from being
+  // bypassed merely because the new page has not rendered a usable quote yet.
+  const requestedAt = Math.max(memoryAt, storedAt);
   if (!requestedAt) return { requestedAt: 0, remainingMs: 0, rebaseAt: null };
   if (requestedAt > current) {
     return { requestedAt, remainingMs: cooldownMs, rebaseAt: current };
@@ -37,7 +46,7 @@ export function rateLimitUntilFromMetadata({
   now,
   retryAfterSeconds = null,
   retryAt = null,
-  minimumMs = REQUEST_COOLDOWN_MS,
+  minimumMs = RATE_LIMIT_MINIMUM_MS,
   maximumMs = MAX_RATE_LIMIT_BACKOFF_MS
 }) {
   const current = Number(now);
@@ -50,7 +59,10 @@ export function rateLimitUntilFromMetadata({
   }
   const absolute = Date.parse(String(retryAt || ""));
   if (Number.isFinite(absolute)) candidates.push(absolute);
-  if (!candidates.length) return 0;
+  // A 429 without a readable Retry-After header is still a provider-directed
+  // throttle. Keep it separate from the short duplicate-click cooldown and
+  // fail closed for at least one minute.
+  if (!candidates.length) return current + minimumMs;
   const delay = Math.min(maximumMs, Math.max(minimumMs, Math.max(...candidates) - current));
   return current + delay;
 }
@@ -90,6 +102,25 @@ function writeLease(storage, value) {
   try {
     storage?.setItem?.(REQUEST_LEASE_KEY, JSON.stringify(value));
     return true;
+  } catch {
+    return false;
+  }
+}
+
+function hasWritableStorage(storage, token) {
+  try {
+    if (typeof storage?.getItem !== "function" ||
+        typeof storage?.setItem !== "function" ||
+        typeof storage?.removeItem !== "function") return false;
+    // The reserved probe is disposable. Removing it first verifies that a
+    // stale probe from a crashed page cannot make an in-place update look like
+    // enough free storage for a new cooldown/backoff key.
+    storage.removeItem(REQUEST_STORAGE_PROBE_KEY);
+    if (storage.getItem(REQUEST_STORAGE_PROBE_KEY) !== null) return false;
+    storage.setItem(REQUEST_STORAGE_PROBE_KEY, token);
+    if (storage.getItem(REQUEST_STORAGE_PROBE_KEY) !== token) return false;
+    storage.removeItem(REQUEST_STORAGE_PROBE_KEY);
+    return storage.getItem(REQUEST_STORAGE_PROBE_KEY) === null;
   } catch {
     return false;
   }
@@ -139,16 +170,25 @@ async function withStorageLease(operation, { storage, clock, sleep, cryptoImpl }
 export async function withExclusiveRequest(operation, options = {}) {
   if (typeof operation !== "function") throw new TypeError("요청 작업 함수가 필요합니다.");
   const locks = options.locks ?? globalThis.navigator?.locks;
+  const storage = options.storage ?? globalThis.localStorage;
+  const clock = options.clock ?? Date.now;
+  const cryptoImpl = options.cryptoImpl ?? globalThis.crypto;
   if (locks?.request) {
     return locks.request(REQUEST_LOCK_NAME, { ifAvailable: true }, async lock => {
       if (!lock) return { acquired: false, reason: "lock-held" };
+      const now = clock();
+      if (!Number.isFinite(now)) return { acquired: false, reason: "clock-unavailable" };
+      const token = `storage-${leaseToken(cryptoImpl, now)}`;
+      if (!hasWritableStorage(storage, token)) {
+        return { acquired: false, reason: "storage-unavailable" };
+      }
       return { acquired: true, value: await operation() };
     });
   }
   return withStorageLease(operation, {
-    storage: options.storage ?? globalThis.localStorage,
-    clock: options.clock ?? Date.now,
+    storage,
+    clock,
     sleep: options.sleep ?? (milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))),
-    cryptoImpl: options.cryptoImpl ?? globalThis.crypto
+    cryptoImpl
   });
 }

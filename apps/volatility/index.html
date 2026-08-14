@@ -33,19 +33,57 @@
         <h1>평균과 안전측을<br /><em>두 시나리오로</em><br class="mobile-break" /> 보세요.</h1>
         <p>평균은 일중 <strong>고가−저가 범위 예산</strong>, 안전측은 과거 시간외 검증으로 낮춘 <strong>시가 기준 도달선</strong>입니다. 서로 다른 값이라 분리해서 보여줍니다.</p>
       </div>
-      <aside class="reference-card">
-        <span>이번 주 고정 기준</span>
-        <div class="reference-direction">
-          <small>상승 방향</small>
-          <p><span>양봉일 평균 H−L</span><strong id="bullMeanReference">—</strong></p>
-          <p class="safe"><span id="bullLiveLabel">장중 기본 상승선 · OOS —</span><strong id="bullSafeReference">—</strong></p>
+      <aside class="reference-card" aria-labelledby="weeklyReferenceTitle">
+        <div class="reference-header">
+          <div>
+            <span id="weeklyReferenceTitle">이번 주 고정 기준</span>
+            <p id="referencePeriod">2026-08-10 ~ 2026-08-16</p>
+          </div>
+          <p class="reference-open"><span>오늘 시가</span><strong id="referenceOpenPrice">—</strong></p>
         </div>
-        <div class="reference-direction">
-          <small>하락 방향</small>
-          <p><span>음봉일 평균 H−L</span><strong id="bearMeanReference">—</strong></p>
-          <p class="safe"><span id="bearLiveLabel">장중 기본 하락선 · OOS —</span><strong id="bearSafeReference">—</strong></p>
+        <div class="reference-grid">
+          <section class="reference-direction bull-reference" aria-label="상승 방향 기준">
+            <h2><span>↗</span> 상승</h2>
+            <dl>
+              <div class="reference-row mean-row">
+                <dt>양봉일 평균 H−L</dt>
+                <dd><strong id="bullMeanReference">—</strong><span id="bullMeanMove">—</span><b id="bullMeanPrice">—</b></dd>
+                <dd class="reference-note">시가 환산 참고선 · 범위 예산 · 목표가 아님</dd>
+              </div>
+              <div class="reference-row live-row">
+                <dt id="bullLiveLabel">장중 기본 상승선 · OOS —</dt>
+                <dd><strong id="bullSafeReference">—</strong><span id="bullLiveMove">—</span><b id="bullLivePrice">—</b></dd>
+                <dd class="reference-note">방향 미확정 장중 기본선</dd>
+              </div>
+              <div class="reference-row conditional-row">
+                <dt id="bullReferenceConditionalLabel">양봉 마감 조건부 복기선 · OOS —</dt>
+                <dd><strong id="bullConditionalReference">—</strong><span id="bullConditionalMove">—</span><b id="bullConditionalPrice">—</b></dd>
+                <dd class="reference-note">양봉 마감 후 복기용</dd>
+              </div>
+            </dl>
+          </section>
+          <section class="reference-direction bear-reference" aria-label="하락 방향 기준">
+            <h2><span>↘</span> 하락</h2>
+            <dl>
+              <div class="reference-row mean-row">
+                <dt>음봉일 평균 H−L</dt>
+                <dd><strong id="bearMeanReference">—</strong><span id="bearMeanMove">—</span><b id="bearMeanPrice">—</b></dd>
+                <dd class="reference-note">시가 환산 참고선 · 범위 예산 · 목표가 아님</dd>
+              </div>
+              <div class="reference-row live-row">
+                <dt id="bearLiveLabel">장중 기본 하락선 · OOS —</dt>
+                <dd><strong id="bearSafeReference">—</strong><span id="bearLiveMove">—</span><b id="bearLivePrice">—</b></dd>
+                <dd class="reference-note">방향 미확정 장중 기본선</dd>
+              </div>
+              <div class="reference-row conditional-row">
+                <dt id="bearReferenceConditionalLabel">음봉 마감 조건부 복기선 · OOS —</dt>
+                <dd><strong id="bearConditionalReference">—</strong><span id="bearConditionalMove">—</span><b id="bearConditionalPrice">—</b></dd>
+                <dd class="reference-note">음봉 마감 후 복기용</dd>
+              </div>
+            </dl>
+          </section>
         </div>
-        <p id="referencePeriod">2026-08-10 ~ 2026-08-16</p>
+        <p class="reference-warning">OOS는 과거 가격선 도달률이며 매매 성공률이 아닙니다. 조건부 선은 마감 방향 확정 후 복기에만 사용하세요.</p>
       </aside>
     </section>
 
@@ -209,7 +247,7 @@
       <ul>
         <li>평균은 NQ 연속선물 프록시의 지난 5년 방향별 2σ 내 (H−L)/O 평균으로 계산한 설명용 일중 범위 예산입니다.</li>
         <li>장중 기본선은 종가 방향을 모르는 모든 거래일의 (H−O)/O·(O−L)/O를 사용합니다. 양봉·음봉 조건부 선은 종가 방향이 확정된 뒤 같은 방향 표본만 나눈 복기용입니다. 평균 범위와도 계산식·의미가 다릅니다.</li>
-        <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 지연 시세를 한 번 요청합니다. 60초 중복 요청 제한이 있으며 백그라운드·주기 갱신은 하지 않습니다.</li>
+        <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 지연 시세를 한 번 요청합니다. 시가 유무와 관계없이 일반 반복 요청은 최대 10초만 막고, 공급자 429 제한은 최소 60초 이상 따로 지킵니다. 백그라운드·주기 갱신은 하지 않습니다.</li>
         <li>MNQ=F는 실제 월물이 아닌 MNQ 연속선물 프록시이며 약 10분 지연될 수 있습니다. NQ=F 대체 프록시, 25분을 넘긴 가격, 검증 실패값과 저장된 이전값은 표시만 하고 자동 계산을 중지합니다.</li>
         <li>CME 세션은 America/Chicago 17:00~익일 16:00을 서머타임 포함해 재구성하며, 5분 ATR은 완료된 봉만 사용한 Wilder ATR(14)입니다.</li>
         <li>MNQ 계약 승수는 $2/point, 최소호가는 0.25 point ($0.50/계약)입니다. <a href="https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html" target="_blank" rel="noopener noreferrer">CME 공식 명세 ↗</a></li>

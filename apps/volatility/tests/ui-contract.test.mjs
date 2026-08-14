@@ -44,6 +44,7 @@ test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않
 test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분리한다", () => {
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
+  const styles = read("apps/volatility/styles.css");
   assert.match(html, /장중 실전 기본선/);
   assert.match(html, /종가 방향을 모르는 상태의 전체 거래일 기준/);
   assert.match(html, /평균 H−L 범위 예산/);
@@ -53,10 +54,23 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(html, /장중 기본 하락선 · OOS/);
   assert.match(html, /양봉 마감 조건부 복기선 · OOS/);
   assert.match(html, /음봉 마감 조건부 복기선 · OOS/);
+  assert.match(html, /id="referenceOpenPrice"/);
+  assert.match(html, /id="bullMeanPrice"/);
+  assert.match(html, /id="bearMeanPrice"/);
+  assert.match(html, /id="bullLivePrice"/);
+  assert.match(html, /id="bearLivePrice"/);
+  assert.match(html, /id="bullConditionalPrice"/);
+  assert.match(html, /id="bearConditionalPrice"/);
+  assert.match(html, /시가 환산 참고선 · 범위 예산 · 목표가 아님/);
+  assert.match(html, /마감 후 복기용/);
   assert.match(html, /과거 가격선 도달률이지 매매 성공률이 아닙니다/);
   assert.match(html, /도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다/);
   assert.match(app, /REFERENCE\.exAnte\.up\.safePercent/);
   assert.match(app, /REFERENCE\.exAnte\.down\.safePercent/);
+  assert.match(app, /renderReferencePrices\(assessment\.usable \? market : null\)/);
+  assert.match(app, /calculateSafeReachScenario\(market, row\.direction, row\.percent\(\)\)/);
+  assert.match(styles, /\.reference-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
+  assert.match(styles, /@media \(max-width: 900px\)[\s\S]*?\.reference-card \{ order: -1; \}/);
   assert.match(app, /최근 52주 OOS/);
   assert.doesNotMatch(html, /1\.409%.*안전측/);
 });
@@ -65,9 +79,12 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
   const policy = read("apps/volatility/js/snapshot-policy.js");
+  const guard = read("apps/volatility/js/request-guard.js");
   assert.match(html, /오늘 시세 새로고침/);
   assert.match(html, /class="topbar-actions"/);
   assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만/);
+  assert.match(html, /시가 유무와 관계없이 일반 반복 요청은 최대 10초만 막고/);
+  assert.match(html, /공급자 429 제한은 최소 60초 이상 따로 지킵니다/);
   assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
   assert.match(html, /제공자 가격시각/);
   assert.match(html, /이번 조회시각/);
@@ -82,6 +99,9 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /id="positionAtr"[^>]+step="any"/);
   assert.doesNotMatch(html, /자동 시세 새로고침|실시간 시세|LIVE DEFAULT/);
   assert.match(app, /REQUEST_COOLDOWN_MS/);
+  assert.doesNotMatch(app, /hasUsableQuote/);
+  assert.match(guard, /requestedAt = Math\.max\(memoryAt, storedAt\)/);
+  assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
   assert.match(app, /fetchYahooSnapshot\(fetch, new Date\(\), \{\s*timeoutMs: REQUEST_DEADLINE_MS\s*\}\)/);
   assert.match(app, /forceLockReason: reason/);
@@ -117,7 +137,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.2\.0-volatility-quote-refresh\.1/);
+  assert.match(sw, /v3\.3\.0-volatility-reference-grid\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

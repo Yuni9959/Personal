@@ -40,8 +40,17 @@ const els = {
   bullMeanReference: $("#bullMeanReference"), bullSafeReference: $("#bullSafeReference"),
   bearMeanReference: $("#bearMeanReference"), bearSafeReference: $("#bearSafeReference"),
   bullLiveLabel: $("#bullLiveLabel"), bearLiveLabel: $("#bearLiveLabel"),
+  bullReferenceConditionalLabel: $("#bullReferenceConditionalLabel"),
+  bearReferenceConditionalLabel: $("#bearReferenceConditionalLabel"),
   bullConditionalLabel: $("#bullConditionalLabel"), bearConditionalLabel: $("#bearConditionalLabel"),
-  referencePeriod: $("#referencePeriod"),
+  bullConditionalReference: $("#bullConditionalReference"), bearConditionalReference: $("#bearConditionalReference"),
+  referenceOpenPrice: $("#referenceOpenPrice"), referencePeriod: $("#referencePeriod"),
+  bullMeanMove: $("#bullMeanMove"), bullMeanPrice: $("#bullMeanPrice"),
+  bearMeanMove: $("#bearMeanMove"), bearMeanPrice: $("#bearMeanPrice"),
+  bullLiveMove: $("#bullLiveMove"), bullLivePrice: $("#bullLivePrice"),
+  bearLiveMove: $("#bearLiveMove"), bearLivePrice: $("#bearLivePrice"),
+  bullConditionalMove: $("#bullConditionalMove"), bullConditionalPrice: $("#bullConditionalPrice"),
+  bearConditionalMove: $("#bearConditionalMove"), bearConditionalPrice: $("#bearConditionalPrice"),
   operationalUpPercent: $("#operationalUpPercent"), operationalDownPercent: $("#operationalDownPercent"),
   operationalUpLabel: $("#operationalUpLabel"), operationalDownLabel: $("#operationalDownLabel"),
   operationalUpLine: $("#operationalUpLine"), operationalDownLine: $("#operationalDownLine"),
@@ -82,6 +91,7 @@ const state = {
   autoAtr: null,
   calculationAllowed: false,
   lastRequestAt: 0,
+  rateLimitUntil: 0,
   forceLockReason: "",
   positionAtrBinding: { identity: "", source: "", sourceBarAt: "", capturedAt: "" },
   expiryTimer: null,
@@ -244,6 +254,52 @@ function formatPercent(value, digits = 3) {
     : "—";
 }
 
+const referencePriceRows = Object.freeze([
+  Object.freeze({
+    direction: "bull", percent: () => REFERENCE.directions.bull.rangeMeanPercent,
+    move: () => els.bullMeanMove, price: () => els.bullMeanPrice
+  }),
+  Object.freeze({
+    direction: "bear", percent: () => REFERENCE.directions.bear.rangeMeanPercent,
+    move: () => els.bearMeanMove, price: () => els.bearMeanPrice
+  }),
+  Object.freeze({
+    direction: "bull", percent: () => REFERENCE.exAnte.up.safePercent,
+    move: () => els.bullLiveMove, price: () => els.bullLivePrice
+  }),
+  Object.freeze({
+    direction: "bear", percent: () => REFERENCE.exAnte.down.safePercent,
+    move: () => els.bearLiveMove, price: () => els.bearLivePrice
+  }),
+  Object.freeze({
+    direction: "bull", percent: () => REFERENCE.directions.bull.safePercent,
+    move: () => els.bullConditionalMove, price: () => els.bullConditionalPrice
+  }),
+  Object.freeze({
+    direction: "bear", percent: () => REFERENCE.directions.bear.safePercent,
+    move: () => els.bearConditionalMove, price: () => els.bearConditionalPrice
+  })
+]);
+
+function renderReferencePrices(market = null) {
+  if (!market) {
+    els.referenceOpenPrice.textContent = "—";
+    for (const row of referencePriceRows) {
+      row.move().textContent = "—";
+      row.price().textContent = "—";
+    }
+    return;
+  }
+
+  els.referenceOpenPrice.textContent = formatNumber(market.open);
+  for (const row of referencePriceRows) {
+    const scenario = calculateSafeReachScenario(market, row.direction, row.percent());
+    const sign = row.direction === "bull" ? "+" : "−";
+    row.move().textContent = `${sign}${formatNumber(scenario.movePoints, " pt")}`;
+    row.price().textContent = formatNumber(scenario.priceLine);
+  }
+}
+
 function renderScenario(kind, average, safe, reference, current) {
   const target = scenarioEls[kind];
   target.meanPercent.textContent = formatPercent(reference.rangeMeanPercent);
@@ -329,6 +385,7 @@ function renderMarket() {
   state.assessment = assessment;
   state.calculationAllowed = assessment.usable;
   setStatus(state.snapshot, assessment);
+  renderReferencePrices(assessment.usable ? market : null);
   els.openPrice.textContent = assessment.usable ? formatNumber(market.open) : "—";
   els.highPrice.textContent = assessment.usable ? formatNumber(market.high) : "—";
   els.lowPrice.textContent = assessment.usable ? formatNumber(market.low) : "—";
@@ -415,12 +472,23 @@ function cooldownRemainingMs(now = Date.now()) {
 }
 
 function rateLimitRemainingMs(now = Date.now()) {
+  const persistedUntil = Number(readJson(RATE_LIMIT_UNTIL_KEY, 0));
+  const effectiveUntil = Math.max(
+    Number.isFinite(Number(state.rateLimitUntil)) ? Number(state.rateLimitUntil) : 0,
+    Number.isFinite(persistedUntil) ? persistedUntil : 0
+  );
   const decision = calculateRateLimitBackoff({
     now,
-    storedUntil: readJson(RATE_LIMIT_UNTIL_KEY, 0)
+    storedUntil: effectiveUntil
   });
-  if (decision.rebaseAt !== null) writeJson(RATE_LIMIT_UNTIL_KEY, decision.rebaseAt);
+  if (decision.rebaseAt !== null) {
+    state.rateLimitUntil = decision.rebaseAt;
+    writeJson(RATE_LIMIT_UNTIL_KEY, decision.rebaseAt);
+  } else if (decision.remainingMs > 0) {
+    state.rateLimitUntil = effectiveUntil;
+  }
   if (decision.remainingMs === 0) {
+    state.rateLimitUntil = 0;
     try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
     catch { /* An expired backoff is harmless if private storage rejects cleanup. */ }
   }
@@ -436,10 +504,11 @@ function requestFailureReason(error) {
       retryAt: error.metadata.retryAt
     });
     if (until > now) {
+      state.rateLimitUntil = until;
       writeJson(RATE_LIMIT_UNTIL_KEY, until);
       return `시세 중계 요청이 제한됐습니다. ${Math.ceil((until - now) / 1000)}초 후 사용자가 다시 눌러 주세요.`;
     }
-    return "시세 중계 요청이 제한됐습니다. 60초 후 사용자가 다시 눌러 주세요.";
+    return "시세 중계 요청이 제한됐습니다. 잠시 후 사용자가 다시 눌러 주세요.";
   }
   if (error?.name === "AbortError") {
     return "시세 중계가 15초 안에 응답하지 않아 중지했습니다.";
@@ -464,6 +533,7 @@ function showNoUsableSnapshot(message) {
   state.scenarios = null;
   state.operational = null;
   state.autoAtr = null;
+  renderReferencePrices();
   state.forceLockReason = "";
   clearManualQuoteInputs();
   els.useAutoAtrBtn.disabled = true;
@@ -519,7 +589,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
     if (state.assessment?.usable) {
       setStatus(state.snapshot, state.assessment);
     } else {
-      const reason = waitingForProvider ? "시세 중계 호출 제한 대기 중입니다." : "60초 중복 조회 방지 대기 중입니다.";
+      const reason = waitingForProvider ? "시세 중계 호출 제한 대기 중입니다." : "10초 중복 조회 방지 대기 중입니다.";
       await showLockedFallback(`${reason} ${seconds}초 후 다시 확인하세요.`);
     }
     setRefreshBusy(false);
@@ -534,6 +604,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       timeoutMs: REQUEST_DEADLINE_MS
     }));
     const assessment = assessSnapshot(snapshot);
+    state.rateLimitUntil = 0;
     try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
     catch { /* Successful data is already verified; stale backoff cleanup is best-effort. */ }
     state.transientNotice = trigger === "load"
@@ -560,6 +631,14 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
 async function refreshMarket(options = {}) {
   const result = await withExclusiveRequest(() => refreshMarketUnlocked(options));
   if (result.acquired) return result.value;
+  if (["storage-unavailable", "clock-unavailable"].includes(result.reason)) {
+    state.transientNotice = "요청 보호 저장소를 확인할 수 없어 자동 시세 조회를 보내지 않았습니다.";
+    if (state.snapshot) renderMarket();
+    else showNoUsableSnapshot("요청 보호 저장소를 사용할 수 없어 자동 시세 조회를 중지했습니다. 수동 입력을 사용해 주세요.");
+    setRefreshBusy(false);
+    document.body.dataset.ready = "true";
+    return undefined;
+  }
   state.transientNotice = "다른 탭에서 이미 시세를 확인 중입니다. 중복 요청을 보내지 않았습니다.";
   if (state.snapshot) renderMarket();
   else showNoUsableSnapshot("다른 탭에서 시세를 확인 중입니다. 잠시 후 다시 눌러 주세요.");
@@ -797,12 +876,16 @@ els.bullMeanReference.textContent = formatPercent(REFERENCE.directions.bull.rang
 els.bullSafeReference.textContent = formatPercent(REFERENCE.exAnte.up.safePercent);
 els.bearMeanReference.textContent = formatPercent(REFERENCE.directions.bear.rangeMeanPercent);
 els.bearSafeReference.textContent = formatPercent(REFERENCE.exAnte.down.safePercent);
+els.bullConditionalReference.textContent = formatPercent(REFERENCE.directions.bull.safePercent);
+els.bearConditionalReference.textContent = formatPercent(REFERENCE.directions.bear.safePercent);
 els.bullLiveLabel.textContent = `장중 기본 상승선 · OOS ${formatPercent(REFERENCE.exAnte.up.walkForwardHitRate, 1)}`;
 els.bearLiveLabel.textContent = `장중 기본 하락선 · OOS ${formatPercent(REFERENCE.exAnte.down.walkForwardHitRate, 1)}`;
 els.operationalUpLabel.textContent = els.bullLiveLabel.textContent;
 els.operationalDownLabel.textContent = els.bearLiveLabel.textContent;
 els.bullConditionalLabel.textContent = `양봉 마감 조건부 복기선 · OOS ${formatPercent(REFERENCE.directions.bull.walkForwardHitRate, 1)}`;
 els.bearConditionalLabel.textContent = `음봉 마감 조건부 복기선 · OOS ${formatPercent(REFERENCE.directions.bear.walkForwardHitRate, 1)}`;
+els.bullReferenceConditionalLabel.textContent = els.bullConditionalLabel.textContent;
+els.bearReferenceConditionalLabel.textContent = els.bearConditionalLabel.textContent;
 els.referencePeriod.textContent = `${REFERENCE.effectiveFrom} ~ ${REFERENCE.effectiveThrough} · q25 · ${REFERENCE.sourceSymbol}`;
 const todayKst = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"

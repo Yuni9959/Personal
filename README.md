@@ -18,9 +18,9 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
 | 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 `대학 입학정보` |
 | Volatility 시세 | 페이지 진입·버튼 클릭 때만 Jina Reader를 거쳐 Yahoo CME 약 10분 지연 `MNQ=F` 프록시를 단발 조회; 예약·자동·백그라운드 폴링 없음 |
-| 자동 검증 | `npm run test:release` 성공 — Node 175/175 및 Chromium·오프라인·320/390px 검증 통과 |
+| 자동 검증 | `npm run test:release` 성공 — Node 184/184 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.2.0-volatility-quote-refresh.1` — Vercel 입구와 요청형 Volatility 시세 수정 정적 자산 cache-first |
+| PWA 캐시 | `v3.3.0-volatility-reference-grid.1` — Volatility 첫 화면 2열 기준표와 10초 일반 재조회 정책 정적 자산 cache-first |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -40,6 +40,13 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 않습니다. 화면의 모든 도달률과 포지션
 손익은 가격 임계선 시나리오이지 거래 성공률·목표가·통계적 기대수익이
 아닙니다.
+
+Volatility에 들어오면 첫 화면의 **이번 주 고정 기준** 2열 표에서 검증된 오늘
+시가와 함께 상승·하락 방향의 평균 범위, 장중 기본선, 마감 조건부 복기선을
+각각 `% / 시가 대비 pt / 시가 환산 가격`으로 바로 확인할 수 있습니다. 평균의
+가격 표시는 범위 예산을 시가에 환산한 참고선이지 방향 목표가가 아니며,
+조건부 선은 마감 방향을 안 뒤의 복기 전용입니다. 유효한 오늘 시가가 없거나
+시세가 만료되면 모든 pt·가격은 `—`로 잠깁니다.
 
 ## 핵심 구조
 
@@ -226,7 +233,11 @@ workflow는 `main` push 또는 수동 실행에서 정적 PWA만 배포합니다
 UTC 일요일~금요일 30분 예약 갱신과 배포 중 Yahoo 호출은 제거했습니다.
 Volatility 페이지는 최초 진입 또는 사용자가 **오늘 시세 새로고침** 버튼을 누를
 때만 [Jina Reader](https://jina.ai/reader/)를 통해 `MNQ=F` 지연 프록시를
-best-effort로 조회하며, 60초 cooldown 동안 반복 호출을 막습니다. focus나
+best-effort로 조회하며, 시가 유무와 관계없이 일반 반복 호출은 최대 10초
+cooldown 동안 막습니다. 이 짧은 제한은 새로고침·다른 탭에도 유지해 중복 호출과
+시스템 시계 rollback 우회를 막습니다. 공급자 429 응답은 이와 별도로 최소
+60초, 최대 15분의 지시된 대기를 유지합니다. 이 보호 상태를 보존할 로컬
+저장소 검증이 실패하면 자동 요청을 보내지 않고 수동 입력으로 전환합니다. focus나
 pageshow에서도 네트워크를 다시 요청하지 않으며, 원천시각이 25분을 넘으면
 fail-closed합니다. 완료 5분봉이 정확히 1개 누락됐어도 H/L/current/시각의
 공급자 메타 교차검증을 통과하면 가격 계산은 유지하고 ATR만 잠급니다. 시가는
