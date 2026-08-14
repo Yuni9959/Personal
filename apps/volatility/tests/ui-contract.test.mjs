@@ -107,9 +107,11 @@ test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포�
 test("GitHub Pages workflow는 push·수동 실행 때만 비밀키 없이 정적 앱을 배포한다", () => {
   const workflow = read(".github/workflows/deploy-pages.yml");
   assert.match(workflow, /workflow_dispatch:/);
-  assert.match(workflow, /actions\/upload-pages-artifact@v4/);
-  assert.match(workflow, /actions\/deploy-pages@v4/);
-  assert.match(workflow, /actions\/setup-node@v4/);
+  assert.match(workflow, /actions\/checkout@v7/);
+  assert.match(workflow, /actions\/upload-pages-artifact@v5/);
+  assert.match(workflow, /actions\/deploy-pages@v5/);
+  assert.match(workflow, /actions\/setup-node@v7/);
+  assert.match(workflow, /actions\/configure-pages@v6/);
   assert.match(workflow, /run: npm run test:release/);
   assert.doesNotMatch(workflow, /\bschedule:/);
   assert.doesNotMatch(workflow, /update-market-data\.mjs/);
