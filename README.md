@@ -19,7 +19,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `Volatility` — MNQ 평균 범위·안전측 도달선, 포지션·P6/P7 점검 |
 | Volatility 시세 | 페이지 진입·버튼 클릭 때만 Yahoo CME 약 10분 지연 프록시를 조회; 예약·백그라운드 갱신 없음 |
 | 자동 검증 | `npm run test:release` 성공 — Node 142/142 및 Chromium·오프라인·320/390px 검증 통과 |
-| 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안 |
+| 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
 | PWA 캐시 | `v3.0.1-security-efficiency.1` — 버전 정적 자산 cache-first |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형

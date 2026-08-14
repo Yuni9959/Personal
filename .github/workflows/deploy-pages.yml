@@ -24,6 +24,8 @@ jobs:
           node-version: 22
       - name: Verify static application
         run: npm run test:release
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
       - name: Stage static site
         run: |
           mkdir _site

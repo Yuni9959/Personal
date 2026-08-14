@@ -352,6 +352,7 @@ async function run() {
   const browser = spawn(browserPath, [
     "--headless",
     "--disable-gpu",
+    "--disable-dev-shm-usage",
     "--no-sandbox",
     "--no-first-run",
     "--no-default-browser-check",

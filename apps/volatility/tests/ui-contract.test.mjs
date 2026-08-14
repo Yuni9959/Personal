@@ -119,6 +119,7 @@ test("GitHub Pages workflow는 push·수동 실행 때만 비밀키 없이 정�
   ]) assert.ok(workflow.includes(action), action);
   assert.doesNotMatch(workflow, /uses:\s+[^\s]+@v\d+/);
   assert.match(workflow, /run: npm run test:release/);
+  assert.match(workflow, /CHROMIUM_PATH:\s+\/usr\/bin\/google-chrome/);
   assert.doesNotMatch(workflow, /\bschedule:/);
   assert.doesNotMatch(workflow, /update-market-data\.mjs/);
   assert.doesNotMatch(workflow, /\bsecrets\./);
