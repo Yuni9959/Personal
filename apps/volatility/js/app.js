@@ -10,7 +10,9 @@ import { fetchYahooSnapshot } from "./market-provider.js";
 import {
   REQUEST_COOLDOWN_MS,
   REQUEST_DEADLINE_MS,
+  calculateRateLimitBackoff,
   calculateCooldown,
+  rateLimitUntilFromMetadata,
   withExclusiveRequest
 } from "./request-guard.js";
 import {
@@ -22,6 +24,7 @@ import {
 
 const SNAPSHOT_CACHE_KEY = "personal-tap-volatility-snapshot-v1";
 const LAST_REQUEST_KEY = "personal-tap-volatility-last-request-v1";
+const RATE_LIMIT_UNTIL_KEY = "personal-tap-volatility-rate-limit-until-v1";
 const LEGACY_MANUAL_KEY = "personal-tap-volatility-manual-v1";
 const POSITION_KEY = "personal-tap-volatility-position-v1";
 const RISK_KEY = "personal-tap-volatility-risk-v1";
@@ -36,8 +39,11 @@ const els = {
   automaticCalculations: $("#automaticCalculations"), calculationLock: $("#calculationLock"),
   bullMeanReference: $("#bullMeanReference"), bullSafeReference: $("#bullSafeReference"),
   bearMeanReference: $("#bearMeanReference"), bearSafeReference: $("#bearSafeReference"),
+  bullLiveLabel: $("#bullLiveLabel"), bearLiveLabel: $("#bearLiveLabel"),
+  bullConditionalLabel: $("#bullConditionalLabel"), bearConditionalLabel: $("#bearConditionalLabel"),
   referencePeriod: $("#referencePeriod"),
   operationalUpPercent: $("#operationalUpPercent"), operationalDownPercent: $("#operationalDownPercent"),
+  operationalUpLabel: $("#operationalUpLabel"), operationalDownLabel: $("#operationalDownLabel"),
   operationalUpLine: $("#operationalUpLine"), operationalDownLine: $("#operationalDownLine"),
   operationalUpState: $("#operationalUpState"), operationalDownState: $("#operationalDownState"),
   operationalUpHitRate: $("#operationalUpHitRate"), operationalDownHitRate: $("#operationalDownHitRate"),
@@ -172,27 +178,56 @@ function delayDescription(snapshot, assessment) {
   }
   if (assessment.ageMinutes === null) return "시각 확인 불가 · 계산 중지";
   const age = `${Math.max(0, Math.round(assessment.ageMinutes))}분 전 가격`;
-  return assessment.usable ? `${age} · 약 10분 지연 참고` : `${age} · 계산 중지`;
+  const delayLabel = snapshot?.provider?.delayMetadataVerified === false
+    ? "지연시간 메타 없음 · 원천시각 기준"
+    : "약 10분 지연 참고";
+  return assessment.usable ? `${age} · ${delayLabel}` : `${age} · 계산 중지`;
+}
+
+function setCompactDataStatus(key, text) {
+  els.dataStatus.dataset.state = key;
+  els.dataStatus.textContent = text;
+}
+
+function setRefreshBusy(busy) {
+  els.refreshBtn.disabled = busy;
+  els.refreshBtn.setAttribute("aria-busy", String(busy));
+}
+
+function barQualityNotice(snapshot, assessment) {
+  const provider = snapshot?.provider || {};
+  const missingCount = Number(provider.missingInteriorBucketCount || 0);
+  if (!assessment.usable || snapshot?.mode === "manual" ||
+      provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
+  return provider.regularMarketOpenMetadataAvailable
+    ? "5분봉 1개 결손 · 일중 O/H/L/현재가·시각은 공급자 메타와 교차검증 · ATR/손절 자동 계산 중지"
+    : "5분봉 1개 결손 · H/L/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR/손절 자동 계산 중지";
 }
 
 function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
   const isActiveManual = snapshot?.mode === "manual" && assessment.usable;
-  els.dataStatus.dataset.state = assessment.key;
-  const age = assessment.ageMinutes === null ? "" : ` · ${Math.max(0, Math.round(assessment.ageMinutes))}분 전 가격`;
-  els.dataStatus.textContent = isActiveManual
-    ? "수동 입력"
-    : assessment.usable
-      ? `요청 시 지연 시세${age}`
-      : `이전 데이터 · 계산 중지${age}`;
+  const ageMinutes = assessment.ageMinutes === null
+    ? null
+    : Math.max(0, Math.round(assessment.ageMinutes));
+  if (isActiveManual) setCompactDataStatus("manual", "수동 입력");
+  else if (assessment.usable) setCompactDataStatus("delayed", "시세 사용 가능");
+  else if (assessment.key === "stale") setCompactDataStatus("stale", "시세 만료");
+  else setCompactDataStatus("error", "시세 없음");
   els.dataNotice.className = "notice";
   if (isActiveManual) {
     els.dataNotice.textContent = "수동 입력값으로 계산 중입니다. 주문 전 실제 월물 시세와 다시 대조하세요.";
   } else if (!assessment.usable) {
     els.dataNotice.classList.add(assessment.key === "error" ? "error" : "warning");
-    els.dataNotice.textContent = `${assessment.reason} 표시된 값은 이전 참고값이며 시나리오·포지션 계산에는 사용하지 않습니다.`;
+    const ageDetail = ageMinutes === null ? "" : ` 마지막 참고 가격은 ${ageMinutes}분 전 값입니다.`;
+    els.dataNotice.textContent = `${assessment.reason}${ageDetail} 현재 시세 숫자는 숨겼으며 이전값을 시나리오·포지션 계산에 사용하지 않습니다.`;
   } else {
-    els.dataNotice.textContent = "사용자가 요청할 때만 조회한 Yahoo 약 10분 지연 MNQ 연속선물 프록시입니다. 실제 월물·증권사 시세와 확인한 후에만 사용하세요.";
+    const delayLabel = snapshot?.provider?.delayMetadataVerified === false
+      ? "지연시간 메타가 없어 원천 관측시각으로만 신규도를 판정한"
+      : "약 10분 지연";
+    els.dataNotice.textContent = `사용자가 요청할 때만 조회한 Yahoo ${delayLabel} MNQ 연속선물 프록시입니다. 실제 월물·증권사 시세와 확인한 후에만 사용하세요.`;
   }
+  const qualityNotice = barQualityNotice(snapshot, assessment);
+  if (qualityNotice) els.dataNotice.textContent += ` ${qualityNotice}`;
   if (state.transientNotice) els.dataNotice.textContent += ` ${state.transientNotice}`;
 }
 
@@ -294,10 +329,10 @@ function renderMarket() {
   state.assessment = assessment;
   state.calculationAllowed = assessment.usable;
   setStatus(state.snapshot, assessment);
-  els.openPrice.textContent = formatNumber(market.open);
-  els.highPrice.textContent = formatNumber(market.high);
-  els.lowPrice.textContent = formatNumber(market.low);
-  els.currentPrice.textContent = formatNumber(market.current);
+  els.openPrice.textContent = assessment.usable ? formatNumber(market.open) : "—";
+  els.highPrice.textContent = assessment.usable ? formatNumber(market.high) : "—";
+  els.lowPrice.textContent = assessment.usable ? formatNumber(market.low) : "—";
+  els.currentPrice.textContent = assessment.usable ? formatNumber(market.current) : "—";
   els.atrValue.textContent = assessment.usable ? formatNumber(market.atr5m14, " pt") : "—";
   els.symbolLabel.textContent = `${providerDescription(state.snapshot)} · ${state.snapshot.session?.label || "수동 세션"}`;
   els.barUpdateText.textContent = formatDate(market.latestBarAt);
@@ -379,6 +414,39 @@ function cooldownRemainingMs(now = Date.now()) {
   return decision.remainingMs;
 }
 
+function rateLimitRemainingMs(now = Date.now()) {
+  const decision = calculateRateLimitBackoff({
+    now,
+    storedUntil: readJson(RATE_LIMIT_UNTIL_KEY, 0)
+  });
+  if (decision.rebaseAt !== null) writeJson(RATE_LIMIT_UNTIL_KEY, decision.rebaseAt);
+  if (decision.remainingMs === 0) {
+    try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
+    catch { /* An expired backoff is harmless if private storage rejects cleanup. */ }
+  }
+  return decision.remainingMs;
+}
+
+function requestFailureReason(error) {
+  if (error?.metadata?.code === "rate-limited") {
+    const now = Date.now();
+    const until = rateLimitUntilFromMetadata({
+      now,
+      retryAfterSeconds: error.metadata.retryAfterSeconds,
+      retryAt: error.metadata.retryAt
+    });
+    if (until > now) {
+      writeJson(RATE_LIMIT_UNTIL_KEY, until);
+      return `시세 중계 요청이 제한됐습니다. ${Math.ceil((until - now) / 1000)}초 후 사용자가 다시 눌러 주세요.`;
+    }
+    return "시세 중계 요청이 제한됐습니다. 60초 후 사용자가 다시 눌러 주세요.";
+  }
+  if (error?.name === "AbortError") {
+    return "시세 중계가 15초 안에 응답하지 않아 중지했습니다.";
+  }
+  return "새 Yahoo 지연 시세 요청이 실패했습니다.";
+}
+
 function loadFallbackSnapshot() {
   const local = readJson(SNAPSHOT_CACHE_KEY);
   if (local) {
@@ -400,8 +468,7 @@ function showNoUsableSnapshot(message) {
   clearManualQuoteInputs();
   els.useAutoAtrBtn.disabled = true;
   state.autoAtr = null;
-  els.dataStatus.dataset.state = "error";
-  els.dataStatus.textContent = "지연 시세 없음 · 계산 중지";
+  setCompactDataStatus("error", "시세 없음");
   els.dataNotice.className = "notice error";
   els.dataNotice.textContent = message;
   els.delayText.textContent = "조회 실패 · 계산 중지";
@@ -433,13 +500,18 @@ async function showLockedFallback(reason) {
 }
 
 async function refreshMarketUnlocked({ trigger = "load" } = {}) {
-  els.refreshBtn.disabled = true;
-  els.refreshBtn.textContent = "지연 시세 확인 중…";
+  setRefreshBusy(true);
+  setCompactDataStatus("loading", "조회 중");
   state.transientNotice = "";
-  const remaining = cooldownRemainingMs();
+  const cooldownRemaining = cooldownRemainingMs();
+  const backoffRemaining = rateLimitRemainingMs();
+  const remaining = Math.max(cooldownRemaining, backoffRemaining);
   if (remaining > 0) {
     const seconds = Math.ceil(remaining / 1000);
-    state.transientNotice = `반복 요청을 줄이기 위해 ${seconds}초 후 다시 확인할 수 있습니다.`;
+    const waitingForProvider = backoffRemaining >= cooldownRemaining && backoffRemaining > 0;
+    state.transientNotice = waitingForProvider
+      ? `시세 중계 호출 제한에 따라 ${seconds}초 후 다시 확인할 수 있습니다.`
+      : `반복 요청을 줄이기 위해 ${seconds}초 후 다시 확인할 수 있습니다.`;
     // Re-evaluate the source timestamp before reusing any visible calculation.
     // A wall-clock jump or an expiry boundary must lock immediately instead of
     // waiting for the next scheduled freshness check.
@@ -447,10 +519,10 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
     if (state.assessment?.usable) {
       setStatus(state.snapshot, state.assessment);
     } else {
-      await showLockedFallback(`60초 중복 조회 방지 대기 중입니다. ${seconds}초 후 다시 확인하세요.`);
+      const reason = waitingForProvider ? "시세 중계 호출 제한 대기 중입니다." : "60초 중복 조회 방지 대기 중입니다.";
+      await showLockedFallback(`${reason} ${seconds}초 후 다시 확인하세요.`);
     }
-    els.refreshBtn.disabled = false;
-    els.refreshBtn.textContent = "요청 시 지연 시세 확인";
+    setRefreshBusy(false);
     document.body.dataset.ready = "true";
     return;
   }
@@ -462,23 +534,25 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       timeoutMs: REQUEST_DEADLINE_MS
     }));
     const assessment = assessSnapshot(snapshot);
+    try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
+    catch { /* Successful data is already verified; stale backoff cleanup is best-effort. */ }
     state.transientNotice = trigger === "load"
       ? "이 화면을 열어 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
       : "버튼 요청으로 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
     applySnapshot(snapshot, { cache: assessment.usable });
-  } catch {
+  } catch (error) {
+    const failureReason = requestFailureReason(error);
     // Manual input may remain usable after a network failure, but its 25-minute
     // freshness contract is checked again at the exact failure boundary.
     if (state.snapshot?.mode === "manual") renderMarket();
     if (state.snapshot?.mode === "manual" && state.assessment?.usable) {
-      state.transientNotice = "지연 시세 요청이 네트워크·CORS·호출 제한으로 실패해 수동 확인값을 유지합니다.";
+      state.transientNotice = `${failureReason} 수동 확인값을 유지합니다.`;
       setStatus(state.snapshot, state.assessment);
     } else {
-      await showLockedFallback("새 Yahoo 지연 시세 요청이 실패했습니다. 이전 값으로 자동 계산하지 않습니다.");
+      await showLockedFallback(`${failureReason} 이전 값으로 자동 계산하지 않습니다.`);
     }
   } finally {
-    els.refreshBtn.disabled = false;
-    els.refreshBtn.textContent = "요청 시 지연 시세 확인";
+    setRefreshBusy(false);
     document.body.dataset.ready = "true";
   }
 }
@@ -489,8 +563,7 @@ async function refreshMarket(options = {}) {
   state.transientNotice = "다른 탭에서 이미 시세를 확인 중입니다. 중복 요청을 보내지 않았습니다.";
   if (state.snapshot) renderMarket();
   else showNoUsableSnapshot("다른 탭에서 시세를 확인 중입니다. 잠시 후 다시 눌러 주세요.");
-  els.refreshBtn.disabled = false;
-  els.refreshBtn.textContent = "요청 시 지연 시세 확인";
+  setRefreshBusy(false);
   document.body.dataset.ready = "true";
   return undefined;
 }
@@ -724,6 +797,12 @@ els.bullMeanReference.textContent = formatPercent(REFERENCE.directions.bull.rang
 els.bullSafeReference.textContent = formatPercent(REFERENCE.exAnte.up.safePercent);
 els.bearMeanReference.textContent = formatPercent(REFERENCE.directions.bear.rangeMeanPercent);
 els.bearSafeReference.textContent = formatPercent(REFERENCE.exAnte.down.safePercent);
+els.bullLiveLabel.textContent = `장중 기본 상승선 · OOS ${formatPercent(REFERENCE.exAnte.up.walkForwardHitRate, 1)}`;
+els.bearLiveLabel.textContent = `장중 기본 하락선 · OOS ${formatPercent(REFERENCE.exAnte.down.walkForwardHitRate, 1)}`;
+els.operationalUpLabel.textContent = els.bullLiveLabel.textContent;
+els.operationalDownLabel.textContent = els.bearLiveLabel.textContent;
+els.bullConditionalLabel.textContent = `양봉 마감 조건부 복기선 · OOS ${formatPercent(REFERENCE.directions.bull.walkForwardHitRate, 1)}`;
+els.bearConditionalLabel.textContent = `음봉 마감 조건부 복기선 · OOS ${formatPercent(REFERENCE.directions.bear.walkForwardHitRate, 1)}`;
 els.referencePeriod.textContent = `${REFERENCE.effectiveFrom} ~ ${REFERENCE.effectiveThrough} · q25 · ${REFERENCE.sourceSymbol}`;
 const todayKst = new Intl.DateTimeFormat("en-CA", {
   timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"

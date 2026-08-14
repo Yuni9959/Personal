@@ -49,6 +49,11 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(html, /평균 H−L 범위 예산/);
   assert.match(html, /조건부 안전측 상승폭/);
   assert.match(html, /조건부 안전측 하락폭/);
+  assert.match(html, /장중 기본 상승선 · OOS/);
+  assert.match(html, /장중 기본 하락선 · OOS/);
+  assert.match(html, /양봉 마감 조건부 복기선 · OOS/);
+  assert.match(html, /음봉 마감 조건부 복기선 · OOS/);
+  assert.match(html, /과거 가격선 도달률이지 매매 성공률이 아닙니다/);
   assert.match(html, /도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다/);
   assert.match(app, /REFERENCE\.exAnte\.up\.safePercent/);
   assert.match(app, /REFERENCE\.exAnte\.down\.safePercent/);
@@ -60,8 +65,9 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
   const policy = read("apps/volatility/js/snapshot-policy.js");
-  assert.match(html, /요청 시 지연 시세 확인/);
-  assert.match(html, /페이지 최초 진입과 버튼을 누른 때에만/);
+  assert.match(html, /오늘 시세 새로고침/);
+  assert.match(html, /class="topbar-actions"/);
+  assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만/);
   assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
   assert.match(html, /제공자 가격시각/);
   assert.match(html, /이번 조회시각/);
@@ -69,7 +75,8 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /방금 영웅문 모바일에서/);
   assert.match(html, /id="manualConfirm"/);
   assert.match(html, /Content-Security-Policy/);
-  assert.match(html, /connect-src 'self' https:\/\/query1\.finance\.yahoo\.com/);
+  assert.match(html, /connect-src 'self' https:\/\/r\.jina\.ai/);
+  assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
   assert.match(html, /id="positionAtr"[^>]+step="any"/);
@@ -79,6 +86,13 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(app, /fetchYahooSnapshot\(fetch, new Date\(\), \{\s*timeoutMs: REQUEST_DEADLINE_MS\s*\}\)/);
   assert.match(app, /forceLockReason: reason/);
   assert.match(app, /clearManualQuoteInputs\(\)/);
+  assert.match(app, /setCompactDataStatus\("loading", "조회 중"\)/);
+  assert.match(app, /setCompactDataStatus\("delayed", "시세 사용 가능"\)/);
+  assert.match(app, /setCompactDataStatus\("stale", "시세 만료"\)/);
+  assert.match(app, /setCompactDataStatus\("error", "시세 없음"\)/);
+  assert.match(app, /setCompactDataStatus\("manual", "수동 입력"\)/);
+  assert.match(app, /assessment\.usable \? formatNumber\(market\.current\) : "—"/);
+  assert.match(app, /5분봉 1개 결손 · H\/L\/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR\/손절 자동 계산 중지/);
   assert.match(app, /scheduleExpiryCheck\(\)/);
   assert.match(app, /visibilitychange/);
   assert.match(app, /actualContractConfirmed: true/);
@@ -103,7 +117,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.1\.0-vercel-entry\.1/);
+  assert.match(sw, /v3\.2\.0-volatility-quote-refresh\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",
@@ -112,6 +126,7 @@ test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포�
   ]) assert.ok(sw.includes(`"${asset}"`), asset);
   assert.match(sw, /request\.url\.includes\("\/apps\/volatility\/"\)/);
   assert.match(sw, /const cached = await caches\.match\(request\);\s*if \(cached\) return cached;/);
+  assert.match(sw, /new Request\(asset, \{ cache: "reload" \}\)/);
   assert.doesNotMatch(sw, /apps\/volatility\/data\/market\.json/);
 });
 

@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.1.0-vercel-entry.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.2.0-volatility-quote-refresh.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -38,8 +38,12 @@ const CORE_ASSETS = [
 ];
 
 self.addEventListener("install", event => {
+  // A new cache name alone does not bypass the browser HTTP cache. GitHub
+  // Pages can keep old JS/CSS responses for several minutes, which could
+  // otherwise seed a brand-new CacheStorage with a mixed app version.
+  const freshCoreRequests = CORE_ASSETS.map(asset => new Request(asset, { cache: "reload" }));
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(CORE_ASSETS))
+    caches.open(CACHE_NAME).then(cache => cache.addAll(freshCoreRequests))
   );
 });
 

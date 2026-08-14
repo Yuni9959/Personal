@@ -1,11 +1,14 @@
 const CHICAGO_TIME_ZONE = "America/Chicago";
 const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"]);
-const YAHOO_HOST = "query1.finance.yahoo.com";
+const YAHOO_HOST = "query2.finance.yahoo.com";
+const JINA_READER_ORIGIN = "https://r.jina.ai";
 const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
 const BAR_SECONDS = 5 * 60;
-const DEFAULT_TIMEOUT_MS = 8000;
+const SOURCE_LOOKBACK_SECONDS = 2 * 24 * 60 * 60;
+const DEFAULT_TIMEOUT_MS = 15000;
+const MAX_TIMEOUT_MS = 15000;
 export const MAX_JSON_RESPONSE_BYTES = 512 * 1024;
 
 function abortError(message) {
@@ -34,7 +37,7 @@ function normalizeTimeout(timeoutMs) {
   if (!Number.isFinite(value) || value <= 0) {
     throw new TypeError("시세 요청 제한시간은 0보다 큰 밀리초여야 합니다.");
   }
-  return Math.min(value, 30000);
+  return Math.min(value, MAX_TIMEOUT_MS);
 }
 
 function createRequestContext(externalSignal, timeoutMs) {
@@ -144,7 +147,7 @@ function validateJsonResponse(response, referenceDate) {
       const guidance = retry.seconds === null
         ? "잠시 후 사용자가 다시 요청해 주세요."
         : `${retry.seconds}초 후 사용자가 다시 요청해 주세요.`;
-      throw providerError(`HTTP 429 · Yahoo 시세 요청이 제한됐습니다. ${guidance} 자동 재시도하지 않습니다.`, {
+      throw providerError(`HTTP 429 · 시세 중계 요청이 제한됐습니다. ${guidance} 자동 재시도하지 않습니다.`, {
         metadata: {
           code: "rate-limited",
           status: 429,
@@ -253,6 +256,89 @@ async function readBoundedJson(response) {
   }
 }
 
+function buildYahooSourceUrl(fetchedAt) {
+  const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
+  const period1 = period2 - SOURCE_LOOKBACK_SECONDS;
+  const url = new URL(`https://${YAHOO_HOST}/v8/finance/chart/${PRIMARY_SYMBOL}`);
+  url.searchParams.set("interval", "5m");
+  url.searchParams.set("period1", String(period1));
+  url.searchParams.set("period2", String(period2));
+  url.searchParams.set("includePrePost", "true");
+  url.searchParams.set("events", "div,splits");
+  return url;
+}
+
+function comparableSourceUrl(value) {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw providerError("Jina Reader 원본 URL이 올바르지 않습니다.", {
+      metadata: { code: "invalid-reader-source-url" }
+    });
+  }
+  if (url.protocol !== "https:" || url.username || url.password || url.hash) {
+    throw providerError("Jina Reader 원본 URL의 보안 경계가 올바르지 않습니다.", {
+      metadata: { code: "invalid-reader-source-url" }
+    });
+  }
+
+  const entries = [...url.searchParams.entries()]
+    .map(([key, item]) => [key, item])
+    .sort(([leftKey, leftValue], [rightKey, rightValue]) =>
+      leftKey.localeCompare(rightKey) || leftValue.localeCompare(rightValue));
+  return {
+    origin: url.origin,
+    pathname: url.pathname,
+    entries,
+    canonical: `${url.origin}${url.pathname}?${entries
+      .map(([key, item]) => `${encodeURIComponent(key)}=${encodeURIComponent(item)}`)
+      .join("&")}`
+  };
+}
+
+function parseReaderEnvelope(envelope, expectedSourceUrl) {
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope) ||
+      envelope.code !== 200 || envelope.status !== 200 ||
+      !envelope.data || typeof envelope.data !== "object" || Array.isArray(envelope.data)) {
+    throw providerError("Jina Reader JSON envelope 검증에 실패했습니다.", {
+      metadata: { code: "invalid-reader-envelope" }
+    });
+  }
+  if (Object.hasOwn(envelope.data, "httpStatus") && envelope.data.httpStatus !== 200) {
+    throw providerError("Jina Reader 원본 시세 응답 상태가 200이 아닙니다.", {
+      metadata: { code: "invalid-reader-source-status" }
+    });
+  }
+  if (typeof envelope.data.url !== "string" || typeof envelope.data.content !== "string") {
+    throw providerError("Jina Reader 원본 URL 또는 content가 올바르지 않습니다.", {
+      metadata: { code: "invalid-reader-envelope" }
+    });
+  }
+
+  const actual = comparableSourceUrl(envelope.data.url);
+  const expected = comparableSourceUrl(expectedSourceUrl.href);
+  if (actual.canonical !== expected.canonical) {
+    throw providerError("Jina Reader가 반환한 원본 URL이 고정 MNQ 요청과 일치하지 않습니다.", {
+      metadata: { code: "reader-source-url-mismatch" }
+    });
+  }
+
+  const contentBytes = new TextEncoder().encode(envelope.data.content).byteLength;
+  if (contentBytes > MAX_JSON_RESPONSE_BYTES) {
+    throw responseTooLargeError({ observedBytes: contentBytes });
+  }
+  let payload;
+  try {
+    payload = JSON.parse(envelope.data.content);
+  } catch {
+    throw providerError("Jina Reader content의 Yahoo JSON 형식이 올바르지 않습니다.", {
+      metadata: { code: "invalid-reader-content-json" }
+    });
+  }
+  return { payload, sourceUrl: actual.canonical };
+}
+
 function isTickAligned(value, tick = CME_EQUITY_TICK) {
   const units = value / tick;
   return Math.abs(units - Math.round(units)) <= 1e-6;
@@ -347,15 +433,18 @@ function validateYahooProvenance(meta) {
     throw new Error(`Yahoo 응답 거래소 시간대가 허용값이 아닙니다: ${meta.exchangeTimezoneName || "없음"}`);
   }
   if (meta.currency !== "USD") throw new Error(`Yahoo 응답 통화가 USD가 아닙니다: ${meta.currency || "없음"}`);
+  if (!Object.hasOwn(meta, "exchangeDataDelayedBy")) {
+    return { delayMinutes: null, delayMetadataVerified: false };
+  }
   if (typeof meta.exchangeDataDelayedBy !== "number" ||
       !Number.isFinite(meta.exchangeDataDelayedBy) ||
       meta.exchangeDataDelayedBy !== CME_DELAY_MINUTES) {
     throw new Error(`Yahoo 응답 지연시간이 검증된 ${CME_DELAY_MINUTES}분이 아닙니다: ${meta.exchangeDataDelayedBy ?? "없음"}`);
   }
-  return meta.exchangeDataDelayedBy;
+  return { delayMinutes: meta.exchangeDataDelayedBy, delayMetadataVerified: true };
 }
 
-function validBarFromQuote(quote, index, timestamp) {
+function sessionEntryFromQuote(quote, index, timestamp) {
   const bar = {
     at: new Date(timestamp * 1000),
     timestamp,
@@ -365,15 +454,18 @@ function validBarFromQuote(quote, index, timestamp) {
     low: finiteAt(quote.low, index),
     close: finiteAt(quote.close, index)
   };
-  if ([bar.open, bar.high, bar.low, bar.close].some(value => value === null)) {
-    throw new Error(`현재 CME 세션의 5분봉 OHLC가 누락되었습니다(index ${index}).`);
+  const missingCount = [bar.open, bar.high, bar.low, bar.close]
+    .filter(value => value === null).length;
+  if (missingCount === 4) return { ...bar, missing: true };
+  if (missingCount > 0) {
+    throw new Error(`현재 CME 세션의 5분봉 OHLC가 부분 누락되었습니다(index ${index}).`);
   }
   if (!Number.isFinite(bar.at.getTime()) ||
       [bar.open, bar.high, bar.low, bar.close].some(value => value <= 0 || !Number.isFinite(value) || !isTickAligned(value)) ||
       bar.high < Math.max(bar.open, bar.close) || bar.low > Math.min(bar.open, bar.close) || bar.high < bar.low) {
     throw new Error(`유효하지 않은 CME 5분봉입니다(index ${index}).`);
   }
-  return bar;
+  return { ...bar, missing: false };
 }
 
 function validateCurrentSession(timestamps, quote) {
@@ -386,39 +478,55 @@ function validateCurrentSession(timestamps, quote) {
     .filter(item => item.timestamp >= startSeconds && item.timestamp < endSeconds);
   if (!sessionIndexes.length) throw new Error("현재 CME 세션에 해당하는 5분봉이 없습니다.");
 
-  const rawBars = sessionIndexes.map(({ timestamp, index }) => validBarFromQuote(quote, index, timestamp));
-  if (rawBars[0].bucket !== startSeconds || rawBars[0].timestamp !== startSeconds) {
+  const rawEntries = sessionIndexes
+    .map(({ timestamp, index }) => sessionEntryFromQuote(quote, index, timestamp));
+  if (rawEntries[0].bucket !== startSeconds || rawEntries[0].timestamp !== startSeconds) {
     throw new Error("현재 CME 세션의 첫 5분봉이 없어 자동 계산을 중단합니다.");
   }
+  if (rawEntries[0].missing) throw new Error("현재 CME 세션의 첫 5분봉 OHLC가 완전히 누락되었습니다.");
+  if (rawEntries.at(-1).missing) throw new Error("현재 CME 세션의 마지막 5분봉 OHLC가 완전히 누락되었습니다.");
 
-  const bucketBars = [];
+  const bucketEntries = [];
   let syntheticSeen = false;
-  for (let index = 0; index < rawBars.length; index += 1) {
-    const bar = rawBars[index];
-    const isLast = index === rawBars.length - 1;
-    const aligned = bar.timestamp === bar.bucket;
+  let missingInteriorBucketCount = 0;
+  let missingInteriorBucketAt = null;
+  for (let index = 0; index < rawEntries.length; index += 1) {
+    const entry = rawEntries[index];
+    const isLast = index === rawEntries.length - 1;
+    const aligned = entry.timestamp === entry.bucket;
     if (!aligned && (!isLast || syntheticSeen)) {
       throw new Error("마지막 진행봉 이외에 5분 경계에 정렬되지 않은 시각이 있습니다.");
     }
     if (!aligned) syntheticSeen = true;
+    if (entry.missing) {
+      if (!aligned || index === 0 || isLast) {
+        throw new Error("완전 누락 5분봉은 현재 세션의 정렬된 중간 bucket에서만 허용됩니다.");
+      }
+      missingInteriorBucketCount += 1;
+      if (missingInteriorBucketCount > 1) {
+        throw new Error("현재 CME 세션의 완전 누락 5분봉이 1개를 초과했습니다.");
+      }
+      missingInteriorBucketAt = entry.at.toISOString();
+    }
 
-    const previous = bucketBars.at(-1);
+    const previous = bucketEntries.at(-1);
     if (!previous) {
-      bucketBars.push(bar);
+      bucketEntries.push(entry);
       continue;
     }
-    const difference = bar.bucket - previous.bucket;
+    const difference = entry.bucket - previous.bucket;
     if (difference === BAR_SECONDS) {
-      bucketBars.push(bar);
-    } else if (difference === 0 && isLast && !aligned && previous.timestamp === previous.bucket) {
+      bucketEntries.push(entry);
+    } else if (difference === 0 && isLast && !aligned && previous.timestamp === previous.bucket &&
+        !previous.missing && !entry.missing) {
       // Yahoo는 같은 5분 bucket의 정렬 봉 뒤에 최신 체결시각 진행봉을 한 번 덧붙인다.
       // 진행봉 범위가 정렬 봉보다 좁아도 이미 관측한 O/H/L을 잃지 않도록 보수적으로 합친다.
-      bucketBars[bucketBars.length - 1] = {
-        ...bar,
+      bucketEntries[bucketEntries.length - 1] = {
+        ...entry,
         open: previous.open,
-        high: Math.max(previous.high, bar.high),
-        low: Math.min(previous.low, bar.low),
-        close: bar.close
+        high: Math.max(previous.high, entry.high),
+        low: Math.min(previous.low, entry.low),
+        close: entry.close
       };
     } else if (difference === 0) {
       throw new Error("현재 CME 세션에 중복된 5분 bucket이 있습니다.");
@@ -426,7 +534,62 @@ function validateCurrentSession(timestamps, quote) {
       throw new Error("현재 CME 세션의 5분 bucket이 연속적이지 않습니다.");
     }
   }
-  return { session, rawBars, bucketBars, syntheticSeen };
+  const bucketBars = bucketEntries.filter(entry => !entry.missing);
+  return {
+    session,
+    bucketBars,
+    expectedBucketCount: bucketEntries.length,
+    syntheticSeen,
+    missingInteriorBucketCount,
+    missingInteriorBucketAt
+  };
+}
+
+function requiredRegularMarketPrice(meta, field, label) {
+  const value = meta[field];
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || !isTickAligned(value)) {
+    throw new Error(`Yahoo meta ${label}가 유효한 MNQ 가격이 아닙니다.`);
+  }
+  return value;
+}
+
+function validateRegularMarketMetadata(meta, bucketBars) {
+  const observed = {
+    open: bucketBars[0].open,
+    high: Math.max(...bucketBars.map(bar => bar.high)),
+    low: Math.min(...bucketBars.map(bar => bar.low)),
+    current: bucketBars.at(-1).close,
+    time: bucketBars.at(-1).timestamp
+  };
+  const expected = {
+    high: requiredRegularMarketPrice(meta, "regularMarketDayHigh", "regularMarketDayHigh"),
+    low: requiredRegularMarketPrice(meta, "regularMarketDayLow", "regularMarketDayLow"),
+    current: requiredRegularMarketPrice(meta, "regularMarketPrice", "regularMarketPrice")
+  };
+  if (!Number.isInteger(meta.regularMarketTime) || meta.regularMarketTime <= 0) {
+    throw new Error("Yahoo meta regularMarketTime이 유효한 Unix 시각이 아닙니다.");
+  }
+  expected.time = meta.regularMarketTime;
+  if (expected.high !== observed.high || expected.low !== observed.low ||
+      expected.current !== observed.current || expected.time !== observed.time) {
+    throw new Error("Yahoo meta regularMarket H/L/current/time이 관측 5분봉과 정확히 일치하지 않습니다.");
+  }
+
+  const openFields = ["regularMarketOpen", "regularMarketDayOpen"]
+    .filter(field => Object.hasOwn(meta, field));
+  for (const field of openFields) {
+    const expectedOpen = requiredRegularMarketPrice(meta, field, field);
+    if (expectedOpen !== observed.open) {
+      throw new Error(`Yahoo meta ${field}이 현재 CME 세션 첫 5분봉 시가와 일치하지 않습니다.`);
+    }
+  }
+  return {
+    observed,
+    openMetadataAvailable: openFields.length > 0,
+    fieldsVerified: openFields.length > 0
+      ? Object.freeze(["open", "high", "low", "current", "time"])
+      : Object.freeze(["high", "low", "current", "time"])
+  };
 }
 
 export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()) {
@@ -451,7 +614,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
   if (typeof returnedSymbol !== "string" || returnedSymbol.toUpperCase() !== requestedSymbol.toUpperCase()) {
     throw new Error(`반환 종목 불일치: 요청 ${requestedSymbol}, 반환 ${returnedSymbol || "없음"}`);
   }
-  const verifiedDelayMinutes = validateYahooProvenance(meta);
+  const delayMetadata = validateYahooProvenance(meta);
 
   const quote = result.indicators?.quote?.[0];
   const timestamps = Array.isArray(result.timestamp) ? result.timestamp : [];
@@ -478,13 +641,21 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
     throw new Error("시세 원본 시각이 조회 시각보다 비정상적으로 미래입니다.");
   }
 
-  const { session, bucketBars, syntheticSeen } = validateCurrentSession(timestamps, quote);
+  const {
+    session,
+    bucketBars,
+    expectedBucketCount,
+    syntheticSeen,
+    missingInteriorBucketCount,
+    missingInteriorBucketAt
+  } = validateCurrentSession(timestamps, quote);
   const currentBar = bucketBars.at(-1);
+  const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars);
   const completedBars = bucketBars.filter((bar, index) => {
     if (syntheticSeen && index === bucketBars.length - 1) return false;
     return (bar.bucket + BAR_SECONDS) * 1000 <= fetchedAt.getTime();
   });
-  const trueRanges = completedBars.map((bar, index) => {
+  const trueRanges = missingInteriorBucketCount > 0 ? [] : completedBars.map((bar, index) => {
     const previousClose = completedBars[index - 1]?.close;
     return previousClose === undefined
       ? bar.high - bar.low
@@ -504,10 +675,13 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       requestedSymbol,
       returnedSymbol,
       interval: "5m",
-      range: "2d",
+      range: "2d-period-window",
       delayed: true,
-      delayMinutes: verifiedDelayMinutes,
-      delayLabel: `CME 선물 약 ${verifiedDelayMinutes}분 지연 참고 시세`,
+      delayMinutes: delayMetadata.delayMinutes,
+      delayMetadataVerified: delayMetadata.delayMetadataVerified,
+      delayLabel: delayMetadata.delayMetadataVerified
+        ? `CME 선물 약 ${delayMetadata.delayMinutes}분 지연 참고 시세`
+        : "CME 선물 지연 참고 시세 · 원천시각 기준",
       sourceEventAt: currentBar.at.toISOString(),
       sourceTimestampKind: syntheticSeen ? "latest-synthetic-progress-bar" : "latest-returned-bar",
       observedAgeSeconds: Math.max(0, Math.floor((fetchedAt.getTime() - currentBar.at.getTime()) / 1000)),
@@ -515,7 +689,13 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       instrumentType: "continuous-futures-proxy",
       tier,
       fallback: false,
-      unofficial: true
+      unofficial: true,
+      barQuality: missingInteriorBucketCount > 0 ? "one-interior-null-bucket" : "complete",
+      missingInteriorBucketCount,
+      missingInteriorBucketAt,
+      regularMarketMetadataVerified: true,
+      regularMarketOpenMetadataAvailable: regularMarketVerification.openMetadataAvailable,
+      regularMarketFieldsVerified: regularMarketVerification.fieldsVerified
     },
     session: {
       label: `${session.sessionDate} 17:00 CT ~ 16:00 CT`,
@@ -523,34 +703,44 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       timeZone: session.timeZone,
       start: session.start.toISOString(),
       end: session.end.toISOString(),
-      barCount: bucketBars.length
+      barCount: bucketBars.length,
+      expectedBarCount: expectedBucketCount,
+      missingInteriorBucketCount
     },
     market: {
-      open: bucketBars[0].open,
-      high: Math.max(...bucketBars.map(bar => bar.high)),
-      low: Math.min(...bucketBars.map(bar => bar.low)),
-      current: currentBar.close,
+      open: regularMarketVerification.observed.open,
+      high: regularMarketVerification.observed.high,
+      low: regularMarketVerification.observed.low,
+      current: regularMarketVerification.observed.current,
       latestBarAt: currentBar.at.toISOString(),
       atr5m14: atr === null ? null : Number(atr.toFixed(6)),
-      atrLastCompletedBarAt: completedBars.at(-1)?.at.toISOString() || null
+      atrLastCompletedBarAt: missingInteriorBucketCount > 0
+        ? null
+        : completedBars.at(-1)?.at.toISOString() || null
     },
     limitations: [
       "MNQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
       `Yahoo의 CME 선물 시세는 약 ${CME_DELAY_MINUTES}분 지연이며 무결점 시세가 아닙니다.`,
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
-      "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다."
+      "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다.",
+      ...(missingInteriorBucketCount > 0
+        ? ["현재 세션 중간 5분봉 1개가 완전히 누락되어 Yahoo regularMarket H/L/current/time을 교차검증했고 5분 ATR은 중지했습니다."]
+        : [])
     ]
   };
 }
 
 export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date(), options = {}) {
   if (typeof fetchImpl !== "function") throw new TypeError("fetch 구현이 필요합니다.");
+  if (!(fetchedAt instanceof Date) || !Number.isFinite(fetchedAt.getTime())) {
+    throw new TypeError("유효한 조회 시각이 필요합니다.");
+  }
   const timeoutMs = normalizeTimeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
+  const sourceUrl = buildYahooSourceUrl(fetchedAt);
+  const readerUrl = `${JINA_READER_ORIGIN}/${sourceUrl.href}`;
 
   return withRequestTimeout(async signal => {
-    const url = `https://${YAHOO_HOST}/v8/finance/chart/${encodeURIComponent(PRIMARY_SYMBOL)}` +
-      "?interval=5m&range=2d&includePrePost=true&events=div%2Csplits";
-    const response = await fetchImpl(url, {
+    const response = await fetchImpl(readerUrl, {
       headers: { "Accept": "application/json" },
       cache: "no-store",
       credentials: "omit",
@@ -558,6 +748,13 @@ export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date
       signal
     });
     validateJsonResponse(response, fetchedAt);
-    return parseYahooChart(await readBoundedJson(response), PRIMARY_SYMBOL, fetchedAt);
+    const envelope = await readBoundedJson(response);
+    const reader = parseReaderEnvelope(envelope, sourceUrl);
+    const snapshot = parseYahooChart(reader.payload, PRIMARY_SYMBOL, fetchedAt);
+    snapshot.provider.transport = "Jina Reader JSON relay";
+    snapshot.provider.relayHost = "r.jina.ai";
+    snapshot.provider.sourceHost = YAHOO_HOST;
+    snapshot.provider.sourceUrl = reader.sourceUrl;
+    return snapshot;
   }, options.signal, timeoutMs);
 }

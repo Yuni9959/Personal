@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#081a23" />
   <meta name="description" content="MNQ 일중 변동폭 시나리오와 포지션 위험을 점검하는 Personal Tap 도구" />
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://query1.finance.yahoo.com; img-src 'self' data:; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://r.jina.ai; img-src 'self' data:; style-src 'self'; script-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <title>Volatility | Personal Tap</title>
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="icon" href="../../icons/icon-192.png" />
@@ -20,7 +20,10 @@
       <span class="brand-mark">PT</span>
       <span><strong>Volatility</strong><small>MNQ 범위 · 포지션 점검</small></span>
     </a>
-    <span id="dataStatus" class="status" data-state="loading">요청 시 확인 대기</span>
+    <div class="topbar-actions">
+      <span id="dataStatus" class="status" data-state="error" role="status" aria-live="polite">시세 없음</span>
+      <button id="refreshBtn" class="top-refresh-button" type="button">오늘 시세 새로고침</button>
+    </div>
   </header>
 
   <main>
@@ -33,14 +36,14 @@
       <aside class="reference-card">
         <span>이번 주 고정 기준</span>
         <div class="reference-direction">
-          <small>양봉일</small>
-          <p><span>평균</span><strong id="bullMeanReference">—</strong></p>
-          <p class="safe"><span>실전 상승 안전측</span><strong id="bullSafeReference">—</strong></p>
+          <small>상승 방향</small>
+          <p><span>양봉일 평균 H−L</span><strong id="bullMeanReference">—</strong></p>
+          <p class="safe"><span id="bullLiveLabel">장중 기본 상승선 · OOS —</span><strong id="bullSafeReference">—</strong></p>
         </div>
         <div class="reference-direction">
-          <small>음봉일</small>
-          <p><span>평균</span><strong id="bearMeanReference">—</strong></p>
-          <p class="safe"><span>실전 하락 안전측</span><strong id="bearSafeReference">—</strong></p>
+          <small>하락 방향</small>
+          <p><span>음봉일 평균 H−L</span><strong id="bearMeanReference">—</strong></p>
+          <p class="safe"><span id="bearLiveLabel">장중 기본 하락선 · OOS —</span><strong id="bearSafeReference">—</strong></p>
         </div>
         <p id="referencePeriod">2026-08-10 ~ 2026-08-16</p>
       </aside>
@@ -53,7 +56,6 @@
           <h2 id="marketTitle">오늘의 시세</h2>
         </div>
         <div class="toolbar">
-          <button id="refreshBtn" class="secondary-button" type="button">요청 시 지연 시세 확인</button>
           <button id="manualToggleBtn" class="secondary-button" type="button" aria-expanded="false" aria-controls="manualPanel">수동 입력</button>
         </div>
       </div>
@@ -107,24 +109,24 @@
         </div>
         <div class="operational-grid">
           <div class="up">
-            <small>상승 안전측 <strong id="operationalUpPercent">—</strong></small>
+            <small><span id="operationalUpLabel">장중 기본 상승선 · OOS —</span> <strong id="operationalUpPercent">—</strong></small>
             <b id="operationalUpLine">—</b>
             <p id="operationalUpState">—</p>
             <em id="operationalUpHitRate">—</em>
           </div>
           <div class="down">
-            <small>하락 안전측 <strong id="operationalDownPercent">—</strong></small>
+            <small><span id="operationalDownLabel">장중 기본 하락선 · OOS —</span> <strong id="operationalDownPercent">—</strong></small>
             <b id="operationalDownLine">—</b>
             <p id="operationalDownState">—</p>
             <em id="operationalDownHitRate">—</em>
           </div>
         </div>
-        <p>실전 기본선은 모든 거래일을 대상으로 주간 walk-forward한 값입니다. 아래 양봉·음봉 조건부 선은 종가 방향이 확정된 뒤의 설명·복기용이며 장중 방향 예측에 사용하지 않습니다.</p>
+        <p>실전 기본선은 모든 거래일을 대상으로 주간 walk-forward한 값입니다. 아래 양봉·음봉 조건부 선은 종가 방향이 확정된 뒤의 설명·복기용이며 장중 방향 예측에 사용하지 않습니다. 표시된 OOS 수치는 과거 가격선 도달률이지 매매 성공률이 아닙니다.</p>
       </article>
       <div class="scenario-grid">
         <article id="bullScenario" class="scenario-card bull">
           <div class="scenario-title">
-            <span>양봉일 가정</span>
+            <span id="bullConditionalLabel">양봉 마감 조건부 복기선 · OOS —</span>
             <div><small>평균 <strong id="bullMeanPercent">—</strong></small><small class="safe-chip">안전측 <strong id="bullSafePercent">—</strong></small></div>
           </div>
           <div class="progress-track"><i id="bullProgress"></i></div>
@@ -139,7 +141,7 @@
         </article>
         <article id="bearScenario" class="scenario-card bear">
           <div class="scenario-title">
-            <span>음봉일 가정</span>
+            <span id="bearConditionalLabel">음봉 마감 조건부 복기선 · OOS —</span>
             <div><small>평균 <strong id="bearMeanPercent">—</strong></small><small class="safe-chip">안전측 <strong id="bearSafePercent">—</strong></small></div>
           </div>
           <div class="progress-track"><i id="bearProgress"></i></div>
@@ -153,7 +155,7 @@
           </dl>
         </article>
       </div>
-      <p class="scenario-warning">⚠️ 평균 H−L은 목표가가 아닌 설명용 범위 예산입니다. 안전측 선도 과거 표본에서 선택한 도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다. 양봉·음봉은 종가 확정 전에 알 수 없어 양쪽을 함께 확인하세요.</p>
+      <p class="scenario-warning">⚠️ 평균 H−L은 목표가가 아닌 설명용 범위 예산입니다. 안전측 선도 과거 표본에서 선택한 도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다. OOS는 과거 가격선 도달률이지 매매 성공률이 아닙니다. 양봉·음봉은 종가 확정 전에 알 수 없어 양쪽을 함께 확인하세요.</p>
       </div>
     </section>
 
@@ -206,8 +208,8 @@
       <h2>기준과 한계</h2>
       <ul>
         <li>평균은 NQ 연속선물 프록시의 지난 5년 방향별 2σ 내 (H−L)/O 평균으로 계산한 설명용 일중 범위 예산입니다.</li>
-        <li>안전측 선은 양봉일 (H−O)/O, 음봉일 (O−L)/O를 주간 고정·시간외 검증해 선택합니다. 평균 범위와 계산식·의미가 다릅니다.</li>
-        <li>페이지 최초 진입과 버튼을 누른 때에만 Yahoo 지연 시세를 한 번 요청합니다. 60초 중복 요청 제한이 있으며 백그라운드·주기 갱신은 하지 않습니다.</li>
+        <li>장중 기본선은 종가 방향을 모르는 모든 거래일의 (H−O)/O·(O−L)/O를 사용합니다. 양봉·음봉 조건부 선은 종가 방향이 확정된 뒤 같은 방향 표본만 나눈 복기용입니다. 평균 범위와도 계산식·의미가 다릅니다.</li>
+        <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 지연 시세를 한 번 요청합니다. 60초 중복 요청 제한이 있으며 백그라운드·주기 갱신은 하지 않습니다.</li>
         <li>MNQ=F는 실제 월물이 아닌 MNQ 연속선물 프록시이며 약 10분 지연될 수 있습니다. NQ=F 대체 프록시, 25분을 넘긴 가격, 검증 실패값과 저장된 이전값은 표시만 하고 자동 계산을 중지합니다.</li>
         <li>CME 세션은 America/Chicago 17:00~익일 16:00을 서머타임 포함해 재구성하며, 5분 ATR은 완료된 봉만 사용한 Wilder ATR(14)입니다.</li>
         <li>MNQ 계약 승수는 $2/point, 최소호가는 0.25 point ($0.50/계약)입니다. <a href="https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html" target="_blank" rel="noopener noreferrer">CME 공식 명세 ↗</a></li>

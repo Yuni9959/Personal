@@ -1,6 +1,10 @@
 export const REQUEST_COOLDOWN_MS = 60_000;
-export const REQUEST_DEADLINE_MS = 7_000;
+// Jina Reader is deliberately used only for a user-triggered, one-shot read.
+// Its documented average latency is about eight seconds, so the old seven
+// second deadline rejected otherwise valid responses before they arrived.
+export const REQUEST_DEADLINE_MS = 15_000;
 export const REQUEST_LEASE_MS = REQUEST_DEADLINE_MS + 5_000;
+export const MAX_RATE_LIMIT_BACKOFF_MS = 15 * 60_000;
 export const REQUEST_LOCK_NAME = "personal-tap-volatility-market-request-v1";
 export const REQUEST_LEASE_KEY = "personal-tap-volatility-request-lease-v1";
 
@@ -27,6 +31,45 @@ export function calculateCooldown({
     remainingMs: Math.max(0, cooldownMs - (current - requestedAt)),
     rebaseAt: null
   };
+}
+
+export function rateLimitUntilFromMetadata({
+  now,
+  retryAfterSeconds = null,
+  retryAt = null,
+  minimumMs = REQUEST_COOLDOWN_MS,
+  maximumMs = MAX_RATE_LIMIT_BACKOFF_MS
+}) {
+  const current = Number(now);
+  if (!Number.isFinite(current)) throw new TypeError("현재 시각은 유효한 숫자여야 합니다.");
+  const candidates = [];
+  const seconds = Number(retryAfterSeconds);
+  if (retryAfterSeconds !== null && retryAfterSeconds !== "" &&
+      Number.isFinite(seconds) && seconds >= 0) {
+    candidates.push(current + seconds * 1000);
+  }
+  const absolute = Date.parse(String(retryAt || ""));
+  if (Number.isFinite(absolute)) candidates.push(absolute);
+  if (!candidates.length) return 0;
+  const delay = Math.min(maximumMs, Math.max(minimumMs, Math.max(...candidates) - current));
+  return current + delay;
+}
+
+export function calculateRateLimitBackoff({
+  now,
+  storedUntil = 0,
+  maximumMs = MAX_RATE_LIMIT_BACKOFF_MS
+}) {
+  const current = Number(now);
+  if (!Number.isFinite(current)) throw new TypeError("현재 시각은 유효한 숫자여야 합니다.");
+  const until = Number(storedUntil);
+  if (!Number.isFinite(until) || until <= current) {
+    return { remainingMs: 0, rebaseAt: null };
+  }
+  if (until - current > maximumMs) {
+    return { remainingMs: maximumMs, rebaseAt: current + maximumMs };
+  }
+  return { remainingMs: until - current, rebaseAt: null };
 }
 
 function readLease(storage) {

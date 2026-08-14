@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  MAX_RATE_LIMIT_BACKOFF_MS,
   REQUEST_COOLDOWN_MS,
   REQUEST_LEASE_KEY,
   REQUEST_LEASE_MS,
   calculateCooldown,
+  calculateRateLimitBackoff,
+  rateLimitUntilFromMetadata,
   withExclusiveRequest
 } from "../js/request-guard.js";
 
@@ -17,6 +20,69 @@ function memoryStorage(initial = {}) {
     value(key) { return values.get(key); }
   };
 }
+
+test("rate-limit metadata preserves a 120-second Retry-After", () => {
+  const now = 1_000_000;
+  assert.equal(rateLimitUntilFromMetadata({ now, retryAfterSeconds: 120 }), now + 120_000);
+});
+
+test("rate-limit metadata uses the later valid absolute retry time", () => {
+  const now = Date.parse("2026-08-14T12:00:00Z");
+  assert.equal(rateLimitUntilFromMetadata({
+    now,
+    retryAfterSeconds: 90,
+    retryAt: "2026-08-14T12:02:00Z"
+  }), now + 120_000);
+});
+
+test("rate-limit metadata applies the minimum delay to a past or zero hint", () => {
+  const now = Date.parse("2026-08-14T12:00:00Z");
+  assert.equal(rateLimitUntilFromMetadata({ now, retryAfterSeconds: 0 }), now + 60_000);
+  assert.equal(rateLimitUntilFromMetadata({
+    now,
+    retryAt: "2026-08-14T11:59:00Z"
+  }), now + 60_000);
+});
+
+test("rate-limit metadata is ignored when no valid hint exists", () => {
+  assert.equal(rateLimitUntilFromMetadata({ now: 1_000_000 }), 0);
+  assert.equal(rateLimitUntilFromMetadata({ now: 1_000_000, retryAfterSeconds: "invalid" }), 0);
+});
+
+test("rate-limit metadata is capped at fifteen minutes", () => {
+  const now = 1_000_000;
+  assert.equal(
+    rateLimitUntilFromMetadata({ now, retryAfterSeconds: 86_400 }),
+    now + MAX_RATE_LIMIT_BACKOFF_MS
+  );
+});
+
+test("persisted provider backoff preserves future time and expires normally", () => {
+  const now = 1_000_000;
+  assert.deepEqual(calculateRateLimitBackoff({ now, storedUntil: now + 120_000 }), {
+    remainingMs: 120_000,
+    rebaseAt: null
+  });
+  assert.deepEqual(calculateRateLimitBackoff({ now, storedUntil: now }), {
+    remainingMs: 0,
+    rebaseAt: null
+  });
+  assert.deepEqual(calculateRateLimitBackoff({ now, storedUntil: "corrupt" }), {
+    remainingMs: 0,
+    rebaseAt: null
+  });
+});
+
+test("persisted far-future backoff is rebased fail-closed after clock rollback", () => {
+  const now = 1_000_000;
+  assert.deepEqual(calculateRateLimitBackoff({
+    now,
+    storedUntil: now + MAX_RATE_LIMIT_BACKOFF_MS + 1
+  }), {
+    remainingMs: MAX_RATE_LIMIT_BACKOFF_MS,
+    rebaseAt: now + MAX_RATE_LIMIT_BACKOFF_MS
+  });
+});
 
 test("60초 cooldown은 59,999ms를 차단하고 정확히 60,000ms부터 허용한다", () => {
   const now = 1_000_000;
@@ -110,7 +176,7 @@ test("만료된 storage lease는 회수하고 새 요청을 실행한다", async
   assert.deepEqual(result, { acquired: true, value: 7 });
   assert.equal(calls, 1);
   assert.equal(storage.value(REQUEST_LEASE_KEY), undefined);
-  assert.equal(REQUEST_LEASE_MS, 12_000);
+  assert.equal(REQUEST_LEASE_MS, 20_000);
 });
 
 test("storage lease 확인 대기 중 다른 탭이 소유권을 가져가면 operation을 실행하지 않는다", async () => {
