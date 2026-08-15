@@ -32,9 +32,11 @@ const RISK_KEY = "personal-tap-volatility-risk-v1";
 const $ = selector => document.querySelector(selector);
 const els = {
   dataStatus: $("#dataStatus"), dataNotice: $("#dataNotice"), refreshBtn: $("#refreshBtn"),
+  marketTitle: $("#marketTitle"), quoteGrid: $("#quoteGrid"),
   manualToggleBtn: $("#manualToggleBtn"), manualPanel: $("#manualPanel"), manualError: $("#manualError"),
   openPrice: $("#openPrice"), highPrice: $("#highPrice"), lowPrice: $("#lowPrice"),
-  currentPrice: $("#currentPrice"), atrValue: $("#atrValue"), symbolLabel: $("#symbolLabel"),
+  currentPriceLabel: $("#currentPriceLabel"), currentPrice: $("#currentPrice"),
+  atrValue: $("#atrValue"), symbolLabel: $("#symbolLabel"),
   barUpdateText: $("#barUpdateText"), lastUpdateText: $("#lastUpdateText"), delayText: $("#delayText"),
   automaticCalculations: $("#automaticCalculations"), calculationLock: $("#calculationLock"),
   bullMeanReference: $("#bullMeanReference"), bullSafeReference: $("#bullSafeReference"),
@@ -44,7 +46,8 @@ const els = {
   bearReferenceConditionalLabel: $("#bearReferenceConditionalLabel"),
   bullConditionalLabel: $("#bullConditionalLabel"), bearConditionalLabel: $("#bearConditionalLabel"),
   bullConditionalReference: $("#bullConditionalReference"), bearConditionalReference: $("#bearConditionalReference"),
-  referenceOpenPrice: $("#referenceOpenPrice"), referencePeriod: $("#referencePeriod"),
+  referenceOpenLabel: $("#referenceOpenLabel"), referenceOpenPrice: $("#referenceOpenPrice"),
+  referenceOpenContext: $("#referenceOpenContext"), referencePeriod: $("#referencePeriod"),
   bullMeanMove: $("#bullMeanMove"), bullMeanPrice: $("#bullMeanPrice"),
   bearMeanMove: $("#bearMeanMove"), bearMeanPrice: $("#bearMeanPrice"),
   bullLiveMove: $("#bullLiveMove"), bullLivePrice: $("#bullLivePrice"),
@@ -102,6 +105,9 @@ const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, 
 const moneyFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 const kstFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+});
+const kstCompactFormat = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false
 });
 
 function readJson(key, fallback = null) {
@@ -163,6 +169,11 @@ function formatDate(value) {
   return Number.isFinite(date.getTime()) ? `${kstFormat.format(date)} KST` : "—";
 }
 
+function formatCompactDate(value) {
+  const date = new Date(value || "");
+  return Number.isFinite(date.getTime()) ? `${kstCompactFormat.format(date)} KST` : "시각 미확인";
+}
+
 function marketFromSnapshot(snapshot) {
   return snapshot?.market || null;
 }
@@ -188,6 +199,12 @@ function delayDescription(snapshot, assessment) {
   }
   if (assessment.ageMinutes === null) return "시각 확인 불가 · 계산 중지";
   const age = `${Math.max(0, Math.round(assessment.ageMinutes))}분 전 가격`;
+  if (assessment.referenceOnly) {
+    const referenceLabel = assessment.marketState === "completed-session"
+      ? "최근 완료 세션 참고"
+      : "이전 검증 시세 참고";
+    return `${age} · ${referenceLabel} · 계산 잠금`;
+  }
   const delayLabel = snapshot?.provider?.delayMetadataVerified === false
     ? "지연시간 메타 없음 · 원천시각 기준"
     : "약 10분 지연 참고";
@@ -207,7 +224,7 @@ function setRefreshBusy(busy) {
 function barQualityNotice(snapshot, assessment) {
   const provider = snapshot?.provider || {};
   const missingCount = Number(provider.missingInteriorBucketCount || 0);
-  if (!assessment.usable || snapshot?.mode === "manual" ||
+  if (!assessment.displayable || snapshot?.mode === "manual" ||
       provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
   return provider.regularMarketOpenMetadataAvailable
     ? "5분봉 1개 결손 · 일중 O/H/L/현재가·시각은 공급자 메타와 교차검증 · ATR/손절 자동 계산 중지"
@@ -221,11 +238,22 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     : Math.max(0, Math.round(assessment.ageMinutes));
   if (isActiveManual) setCompactDataStatus("manual", "수동 입력");
   else if (assessment.usable) setCompactDataStatus("delayed", "시세 사용 가능");
+  else if (assessment.referenceOnly) {
+    setCompactDataStatus("aging", assessment.marketState === "completed-session"
+      ? "최근 세션 참고"
+      : "이전 시세 참고");
+  }
   else if (assessment.key === "stale") setCompactDataStatus("stale", "시세 만료");
   else setCompactDataStatus("error", "시세 없음");
   els.dataNotice.className = "notice";
   if (isActiveManual) {
     els.dataNotice.textContent = "수동 입력값으로 계산 중입니다. 주문 전 실제 월물 시세와 다시 대조하세요.";
+  } else if (assessment.referenceOnly) {
+    els.dataNotice.classList.add("warning");
+    const sourceLabel = assessment.marketState === "completed-session"
+      ? "최근 완료 세션"
+      : "이전에 검증한 세션";
+    els.dataNotice.textContent = `${assessment.reason} ${sourceLabel}의 O/H/L/마지막 관측가와 이번 주 기준 환산선만 표시하며 포지션·ATR·손절 계산은 잠급니다.`;
   } else if (!assessment.usable) {
     els.dataNotice.classList.add(assessment.key === "error" ? "error" : "warning");
     const ageDetail = ageMinutes === null ? "" : ` 마지막 참고 가격은 ${ageMinutes}분 전 값입니다.`;
@@ -239,13 +267,6 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
   const qualityNotice = barQualityNotice(snapshot, assessment);
   if (qualityNotice) els.dataNotice.textContent += ` ${qualityNotice}`;
   if (state.transientNotice) els.dataNotice.textContent += ` ${state.transientNotice}`;
-}
-
-function clearManualQuoteInputs() {
-  for (const input of [els.manualOpen, els.manualHigh, els.manualLow, els.manualCurrent, els.manualAtr]) {
-    input.value = "";
-  }
-  els.manualConfirm.checked = false;
 }
 
 function formatPercent(value, digits = 3) {
@@ -280,6 +301,26 @@ const referencePriceRows = Object.freeze([
     move: () => els.bearConditionalMove, price: () => els.bearConditionalPrice
   })
 ]);
+
+function renderReferenceContext(snapshot = null, assessment = null) {
+  if (!snapshot || !assessment?.displayable) {
+    els.referenceOpenLabel.textContent = "오늘 시가";
+    els.referenceOpenContext.textContent = "검증된 시세 대기";
+    return;
+  }
+  if (assessment.referenceOnly) {
+    const completedSession = assessment.marketState === "completed-session";
+    els.referenceOpenLabel.textContent = completedSession ? "최근 세션 시가" : "이전 확인 시가";
+    els.referenceOpenContext.textContent = completedSession
+      ? `${formatCompactDate(snapshot.session?.end)} · 종료`
+      : `${formatCompactDate(snapshot.market?.latestBarAt)} · 이전`;
+    return;
+  }
+  els.referenceOpenLabel.textContent = snapshot.mode === "manual" ? "확인 시가" : "오늘 시가";
+  els.referenceOpenContext.textContent = snapshot.mode === "manual"
+    ? "사용자 직접 확인값"
+    : "검증된 진행 세션";
+}
 
 function renderReferencePrices(market = null) {
   if (!market) {
@@ -365,7 +406,16 @@ function clearExpiryTimer() {
 
 function scheduleExpiryCheck() {
   clearExpiryTimer();
-  if (!state.snapshot || !state.assessment?.usable) return;
+  if (!state.snapshot || !state.assessment?.displayable) return;
+  if (state.assessment.referenceOnly) {
+    // A completed-session preview must close at the 96-hour or weekly-reference
+    // boundary even when the tab remains open and receives no focus event.
+    state.expiryTimer = window.setTimeout(() => {
+      state.expiryTimer = null;
+      renderMarket();
+    }, 60_000);
+    return;
+  }
   const ageMinutes = sourceAgeMinutes(state.snapshot);
   if (ageMinutes === null) return;
   const remainingMs = Math.max(0, (MAX_SOURCE_AGE_MINUTES - ageMinutes) * 60000);
@@ -380,16 +430,35 @@ function renderMarket() {
   const market = state.snapshot.market;
   const currentAssessment = assessSnapshot(state.snapshot);
   const assessment = state.forceLockReason
-    ? { ...currentAssessment, usable: false, key: "stale", reason: state.forceLockReason }
+    ? {
+        ...currentAssessment,
+        usable: false,
+        calculationAllowed: false,
+        displayable: currentAssessment.displayable,
+        referenceOnly: currentAssessment.displayable,
+        key: currentAssessment.displayable ? "reference" : "stale",
+        reason: state.forceLockReason
+      }
     : currentAssessment;
   state.assessment = assessment;
-  state.calculationAllowed = assessment.usable;
+  state.calculationAllowed = assessment.calculationAllowed === true;
+  const displayable = assessment.displayable === true;
+  const referenceVisible = displayable && assessment.referenceLineCalculationAllowed === true;
   setStatus(state.snapshot, assessment);
-  renderReferencePrices(assessment.usable ? market : null);
-  els.openPrice.textContent = assessment.usable ? formatNumber(market.open) : "—";
-  els.highPrice.textContent = assessment.usable ? formatNumber(market.high) : "—";
-  els.lowPrice.textContent = assessment.usable ? formatNumber(market.low) : "—";
-  els.currentPrice.textContent = assessment.usable ? formatNumber(market.current) : "—";
+  renderReferenceContext(state.snapshot, assessment);
+  renderReferencePrices(referenceVisible ? market : null);
+  const completedSessionPreview = assessment.referenceOnly && assessment.marketState === "completed-session";
+  els.marketTitle.textContent = assessment.referenceOnly
+    ? (completedSessionPreview ? "최근 완료 세션" : "이전 참고 시세")
+    : "오늘의 시세";
+  els.quoteGrid.setAttribute("aria-label", assessment.referenceOnly
+    ? (completedSessionPreview ? "MNQ 최근 완료 세션 참고 시세" : "MNQ 이전 참고 시세")
+    : "MNQ 오늘 시세");
+  els.currentPriceLabel.textContent = assessment.referenceOnly ? "마지막 관측가" : "현재가";
+  els.openPrice.textContent = displayable ? formatNumber(market.open) : "—";
+  els.highPrice.textContent = displayable ? formatNumber(market.high) : "—";
+  els.lowPrice.textContent = displayable ? formatNumber(market.low) : "—";
+  els.currentPrice.textContent = displayable ? formatNumber(market.current) : "—";
   els.atrValue.textContent = assessment.usable ? formatNumber(market.atr5m14, " pt") : "—";
   els.symbolLabel.textContent = `${providerDescription(state.snapshot)} · ${state.snapshot.session?.label || "수동 세션"}`;
   els.barUpdateText.textContent = formatDate(market.latestBarAt);
@@ -400,12 +469,12 @@ function renderMarket() {
     state.scenarios = null;
     state.operational = null;
     state.autoAtr = null;
-    clearExpiryTimer();
-    clearManualQuoteInputs();
+    scheduleExpiryCheck();
     els.useAutoAtrBtn.disabled = true;
-    setCalculationLock(true, assessment.reason);
-    els.manualPanel.hidden = false;
-    els.manualToggleBtn.setAttribute("aria-expanded", "true");
+    const lockReason = assessment.referenceOnly
+      ? `${assessment.reason} 위 첫 기준표는 읽기 전용 검토값입니다.`
+      : assessment.reason;
+    setCalculationLock(true, lockReason);
     renderPosition();
     return;
   }
@@ -448,9 +517,16 @@ function applySnapshot(snapshot, { cache = true, forceLockReason = "" } = {}) {
   state.forceLockReason = forceLockReason;
   const assessment = assessSnapshot(snapshot);
   state.assessment = forceLockReason
-    ? { ...assessment, usable: false, key: "stale", reason: forceLockReason }
+    ? {
+        ...assessment,
+        usable: false,
+        calculationAllowed: false,
+        referenceOnly: assessment.displayable,
+        key: assessment.displayable ? "reference" : "stale",
+        reason: forceLockReason
+      }
     : assessment;
-  if (cache && state.assessment.usable && snapshot.mode !== "manual") {
+  if (cache && state.assessment.displayable && snapshot.mode !== "manual") {
     writeJson(SNAPSHOT_CACHE_KEY, snapshot);
   }
   renderMarket();
@@ -533,18 +609,21 @@ function showNoUsableSnapshot(message) {
   state.scenarios = null;
   state.operational = null;
   state.autoAtr = null;
+  renderReferenceContext();
   renderReferencePrices();
   state.forceLockReason = "";
-  clearManualQuoteInputs();
+  els.marketTitle.textContent = "오늘의 시세";
+  els.quoteGrid.setAttribute("aria-label", "MNQ 오늘 시세");
+  els.currentPriceLabel.textContent = "현재가";
+  for (const element of [els.openPrice, els.highPrice, els.lowPrice, els.currentPrice, els.atrValue,
+    els.symbolLabel, els.barUpdateText, els.lastUpdateText]) element.textContent = "—";
   els.useAutoAtrBtn.disabled = true;
   state.autoAtr = null;
   setCompactDataStatus("error", "시세 없음");
   els.dataNotice.className = "notice error";
-  els.dataNotice.textContent = message;
+  els.dataNotice.textContent = `${message} 필요하면 아래 ‘수동 시세 직접 입력’을 열어 확인값을 입력하세요.`;
   els.delayText.textContent = "조회 실패 · 계산 중지";
   setCalculationLock(true, "검증된 MNQ 시세가 없습니다.");
-  els.manualPanel.hidden = false;
-  els.manualToggleBtn.setAttribute("aria-expanded", "true");
   renderPosition();
 }
 
@@ -610,7 +689,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
     state.transientNotice = trigger === "load"
       ? "이 화면을 열어 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
       : "버튼 요청으로 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
-    applySnapshot(snapshot, { cache: assessment.usable });
+    applySnapshot(snapshot, { cache: assessment.displayable });
   } catch (error) {
     const failureReason = requestFailureReason(error);
     // Manual input may remain usable after a network failure, but its 25-minute
@@ -682,9 +761,13 @@ function renderPosition() {
   }
   if (!state.snapshot || !state.calculationAllowed || !state.scenarios) {
     els.positionEmpty.hidden = false;
-    els.positionEmpty.textContent = state.snapshot
-      ? "시세가 오래됐거나 MNQ가 아닌 대체값이어서 포지션 계산을 중지했습니다. 실제 MNQ 값을 수동 입력하세요."
-      : POSITION_EMPTY_MESSAGE;
+    els.positionEmpty.textContent = state.assessment?.referenceOnly
+      ? (state.assessment.marketState === "completed-session"
+          ? "최근 완료 세션은 읽기 전용 참고값입니다. 포지션·손절 계산은 검증된 진행 시세 또는 직접 확인한 수동 시세에서만 열립니다."
+          : "이전에 검증한 시세는 새 조회 전 읽기 전용 참고값입니다. 포지션·손절 계산은 새 공급자 응답 또는 직접 확인한 수동 시세에서만 열립니다.")
+      : state.snapshot
+        ? "시세가 오래됐거나 MNQ가 아닌 대체값이어서 포지션 계산을 중지했습니다. 실제 MNQ 값을 수동 입력하세요."
+        : POSITION_EMPTY_MESSAGE;
     els.positionResults.hidden = true;
     renderRisk();
     return;
@@ -807,16 +890,24 @@ function restoreRisk() {
   els.stopHesitation.checked = Boolean(saved.stopHesitation);
 }
 
+function setManualPanelExpanded(expanded, { returnFocus = false } = {}) {
+  const shouldExpand = Boolean(expanded);
+  const focusWasInside = els.manualPanel.contains(document.activeElement);
+  els.manualToggleBtn.setAttribute("aria-expanded", String(shouldExpand));
+  els.manualPanel.hidden = !shouldExpand;
+  if (!shouldExpand && returnFocus && focusWasInside) els.manualToggleBtn.focus();
+}
+
 els.manualToggleBtn.addEventListener("click", () => {
   const expanded = els.manualToggleBtn.getAttribute("aria-expanded") === "true";
-  els.manualToggleBtn.setAttribute("aria-expanded", String(!expanded));
-  els.manualPanel.hidden = expanded;
+  setManualPanelExpanded(!expanded, { returnFocus: expanded });
 });
 
 els.manualPanel.addEventListener("submit", event => {
   event.preventDefault();
   if (!els.manualConfirm.checked) {
     els.manualError.textContent = "실제 MNQ 월물 값을 방금 직접 확인했다는 항목에 체크해야 합니다.";
+    els.manualConfirm.focus();
     return;
   }
   const candidate = {
@@ -842,6 +933,7 @@ els.manualPanel.addEventListener("submit", event => {
   els.manualConfirm.checked = false;
   state.transientNotice = "";
   applySnapshot(manual, { cache: false });
+  setManualPanelExpanded(false, { returnFocus: true });
 });
 
 els.useAutoAtrBtn.addEventListener("click", () => {
@@ -898,5 +990,21 @@ restorePosition();
 restoreRisk();
 try { localStorage.removeItem(LEGACY_MANUAL_KEY); }
 catch { /* Legacy manual values are intentionally not restored. */ }
+setManualPanelExpanded(false);
 renderRisk();
+const cachedSnapshot = loadFallbackSnapshot();
+if (cachedSnapshot) {
+  const cachedAssessment = assessSnapshot(cachedSnapshot);
+  if (cachedAssessment.displayable) {
+    state.transientNotice = cachedAssessment.referenceOnly
+      ? "새 시세를 확인하기 전 최근 완료 세션 참고값을 먼저 표시했습니다."
+      : "새 시세를 확인하기 전 마지막 검증값을 먼저 표시했습니다.";
+    applySnapshot(cachedSnapshot, {
+      cache: false,
+      forceLockReason: cachedAssessment.referenceOnly
+        ? ""
+        : "새 시세를 확인하기 전 마지막 검증값을 읽기 전용으로 표시합니다."
+    });
+  }
+}
 refreshMarket({ trigger: "load" });

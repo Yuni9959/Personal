@@ -39,7 +39,11 @@
             <span id="weeklyReferenceTitle">이번 주 고정 기준</span>
             <p id="referencePeriod">2026-08-10 ~ 2026-08-16</p>
           </div>
-          <p class="reference-open"><span>오늘 시가</span><strong id="referenceOpenPrice">—</strong></p>
+          <p class="reference-open">
+            <span id="referenceOpenLabel">오늘 시가</span>
+            <strong id="referenceOpenPrice">—</strong>
+            <small id="referenceOpenContext">검증된 시세 대기</small>
+          </p>
         </div>
         <div class="reference-grid">
           <section class="reference-direction bull-reference" aria-label="상승 방향 기준">
@@ -83,7 +87,7 @@
             </dl>
           </section>
         </div>
-        <p class="reference-warning">OOS는 과거 가격선 도달률이며 매매 성공률이 아닙니다. 조건부 선은 마감 방향 확정 후 복기에만 사용하세요.</p>
+        <p class="reference-warning" aria-label="OOS는 과거 가격선 도달률이며 매매 성공률이 아닙니다. 조건부 선은 마감 방향 확정 후 복기에만 사용합니다.">OOS=가격선 도달률≠매매 성공률 · 조건부=마감 후 복기</p>
       </aside>
     </section>
 
@@ -93,17 +97,14 @@
           <p class="eyebrow">MARKET SNAPSHOT</p>
           <h2 id="marketTitle">오늘의 시세</h2>
         </div>
-        <div class="toolbar">
-          <button id="manualToggleBtn" class="secondary-button" type="button" aria-expanded="false" aria-controls="manualPanel">수동 입력</button>
-        </div>
       </div>
 
       <div id="dataNotice" class="notice" role="status" aria-live="polite"></div>
-      <div class="quote-grid" aria-label="MNQ 오늘 시세">
+      <div id="quoteGrid" class="quote-grid" aria-label="MNQ 오늘 시세">
         <article><span>시가</span><strong id="openPrice">—</strong></article>
         <article><span>고가</span><strong id="highPrice">—</strong></article>
         <article><span>저가</span><strong id="lowPrice">—</strong></article>
-        <article class="current"><span>현재가</span><strong id="currentPrice">—</strong></article>
+        <article class="current"><span id="currentPriceLabel">현재가</span><strong id="currentPrice">—</strong></article>
       </div>
       <div class="quote-meta">
         <p><span>종목/출처/세션</span><strong id="symbolLabel">—</strong></p>
@@ -113,6 +114,11 @@
         <p><span>5분 ATR(14)</span><strong id="atrValue">—</strong></p>
       </div>
 
+      <div class="manual-disclosure">
+        <button id="manualToggleBtn" class="manual-disclosure-toggle" type="button" aria-expanded="false" aria-controls="manualPanel">
+          <span><strong>수동 시세 직접 입력</strong><small>자동 조회가 실패했거나 실제 월물을 직접 확인할 때만 여세요.</small></span>
+          <b aria-hidden="true">⌄</b>
+        </button>
       <form id="manualPanel" class="manual-panel" hidden>
         <div class="form-heading">
           <div><strong>수동 시세 입력</strong><small>요청 시 지연 시세가 끊겼거나 실제 월물과 다를 때 사용하세요.</small></div>
@@ -132,6 +138,7 @@
         <p id="manualError" class="form-error" role="alert"></p>
         <button class="primary-button" type="submit">수동 값 적용</button>
       </form>
+      </div>
     </section>
 
     <section aria-labelledby="scenarioTitle">
@@ -202,21 +209,29 @@
         <div><p class="eyebrow">POSITION CHECK</p><h2 id="positionTitle">현재 포지션</h2></div>
         <span class="local-badge">이 기기에만 저장</span>
       </div>
-      <form id="positionForm">
-        <div class="input-grid">
-          <label><span>방향</span><select id="positionDirection"><option value="none">포지션 없음</option><option value="long">Long (매수)</option><option value="short">Short (매도)</option></select></label>
-          <label><span>진입가</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
-          <label><span>계약 수</span><input id="quantity" type="number" inputmode="numeric" min="1" step="1" value="1" /></label>
-          <label><span>총 수수료·제비용 (USD)</span><input id="fees" type="number" inputmode="decimal" min="0" step="0.01" value="0" /></label>
-          <label><span>고정 손절용 5분 ATR</span><input id="positionAtr" type="number" inputmode="decimal" min="0" step="any" /></label>
-          <label><span>진입 시각 (P7 점검)</span><input id="enteredAt" type="datetime-local" /></label>
+      <div class="position-layout">
+        <div class="position-input-pane">
+          <div class="column-heading"><strong>포지션 입력</strong><small>체결값과 고정 ATR을 직접 확인하세요.</small></div>
+          <form id="positionForm">
+            <div class="input-grid">
+              <label><span>방향</span><select id="positionDirection"><option value="none">포지션 없음</option><option value="long">Long (매수)</option><option value="short">Short (매도)</option></select></label>
+              <label><span>진입가</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
+              <label><span>계약 수</span><input id="quantity" type="number" inputmode="numeric" min="1" step="1" value="1" /></label>
+              <label><span>총 수수료·제비용 (USD)</span><input id="fees" type="number" inputmode="decimal" min="0" step="0.01" value="0" /></label>
+              <label><span>고정 손절용 5분 ATR</span><input id="positionAtr" type="number" inputmode="decimal" min="0" step="any" /></label>
+              <label><span>진입 시각 (P7 점검)</span><input id="enteredAt" type="datetime-local" /></label>
+            </div>
+          </form>
         </div>
-      </form>
-      <div id="positionEmpty" class="empty-state">포지션을 입력하면 MNQ $2/point 기준 시나리오 손익과 1.0×5분 ATR 손절선을 보여줍니다.</div>
-      <div id="positionResults" class="position-results" hidden>
-        <div id="positionSummary" class="position-summary"></div>
-        <div id="positionScenarioGrid" class="position-scenario-grid"></div>
-        <p class="calculation-note">안전측 가격선 시나리오 손익은 해당 선에서 가격이 형성된다고 가정한 단순 계산입니다. 통계적 기대값이 아닙니다. 현재가→가격선 변화는 비용 미차감, 진입가→가격선은 입력한 총비용 차감 값입니다. 손절선은 계산값일 뿐 주문을 전송하지 않습니다.</p>
+        <div class="position-output-pane">
+          <div class="column-heading"><strong>가격·손절 시나리오</strong><small>입력과 동시에 같은 화면에서 비교합니다.</small></div>
+          <div id="positionEmpty" class="empty-state">포지션을 입력하면 MNQ $2/point 기준 시나리오 손익과 1.0×5분 ATR 손절선을 보여줍니다.</div>
+          <div id="positionResults" class="position-results" hidden>
+            <div id="positionSummary" class="position-summary"></div>
+            <div id="positionScenarioGrid" class="position-scenario-grid"></div>
+            <p class="calculation-note">안전측 가격선 시나리오 손익은 해당 선에서 가격이 형성된다고 가정한 단순 계산입니다. 통계적 기대값이 아닙니다. 현재가→가격선 변화는 비용 미차감, 진입가→가격선은 입력한 총비용 차감 값입니다. 손절선은 계산값일 뿐 주문을 전송하지 않습니다.</p>
+          </div>
+        </div>
       </div>
     </section>
 

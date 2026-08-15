@@ -64,11 +64,27 @@ function payload(symbol = "MNQ=F") {
   return syncRegularMarketMeta(source);
 }
 
+function completedSessionPayload(symbol = "MNQ=F") {
+  const source = payload(symbol);
+  const result = source.chart.result[0];
+  const sessionStart = Date.parse("2026-08-13T22:00:00Z") / 1000;
+  const barCount = 23 * 12;
+  result.timestamp = Array.from({ length: barCount }, (_, index) => sessionStart + index * 300);
+  const values = result.timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
+  result.indicators.quote[0] = {
+    open: values,
+    high: values.map(value => value + 1),
+    low: values.map(value => value - 0.5),
+    close: values.map(value => value + 0.25)
+  };
+  return syncRegularMarketMeta(source);
+}
+
 function yahooSourceUrl(fetchedAt = FETCHED_AT) {
   const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
   const url = new URL("https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F");
   url.searchParams.set("interval", "5m");
-  url.searchParams.set("period1", String(period2 - 2 * 24 * 60 * 60));
+  url.searchParams.set("period1", String(period2 - 5 * 24 * 60 * 60));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("includePrePost", "true");
   url.searchParams.set("events", "div,splits");
@@ -145,7 +161,7 @@ test("Chicago 세션 경계를 서머타임 포함 UTC로 변환한다", () => {
 
 test("검증된 현재 CME 세션만으로 O/H/L/current와 완료봉 ATR을 만든다", () => {
   const result = parseYahooChart(payload(), "MNQ=F", FETCHED_AT);
-  assert.equal(result.provider.range, "2d-period-window");
+  assert.equal(result.provider.range, "5d-period-window");
   assert.equal(result.session.start, "2026-08-12T22:00:00.000Z");
   assert.equal(result.session.barCount, 20);
   assert.equal(result.market.open, 30002);
@@ -167,6 +183,28 @@ test("검증된 현재 CME 세션만으로 O/H/L/current와 완료봉 ATR을 만
   assert.equal(result.provider.regularMarketOpenMetadataAvailable, false);
   assert.deepEqual(result.provider.regularMarketFieldsVerified, ["high", "low", "current", "time"]);
   assert.equal(result.session.expectedBarCount, 20);
+  assert.equal(result.session.status, "in-progress");
+  assert.equal(result.session.isCompletedAtFetch, false);
+  assert.equal(result.session.terminalCoverageVerified, false);
+  assert.equal(result.session.lastObservedAt, result.market.latestBarAt);
+});
+
+test("토요일 조회는 마지막 관측 세션을 완료 세션으로 명시해 반환한다", () => {
+  const saturday = new Date("2026-08-15T03:00:00Z");
+  const result = parseYahooChart(completedSessionPayload(), "MNQ=F", saturday);
+  assert.equal(result.session.status, "completed");
+  assert.equal(result.session.isCompletedAtFetch, true);
+  assert.equal(result.session.terminalCoverageVerified, true);
+  assert.equal(result.session.end, "2026-08-14T21:00:00.000Z");
+  assert.equal(result.session.lastObservedAt, result.market.latestBarAt);
+});
+
+test("종료시각이 지났어도 마지막 5분 구간이 없으면 완료로 표시하지 않는다", () => {
+  const saturday = new Date("2026-08-15T03:00:00Z");
+  const result = parseYahooChart(payload(), "MNQ=F", saturday);
+  assert.equal(result.session.status, "ended-incomplete");
+  assert.equal(result.session.isCompletedAtFetch, false);
+  assert.equal(result.session.terminalCoverageVerified, false);
 });
 
 test("마지막 진행봉의 synthetic timestamp는 같은 bucket에 한 번만 허용하고 ATR에서 제외한다", () => {
@@ -341,7 +379,7 @@ test("MNQ 성공 시 한 번만 조회하고 인증정보·캐시 없이 요청�
   assert.match(calls[0].url, /^https:\/\/r\.jina\.ai\/https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/MNQ=F\?/);
   const requested = new URL(calls[0].url.replace("https://r.jina.ai/", ""));
   assert.equal(requested.searchParams.get("period2"), String(FETCHED_AT.getTime() / 1000));
-  assert.equal(Number(requested.searchParams.get("period2")) - Number(requested.searchParams.get("period1")), 172800);
+  assert.equal(Number(requested.searchParams.get("period2")) - Number(requested.searchParams.get("period1")), 432000);
   assert.deepEqual(calls[0].options.headers, { Accept: "application/json" });
   assert.equal(calls[0].options.cache, "no-store");
   assert.equal(calls[0].options.credentials, "omit");

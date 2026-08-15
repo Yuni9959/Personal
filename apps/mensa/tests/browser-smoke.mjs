@@ -64,11 +64,54 @@ function delayedMnqFixture() {
   };
 }
 
+function activeMnqFixture() {
+  const source = delayedMnqFixture();
+  const missingIndex = 72;
+  const quote = source.chart.result[0].indicators.quote[0];
+  const open = 30000 + (missingIndex % 16) * 0.25;
+  const close = open + 0.25;
+  quote.open[missingIndex] = open;
+  quote.close[missingIndex] = close;
+  quote.high[missingIndex] = Math.max(open, close) + 1;
+  quote.low[missingIndex] = Math.min(open, close) - 1;
+  return source;
+}
+
+function completedMnqFixture() {
+  const start = Date.parse("2026-08-13T22:00:00.000Z") / 1000;
+  const timestamp = Array.from({ length: 23 * 12 }, (_, index) => start + index * 300);
+  const open = timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
+  const close = open.map(value => value + 0.25);
+  const high = open.map(value => value + 1);
+  const low = open.map(value => value - 0.5);
+  return {
+    chart: {
+      error: null,
+      result: [{
+        meta: {
+          symbol: "MNQ=F",
+          dataGranularity: "5m",
+          instrumentType: "FUTURE",
+          exchangeName: "CME",
+          exchangeTimezoneName: "America/New_York",
+          currency: "USD",
+          regularMarketDayHigh: Math.max(...high),
+          regularMarketDayLow: Math.min(...low),
+          regularMarketPrice: close.at(-1),
+          regularMarketTime: timestamp.at(-1)
+        },
+        timestamp,
+        indicators: { quote: [{ open, high, low, close }] }
+      }]
+    }
+  };
+}
+
 function delayedMnqSourceUrl(fetchedAt = new Date("2026-08-14T06:30:00.000Z")) {
   const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
   const url = new URL("https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F");
   url.searchParams.set("interval", "5m");
-  url.searchParams.set("period1", String(period2 - 2 * 24 * 60 * 60));
+  url.searchParams.set("period1", String(period2 - 5 * 24 * 60 * 60));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("includePrePost", "true");
   url.searchParams.set("events", "div,splits");
@@ -667,6 +710,8 @@ async function run() {
       },
       atr: document.querySelector("#atrValue").textContent,
       autoAtrDisabled: document.querySelector("#useAutoAtrBtn").disabled,
+      manualPanelHidden: document.querySelector("#manualPanel").hidden,
+      manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded"),
       reachDisclaimer: document.querySelector(".scenario-warning").textContent
     })`);
     assert.equal(readerRequestCount, 1);
@@ -695,9 +740,167 @@ async function run() {
     });
     assert.equal(delayedQuoteGate.atr, "—");
     assert.equal(delayedQuoteGate.autoAtrDisabled, true);
+    assert.equal(delayedQuoteGate.manualPanelHidden, true);
+    assert.equal(delayedQuoteGate.manualExpanded, "false");
     assert.match(delayedQuoteGate.notice, /5분봉 1개 결손/);
     assert.match(delayedQuoteGate.notice, /시가는 첫 세션봉 기준/);
     assert.match(delayedQuoteGate.reachDisclaimer, /가격선 도달률이지 매매 성공률이 아닙니다/);
+
+    const activeTargetUrl = delayedMnqSourceUrl();
+    const activeFixtureBody = Buffer.from(JSON.stringify({
+      code: 200,
+      status: 200,
+      data: {
+        title: "",
+        description: "",
+        url: activeTargetUrl,
+        content: JSON.stringify(activeMnqFixture())
+      }
+    })).toString("base64");
+    await evaluate(client, `localStorage.setItem(
+      "personal-tap-volatility-last-request-v1",
+      JSON.stringify(Date.now() - 10_001)
+    ); true`);
+    let activeCacheSeedRequestCount = 0;
+    const removeActiveCacheSeedFixture = client.on("Fetch.requestPaused", params => {
+      activeCacheSeedRequestCount += 1;
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 200,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: activeFixtureBody
+      }).catch(error => browserErrors.push(`Active cache seed fixture: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+    });
+    await navigate(client, `${baseUrl}/apps/volatility/?active-cache-seed-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removeActiveCacheSeedFixture();
+    assert.equal(activeCacheSeedRequestCount, 1);
+    const activeCacheSeed = await evaluate(client, `(() => ({
+      atr: document.querySelector("#atrValue").textContent,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      locked: !document.querySelector("#calculationLock").hidden
+    }))()`);
+    assert.notEqual(activeCacheSeed.atr, "—");
+    assert.equal(activeCacheSeed.calculationsHidden, false);
+    assert.equal(activeCacheSeed.locked, false);
+
+    await evaluate(client, `(() => {
+      localStorage.setItem(
+        "personal-tap-volatility-last-request-v1",
+        JSON.stringify(Date.now() - 10_001)
+      );
+      localStorage.setItem("personal-tap-volatility-position-v1", JSON.stringify({
+        direction: "long", entry: 30000, quantity: 1, fees: 0,
+        enteredAt: "2026-08-14T15:00"
+      }));
+      return true;
+    })()`);
+    let pendingActiveCacheRequest = null;
+    let pendingActiveCacheRequestCount = 0;
+    const removePendingActiveCacheFixture = client.on("Fetch.requestPaused", params => {
+      pendingActiveCacheRequestCount += 1;
+      pendingActiveCacheRequest = params;
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+    });
+    const errorsBeforePendingActiveCache = browserErrors.length;
+    await navigate(client, `${baseUrl}/apps/volatility/?active-cache-pending-smoke=1`);
+    await waitForCondition(client, `
+      document.querySelector("#currentPriceLabel")?.textContent === "마지막 관측가" &&
+      !document.querySelector("#calculationLock").hidden &&
+      document.querySelector("#currentPrice").textContent !== "—"
+    `);
+    for (let attempt = 0; attempt < 50 && !pendingActiveCacheRequest; attempt += 1) {
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+    assert.equal(pendingActiveCacheRequestCount, 1);
+    assert.ok(pendingActiveCacheRequest);
+    const pendingActiveCacheGate = await evaluate(client, `(() => ({
+      ready: document.body.dataset.ready || "",
+      currentLabel: document.querySelector("#currentPriceLabel").textContent,
+      marketTitle: document.querySelector("#marketTitle").textContent,
+      quoteLabel: document.querySelector("#quoteGrid").getAttribute("aria-label"),
+      referenceOpenLabel: document.querySelector("#referenceOpenLabel").textContent,
+      delay: document.querySelector("#delayText").textContent,
+      notice: document.querySelector("#dataNotice").textContent,
+      quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
+        .map(id => document.querySelector("#" + id).textContent),
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referencePrices: [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ].map(id => document.querySelector("#" + id).textContent),
+      atr: document.querySelector("#atrValue").textContent,
+      autoAtrDisabled: document.querySelector("#useAutoAtrBtn").disabled,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      locked: !document.querySelector("#calculationLock").hidden,
+      lockText: document.querySelector("#calculationLock").textContent,
+      positionEmpty: document.querySelector("#positionEmpty").textContent,
+      positionResultsHidden: document.querySelector("#positionResults").hidden,
+      manualPanelHidden: document.querySelector("#manualPanel").hidden
+    }))()`);
+    assert.equal(pendingActiveCacheGate.ready, "");
+    assert.equal(pendingActiveCacheGate.currentLabel, "마지막 관측가");
+    assert.equal(pendingActiveCacheGate.marketTitle, "이전 참고 시세");
+    assert.equal(pendingActiveCacheGate.quoteLabel, "MNQ 이전 참고 시세");
+    assert.equal(pendingActiveCacheGate.referenceOpenLabel, "이전 확인 시가");
+    assert.match(pendingActiveCacheGate.delay, /이전 검증 시세 참고/);
+    assert.match(pendingActiveCacheGate.notice, /이전에 검증한 세션/);
+    assert.deepEqual(pendingActiveCacheGate.quoteValues,
+      ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
+    assert.equal(pendingActiveCacheGate.referenceOpen, "30,000.00");
+    assert.equal(pendingActiveCacheGate.referencePrices.every(value => value !== "—"), true);
+    assert.equal(pendingActiveCacheGate.atr, "—");
+    assert.equal(pendingActiveCacheGate.autoAtrDisabled, true);
+    assert.equal(pendingActiveCacheGate.calculationsHidden, true);
+    assert.equal(pendingActiveCacheGate.locked, true);
+    assert.match(pendingActiveCacheGate.lockText, /읽기 전용/);
+    assert.match(pendingActiveCacheGate.positionEmpty, /이전에 검증한 시세/);
+    assert.match(pendingActiveCacheGate.positionEmpty, /포지션·손절 계산/);
+    assert.equal(pendingActiveCacheGate.positionResultsHidden, true);
+    assert.equal(pendingActiveCacheGate.manualPanelHidden, true);
+    assert.doesNotMatch([
+      pendingActiveCacheGate.marketTitle,
+      pendingActiveCacheGate.quoteLabel,
+      pendingActiveCacheGate.delay,
+      pendingActiveCacheGate.notice,
+      pendingActiveCacheGate.positionEmpty
+    ].join(" "), /최근 완료 세션/);
+
+    await client.send("Fetch.fulfillRequest", {
+      requestId: pendingActiveCacheRequest.requestId,
+      responseCode: 200,
+      responseHeaders: [
+        { name: "Content-Type", value: "application/json; charset=utf-8" },
+        { name: "Access-Control-Allow-Origin", value: "*" },
+        { name: "Cache-Control", value: "no-store" }
+      ],
+      body: activeFixtureBody
+    });
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removePendingActiveCacheFixture();
+    const activeCacheAfterFetch = await evaluate(client, `(() => ({
+      currentLabel: document.querySelector("#currentPriceLabel").textContent,
+      atr: document.querySelector("#atrValue").textContent,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      locked: !document.querySelector("#calculationLock").hidden
+    }))()`);
+    assert.equal(activeCacheAfterFetch.currentLabel, "현재가");
+    assert.notEqual(activeCacheAfterFetch.atr, "—");
+    assert.equal(activeCacheAfterFetch.calculationsHidden, false);
+    assert.equal(activeCacheAfterFetch.locked, false);
+    assert.deepEqual(browserErrors.splice(errorsBeforePendingActiveCache), []);
+
     const webLockGate = await evaluate(client, `(async () => {
       const guard = await import("./js/request-guard.js");
       let releaseFirst;
@@ -821,7 +1024,32 @@ async function run() {
     })()`);
     assert.deepEqual(fixedAtrBefore, fixedAtrAfter);
     assert.equal(fixedAtrAfter.atr, "20");
+    const volatilityDesktopLayout = await evaluate(client, `(() => ({
+      fitsViewport: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      overflowing: [...document.body.querySelectorAll("*")]
+        .filter(element => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1)
+        .slice(0, 8)
+        .map(element => element.id || element.className ||
+          element.tagName + ":" + element.textContent.trim().slice(0, 32)),
+      positionColumns: getComputedStyle(document.querySelector(".position-layout"))
+        .gridTemplateColumns.trim().split(/\\s+/).length,
+      riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+        .gridTemplateColumns.trim().split(/\\s+/).length,
+      riskResultColumns: getComputedStyle(document.querySelector(".risk-results"))
+        .gridTemplateColumns.trim().split(/\\s+/).length
+    }))()`);
+    assert.deepEqual(volatilityDesktopLayout, {
+      fitsViewport: true,
+      overflowing: [],
+      positionColumns: 2,
+      riskColumns: 2,
+      riskResultColumns: 3
+    });
     await captureOptionalScreenshot(client, "volatility-desktop");
+    await evaluate(client, "document.querySelector('#positionTitle').scrollIntoView(); true");
+    await captureOptionalScreenshot(client, "volatility-position-desktop");
+    await evaluate(client, "document.querySelector('#riskTitle').scrollIntoView(); true");
+    await captureOptionalScreenshot(client, "volatility-risk-desktop");
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
       height: 844,
@@ -838,12 +1066,20 @@ async function run() {
         "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
         "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
       ];
+      const warning = document.querySelector(".reference-warning");
       return {
         fitsWidth: document.documentElement.scrollWidth <= window.innerWidth,
         twoColumns: gridColumns.length === 2,
         startsBelowTopbar: card.top >= topbar.bottom,
         endsInFirstViewport: card.bottom <= window.innerHeight,
         openVisible: document.querySelector("#referenceOpenPrice").textContent.trim() === "30,000.00",
+        warningSingleLine: getComputedStyle(warning).whiteSpace === "nowrap" &&
+          warning.scrollHeight <= warning.clientHeight,
+        warningFits: warning.scrollWidth <= warning.clientWidth,
+        positionColumns: getComputedStyle(document.querySelector(".position-layout"))
+          .gridTemplateColumns.trim().split(/\\s+/).length,
+        riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+          .gridTemplateColumns.trim().split(/\\s+/).length,
         allPriceLinesVisible: priceIds.every(id =>
           !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
         )
@@ -855,6 +1091,10 @@ async function run() {
       startsBelowTopbar: true,
       endsInFirstViewport: true,
       openVisible: true,
+      warningSingleLine: true,
+      warningFits: true,
+      positionColumns: 2,
+      riskColumns: 2,
       allPriceLinesVisible: true
     });
     await client.send("Emulation.setDeviceMetricsOverride", {
@@ -875,6 +1115,12 @@ async function run() {
         "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
         "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
       ];
+      const warning = document.querySelector(".reference-warning");
+      const compactInputs = [...document.querySelectorAll(
+        "#positionForm input:not([type=checkbox]), #positionForm select, " +
+        "#riskForm input:not([type=checkbox]), #riskForm select"
+      )];
+      const compactChecks = [...document.querySelectorAll("#riskForm input[type=checkbox]")];
       return {
         text: button.textContent.trim(),
         visible: rect.width > 0 && rect.height >= 40,
@@ -884,6 +1130,23 @@ async function run() {
         referenceStartsBelowTopbar: card.top >= topbar.bottom,
         referenceEndsInFirstViewport: card.bottom <= window.innerHeight,
         referenceOpenVisible: document.querySelector("#referenceOpenPrice").textContent.trim() === "30,000.00",
+        warningSingleLine: getComputedStyle(warning).whiteSpace === "nowrap" &&
+          warning.scrollHeight <= warning.clientHeight,
+        warningFits: warning.scrollWidth <= warning.clientWidth,
+        positionColumns: getComputedStyle(document.querySelector(".position-layout"))
+          .gridTemplateColumns.trim().split(/\\s+/).length,
+        riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+          .gridTemplateColumns.trim().split(/\\s+/).length,
+        inputTargetsUsable: compactInputs.every(element => {
+          const inputRect = element.getBoundingClientRect();
+          return inputRect.height >= 40 && inputRect.width >= 44 &&
+            inputRect.left >= 0 && inputRect.right <= window.innerWidth;
+        }),
+        checkTargetsUsable: compactChecks.every(element => {
+          const labelRect = element.closest("label").getBoundingClientRect();
+          return labelRect.height >= 40 && labelRect.width >= 44 &&
+            labelRect.left >= 0 && labelRect.right <= window.innerWidth;
+        }),
         allReferencePriceLinesVisible: priceIds.every(id =>
           !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
         )
@@ -898,6 +1161,12 @@ async function run() {
       referenceStartsBelowTopbar: true,
       referenceEndsInFirstViewport: true,
       referenceOpenVisible: true,
+      warningSingleLine: true,
+      warningFits: true,
+      positionColumns: 2,
+      riskColumns: 2,
+      inputTargetsUsable: true,
+      checkTargetsUsable: true,
       allReferencePriceLinesVisible: true
     });
     await captureOptionalScreenshot(client, "volatility-mobile-320");
@@ -943,7 +1212,8 @@ async function run() {
       locked: !document.querySelector("#calculationLock").hidden,
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
       atr: document.querySelector("#atrValue").textContent,
-      current: document.querySelector("#currentPrice").textContent,
+      quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
+        .map(id => document.querySelector("#" + id).textContent),
       referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
       referencePrices: [
         "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
@@ -955,6 +1225,8 @@ async function run() {
       notice: document.querySelector("#dataNotice").textContent,
       status: document.querySelector("#dataStatus").textContent,
       refreshText: document.querySelector("#refreshBtn").textContent.trim(),
+      manualPanelHidden: document.querySelector("#manualPanel").hidden,
+      manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded"),
       rateLimitUntil: JSON.parse(localStorage.getItem(
         "personal-tap-volatility-rate-limit-until-v1"
       ))
@@ -963,14 +1235,21 @@ async function run() {
     assert.equal(lockedFallback.locked, true);
     assert.equal(lockedFallback.calculationsHidden, true);
     assert.equal(lockedFallback.atr, "—");
-    assert.equal(lockedFallback.current, "—");
-    assert.equal(lockedFallback.referenceOpen, "—");
-    assert.deepEqual(lockedFallback.referencePrices, ["—", "—", "—", "—", "—", "—"]);
+    assert.deepEqual(lockedFallback.quoteValues, ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
+    assert.equal(lockedFallback.referenceOpen, "30,000.00");
+    assert.deepEqual(lockedFallback.referencePrices, [
+      "30,527.25", "29,409.50", "30,107.75",
+      "29,911.50", "30,212.25", "29,755.50"
+    ]);
     assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
     assert.equal(lockedFallback.manualConfirmed, false);
-    assert.match(lockedFallback.notice, /현재 시세 숫자는 숨겼으며|계산에 사용하지 않습니다/);
-    assert.equal(lockedFallback.status, "시세 만료");
+    assert.match(lockedFallback.notice, /O\/H\/L\/마지막 관측가/);
+    assert.match(lockedFallback.notice, /계산에는 사용하지 않습니다/);
+    assert.equal(lockedFallback.status, "이전 시세 참고");
+    assert.doesNotMatch(lockedFallback.notice, /최근 완료 세션/);
     assert.equal(lockedFallback.refreshText, "오늘 시세 새로고침");
+    assert.equal(lockedFallback.manualPanelHidden, true);
+    assert.equal(lockedFallback.manualExpanded, "false");
     assert.equal(lockedFallback.rateLimitUntil, Date.parse("2026-08-14T06:32:00.000Z"));
     assert.match(lockedFallback.notice, /120초/);
     await evaluate(client, `(() => {
@@ -1042,7 +1321,7 @@ async function run() {
       locked: !document.querySelector("#calculationLock").hidden,
       lockText: document.querySelector("#calculationLock").textContent,
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
-      manualPanelVisible: !document.querySelector("#manualPanel").hidden,
+      manualPanelHidden: document.querySelector("#manualPanel").hidden,
       manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded"),
       quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
         .map(id => document.querySelector("#" + id).textContent),
@@ -1059,8 +1338,8 @@ async function run() {
     assert.equal(blockedStorageGate.locked, true);
     assert.match(blockedStorageGate.lockText, /수동 입력/);
     assert.equal(blockedStorageGate.calculationsHidden, true);
-    assert.equal(blockedStorageGate.manualPanelVisible, true);
-    assert.equal(blockedStorageGate.manualExpanded, "true");
+    assert.equal(blockedStorageGate.manualPanelHidden, true);
+    assert.equal(blockedStorageGate.manualExpanded, "false");
     assert.deepEqual(blockedStorageGate.quoteValues, ["—", "—", "—", "—"]);
     assert.equal(blockedStorageGate.referenceOpen, "—");
     assert.deepEqual(blockedStorageGate.referencePrices, ["—", "—", "—", "—", "—", "—"]);
@@ -1092,6 +1371,106 @@ async function run() {
     });
     await client.send("Page.removeScriptToEvaluateOnNewDocument", {
       identifier: fixedTimeScript.identifier
+    });
+
+    const completedTime = new Date("2026-08-15T03:00:00.000Z");
+    const completedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const NativeDate = Date;
+        const fixedNow = Date.parse("2026-08-15T03:00:00.000Z");
+        class FixedDate extends NativeDate {
+          constructor(...args) { super(...(args.length ? args : [fixedNow])); }
+          static now() { return fixedNow; }
+        }
+        globalThis.Date = FixedDate;
+      })();`
+    });
+    const completedTargetUrl = delayedMnqSourceUrl(completedTime);
+    let completedSessionRequestCount = 0;
+    const removeCompletedFixture = client.on("Fetch.requestPaused", params => {
+      completedSessionRequestCount += 1;
+      if (params.request.url !== `https://r.jina.ai/${completedTargetUrl}`) {
+        browserErrors.push(`Unexpected completed-session Reader URL: ${params.request.url}`);
+      }
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 200,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: Buffer.from(JSON.stringify({
+          code: 200,
+          status: 200,
+          data: {
+            title: "",
+            description: "",
+            url: completedTargetUrl,
+            content: JSON.stringify(completedMnqFixture())
+          }
+        })).toString("base64")
+      }).catch(error => browserErrors.push(`Completed-session fixture: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+    });
+    const errorsBeforeCompletedSession = browserErrors.length;
+    await navigate(client, `${baseUrl}/apps/volatility/?completed-session-reference-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removeCompletedFixture();
+    const completedSessionReference = await evaluate(client, `(() => ({
+      status: document.querySelector("#dataStatus").textContent,
+      marketTitle: document.querySelector("#marketTitle").textContent,
+      quoteLabel: document.querySelector("#quoteGrid").getAttribute("aria-label"),
+      currentLabel: document.querySelector("#currentPriceLabel").textContent,
+      quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
+        .map(id => document.querySelector("#" + id).textContent),
+      referenceOpenLabel: document.querySelector("#referenceOpenLabel").textContent,
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referencePrices: [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ].map(id => document.querySelector("#" + id).textContent),
+      atr: document.querySelector("#atrValue").textContent,
+      autoAtrDisabled: document.querySelector("#useAutoAtrBtn").disabled,
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      locked: !document.querySelector("#calculationLock").hidden,
+      lockText: document.querySelector("#calculationLock").textContent,
+      positionEmpty: document.querySelector("#positionEmpty").textContent,
+      positionResultsHidden: document.querySelector("#positionResults").hidden,
+      manualPanelHidden: document.querySelector("#manualPanel").hidden,
+      manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded"),
+      notice: document.querySelector("#dataNotice").textContent
+    }))()`);
+    assert.equal(completedSessionRequestCount, 1);
+    assert.equal(completedSessionReference.status, "최근 세션 참고");
+    assert.equal(completedSessionReference.marketTitle, "최근 완료 세션");
+    assert.equal(completedSessionReference.quoteLabel, "MNQ 최근 완료 세션 참고 시세");
+    assert.equal(completedSessionReference.currentLabel, "마지막 관측가");
+    assert.deepEqual(completedSessionReference.quoteValues,
+      ["30,000.00", "30,004.75", "29,999.50", "30,001.00"]);
+    assert.equal(completedSessionReference.referenceOpenLabel, "최근 세션 시가");
+    assert.equal(completedSessionReference.referenceOpen, "30,000.00");
+    assert.deepEqual(completedSessionReference.referencePrices, [
+      "30,527.25", "29,409.50", "30,107.75",
+      "29,911.50", "30,212.25", "29,755.50"
+    ]);
+    assert.equal(completedSessionReference.atr, "—");
+    assert.equal(completedSessionReference.autoAtrDisabled, true);
+    assert.equal(completedSessionReference.calculationsHidden, true);
+    assert.equal(completedSessionReference.locked, true);
+    assert.match(completedSessionReference.lockText, /읽기 전용/);
+    assert.match(completedSessionReference.positionEmpty, /포지션·손절 계산/);
+    assert.equal(completedSessionReference.positionResultsHidden, true);
+    assert.equal(completedSessionReference.manualPanelHidden, true);
+    assert.equal(completedSessionReference.manualExpanded, "false");
+    assert.match(completedSessionReference.notice, /O\/H\/L\/마지막 관측가/);
+    assert.match(completedSessionReference.notice, /포지션·ATR·손절 계산은 잠급니다/);
+    assert.deepEqual(browserErrors.splice(errorsBeforeCompletedSession), []);
+    await client.send("Page.removeScriptToEvaluateOnNewDocument", {
+      identifier: completedTimeScript.identifier
     });
     await navigate(client, `${baseUrl}/`);
     await evaluate(client, `new Promise((resolve, reject) => {
@@ -1987,13 +2366,15 @@ async function run() {
       locked: !document.querySelector("#calculationLock").hidden,
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
       current: document.querySelector("#currentPrice").textContent,
-      manualPanelVisible: !document.querySelector("#manualPanel").hidden
+      manualPanelHidden: document.querySelector("#manualPanel").hidden,
+      manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded")
     }))()`);
     assert.equal(offlineVolatility.status, "시세 없음");
     assert.equal(offlineVolatility.locked, true);
     assert.equal(offlineVolatility.calculationsHidden, true);
     assert.equal(offlineVolatility.current, "—");
-    assert.equal(offlineVolatility.manualPanelVisible, true);
+    assert.equal(offlineVolatility.manualPanelHidden, true);
+    assert.equal(offlineVolatility.manualExpanded, "false");
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
     await waitForCondition(
       client,

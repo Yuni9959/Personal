@@ -265,10 +265,10 @@ npm run validate:bank
 | [`apps/volatility/index.html`](./apps/volatility/index.html) | 평균·실전선·복기선·포지션·경고 UI |
 | `apps/volatility/styles.css` | 반응형 카드와 상태 스타일 |
 | `apps/volatility/js/calculator.js` | MNQ 계약값, 주간 기준, 가격선·손익·손절·P6/P7 계산 |
-| `apps/volatility/js/market-provider.js` | Chicago 세션, DST, O/H/L/current, 완료봉 ATR 재구성 |
-| `apps/volatility/js/request-guard.js` | 60초 cooldown 경계, 시계 rollback, 탭 간 단발 요청 잠금 |
-| `apps/volatility/js/snapshot-policy.js` | 종목·원천시각·25분 만료·주간 기준 fail-closed 판정 |
-| `apps/volatility/js/app.js` | 진입·버튼 단발 조회, cooldown, 저장·수동 폴백과 UI 잠금 |
+| `apps/volatility/js/market-provider.js` | Jina Reader 응답 검증, Chicago 세션, DST, O/H/L/current, 완료봉 ATR 재구성 |
+| `apps/volatility/js/request-guard.js` | 일반 10초 cooldown·429 대기, 시계 rollback, 탭 간 단발 요청 잠금 |
+| `apps/volatility/js/snapshot-policy.js` | 진행 세션 25분·완료 세션 96시간·주간 기준의 fail-closed 판정 |
+| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 재검증, 진입·버튼 단발 조회, 완료 세션 referenceOnly와 수동 폴백 UI 잠금 |
 | `apps/volatility/tests/*.test.mjs` | 계산·공급자·UI·허브·PWA·workflow 계약 |
 
 ### 6.2 반드시 분리할 세 수치
@@ -297,8 +297,9 @@ npm run validate:bank
 
 ### 6.4 시세 공급
 
-화면 최초 진입 또는 사용자가 버튼을 누를 때만 Yahoo Finance chart proxy의
-`MNQ=F` 2일치 5분봉을 한 번 조회한다. 60초 cooldown 동안 반복 요청을 막고,
+화면 최초 진입 또는 사용자가 버튼을 누를 때만 Jina Reader를 거쳐 Yahoo
+Finance chart의 `MNQ=F` 최근 5일치 5분봉을 한 번 조회한다. 일반 10초
+cooldown 동안 반복 요청을 막고, 429는 최소 60초·최대 15분을 별도로 지킨다.
 예약·주기·백그라운드 갱신은 하지 않는다. MNQ 응답이 데이터 없음이거나
 오류면 계산에 쓸 수 없는 NQ를 추가 조회하지 않고 즉시 잠근다. 최신 봉이
 속한 `America/Chicago` 17:00~익일 16:00 세션을
@@ -309,10 +310,14 @@ npm run test:volatility
 ```
 
 실제 Yahoo 시세를 담은 정적 파일과 갱신 도구는 공개 재배포를 피하려고 제거했다.
-응답은 전체 timeout, JSON Content-Type, FUTURE/CME/USD/5분/10분 지연 메타,
-반환심볼, 원천시각, 현재 세션 5분봉 연속성, OHLC와 0.25 tick을 검증한다.
-원천시각이 25분을 넘거나 미래이거나 NQ 대체값, 429·CORS·검증 오류이면 자동
-계산을 잠그고 빈 수동 입력을 안내한다. 잠긴 이전값을 수동값으로 승격하지 않는다.
+Jina 외부 envelope와 Yahoo 내부 JSON에는 각각 512 KiB 상한을 적용하고,
+canonical 원본 URL, FUTURE/CME/USD/5분, 반환심볼, 원천시각, 세션 5분봉 연속성,
+OHLC와 0.25 tick을 검증한다. 진행 세션은 원천시각이 25분을 넘거나 미래이거나
+NQ 대체값, 429·CORS·검증 오류이면 자동 계산을 잠근다. 완료 세션은 종료 전
+마지막 5분까지 관측되고 96시간 이내이며 같은 weekly 기준 기간일 때만
+`referenceOnly`로 복원한다. 이 참고값은 가격표 검토에만 쓰고 ATR·포지션·손절
+계산에는 전달하지 않는다. 잠긴 이전값을 수동값으로 승격하지 않으며 수동 입력
+패널은 기본적으로 닫아 둔다.
 
 Yahoo endpoint는 공식 거래소 피드도 무지연 피드도 아니며 브라우저 CORS를
 보장하지 않는다. 공식 안내상 CME는 약 10분 지연이다. 화면은 `실시간`이라는

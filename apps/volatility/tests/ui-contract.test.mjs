@@ -63,13 +63,17 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(html, /id="bearConditionalPrice"/);
   assert.match(html, /시가 환산 참고선 · 범위 예산 · 목표가 아님/);
   assert.match(html, /마감 후 복기용/);
+  assert.match(html, /OOS=가격선 도달률≠매매 성공률 · 조건부=마감 후 복기/);
+  assert.match(html, /class="reference-warning" aria-label="OOS는 과거 가격선 도달률이며 매매 성공률이 아닙니다/);
   assert.match(html, /과거 가격선 도달률이지 매매 성공률이 아닙니다/);
   assert.match(html, /도달 임계선일 뿐 예상 종가·수익 보장값이 아닙니다/);
   assert.match(app, /REFERENCE\.exAnte\.up\.safePercent/);
   assert.match(app, /REFERENCE\.exAnte\.down\.safePercent/);
-  assert.match(app, /renderReferencePrices\(assessment\.usable \? market : null\)/);
+  assert.match(app, /renderReferencePrices\(referenceVisible \? market : null\)/);
+  assert.match(app, /assessment\.referenceLineCalculationAllowed === true/);
   assert.match(app, /calculateSafeReachScenario\(market, row\.direction, row\.percent\(\)\)/);
   assert.match(styles, /\.reference-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
+  assert.match(styles, /\.reference-warning\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(styles, /@media \(max-width: 900px\)[\s\S]*?\.reference-card \{ order: -1; \}/);
   assert.match(app, /최근 52주 OOS/);
   assert.doesNotMatch(html, /1\.409%.*안전측/);
@@ -80,6 +84,12 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   const app = read("apps/volatility/js/app.js");
   const policy = read("apps/volatility/js/snapshot-policy.js");
   const guard = read("apps/volatility/js/request-guard.js");
+  const styles = read("apps/volatility/styles.css");
+  const scheduleStart = app.indexOf("function scheduleExpiryCheck()");
+  const scheduleEnd = app.indexOf("\n}\n\nfunction renderMarket()", scheduleStart) + 2;
+  const scheduleExpiry = app.slice(scheduleStart, scheduleEnd);
+  const startupStart = app.indexOf("const cachedSnapshot = loadFallbackSnapshot()");
+  const startup = app.slice(startupStart);
   assert.match(html, /오늘 시세 새로고침/);
   assert.match(html, /class="topbar-actions"/);
   assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만/);
@@ -89,8 +99,21 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /제공자 가격시각/);
   assert.match(html, /이번 조회시각/);
   assert.match(html, /지연·사용 상태/);
+  assert.match(html, /id="currentPriceLabel">현재가/);
   assert.match(html, /방금 영웅문 모바일에서/);
   assert.match(html, /id="manualConfirm"/);
+  assert.match(html, /class="manual-disclosure"/);
+  assert.match(html, /id="manualToggleBtn"[^>]+aria-expanded="false"[^>]+aria-controls="manualPanel"/);
+  assert.match(html, /id="manualPanel" class="manual-panel" hidden/);
+  assert.match(html, /자동 조회가 실패했거나 실제 월물을 직접 확인할 때만 여세요/);
+  assert.match(html, /class="position-layout"/);
+  assert.match(html, /class="position-input-pane"/);
+  assert.match(html, /class="position-output-pane"/);
+  assert.match(styles, /\.position-layout\s*\{[^}]*grid-template-columns:\s*minmax\(330px,.85fr\) minmax\(0,1.15fr\)/s);
+  assert.match(styles, /\.risk-results\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/s);
+  assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.position-layout \{ grid-template-columns: minmax\(0,.88fr\) minmax\(0,1.12fr\);/);
+  assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.risk-layout \{ grid-template-columns: minmax\(0,.9fr\) minmax\(0,1.1fr\);/);
+  assert.doesNotMatch(styles, /@media \(max-width: 340px\)[\s\S]*?\.position-layout, \.risk-layout \{ grid-template-columns: 1fr; \}/);
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /connect-src 'self' https:\/\/r\.jina\.ai/);
   assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
@@ -105,15 +128,25 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
   assert.match(app, /fetchYahooSnapshot\(fetch, new Date\(\), \{\s*timeoutMs: REQUEST_DEADLINE_MS\s*\}\)/);
   assert.match(app, /forceLockReason: reason/);
-  assert.match(app, /clearManualQuoteInputs\(\)/);
+  assert.doesNotMatch(app, /clearManualQuoteInputs|populateManual/);
+  assert.match(app, /setManualPanelExpanded\(false\)/);
+  assert.match(app, /cachedAssessment\.displayable/);
+  assert.match(app, /cachedAssessment\.referenceOnly/);
+  assert.match(startup, /applySnapshot\(cachedSnapshot, \{\s*cache: false,\s*forceLockReason: cachedAssessment\.referenceOnly\s*\? ""\s*: "새 시세를 확인하기 전 마지막 검증값을 읽기 전용으로 표시합니다\."\s*\}\)/);
+  assert.match(app, /els\.currentPriceLabel\.textContent = assessment\.referenceOnly \? "마지막 관측가" : "현재가"/);
+  assert.match(app, /els\.currentPriceLabel\.textContent = "현재가"/);
   assert.match(app, /setCompactDataStatus\("loading", "조회 중"\)/);
   assert.match(app, /setCompactDataStatus\("delayed", "시세 사용 가능"\)/);
   assert.match(app, /setCompactDataStatus\("stale", "시세 만료"\)/);
   assert.match(app, /setCompactDataStatus\("error", "시세 없음"\)/);
   assert.match(app, /setCompactDataStatus\("manual", "수동 입력"\)/);
-  assert.match(app, /assessment\.usable \? formatNumber\(market\.current\) : "—"/);
+  assert.match(app, /els\.currentPrice\.textContent = displayable \? formatNumber\(market\.current\) : "—"/);
+  assert.match(app, /state\.calculationAllowed = assessment\.calculationAllowed === true/);
   assert.match(app, /5분봉 1개 결손 · H\/L\/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR\/손절 자동 계산 중지/);
-  assert.match(app, /scheduleExpiryCheck\(\)/);
+  assert.ok(scheduleStart >= 0 && scheduleEnd > scheduleStart);
+  assert.match(scheduleExpiry, /if \(!state\.snapshot \|\| !state\.assessment\?\.displayable\) return/);
+  assert.match(scheduleExpiry, /if \(state\.assessment\.referenceOnly\) \{[\s\S]*window\.setTimeout\([\s\S]*renderMarket\(\)[\s\S]*60_000[\s\S]*return/s);
+  assert.match(app, /if \(!assessment\.usable\) \{[\s\S]*scheduleExpiryCheck\(\)[\s\S]*setCalculationLock\(true, lockReason\)/s);
   assert.match(app, /visibilitychange/);
   assert.match(app, /actualContractConfirmed: true/);
   assert.match(app, /withExclusiveRequest/);
@@ -125,19 +158,19 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.doesNotMatch(app, /Number\.isFinite\(Number\(state\.autoAtr\)\)/);
   assert.doesNotMatch(app, /populateManual/);
   assert.match(policy, /MAX_SOURCE_AGE_MINUTES = 25/);
-  assert.match(policy, /NQ 대체 프록시는 MNQ가 아니므로 자동 계산에 사용하지 않습니다/);
+  assert.match(policy, /NQ 대체 연속선물은 MNQ가 아니므로 자동 계산이나 이전값 미리보기에 사용하지 않습니다/);
   assert.match(policy, /requested === "MNQ=F" && returned === "MNQ=F"/);
   assert.match(policy, /provider\.tier === "mnq-continuous-proxy"/);
   assert.doesNotMatch(policy, /provider\.tier === undefined/);
-  assert.match(policy, /MNQ=F로 검증되지 않은 종목·출처 식별값이어서 자동 계산을 중지했습니다/);
-  assert.match(policy, /새 기준을 검증·배포하기 전 계산을 중지합니다/);
+  assert.match(policy, /MNQ=F로 검증되지 않은 종목·출처 응답이어서 계산과 이전값 미리보기를 중지합니다/);
+  assert.match(policy, /새 기준을 검증·반영하기 전에는 계산을 중지합니다/);
   assert.match(app, /이전 값으로 자동 계산하지 않습니다/);
   assert.doesNotMatch(app, /setInterval\s*\(/);
 });
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.3\.0-volatility-reference-grid\.1/);
+  assert.match(sw, /v3\.4\.0-volatility-weekend-review\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

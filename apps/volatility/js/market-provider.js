@@ -6,7 +6,10 @@ const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
 const BAR_SECONDS = 5 * 60;
-const SOURCE_LOOKBACK_SECONDS = 2 * 24 * 60 * 60;
+// Five calendar days keeps the most recent completed CME session available
+// across ordinary weekends and three-day holiday weekends. The response is
+// still bounded independently before either JSON layer is parsed.
+const SOURCE_LOOKBACK_SECONDS = 5 * 24 * 60 * 60;
 const DEFAULT_TIMEOUT_MS = 15000;
 const MAX_TIMEOUT_MS = 15000;
 export const MAX_JSON_RESPONSE_BYTES = 512 * 1024;
@@ -651,6 +654,13 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
   } = validateCurrentSession(timestamps, quote);
   const currentBar = bucketBars.at(-1);
   const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars);
+  const sessionEndedAtFetch = fetchedAt.getTime() >= session.end.getTime();
+  // A wall-clock time after the scheduled close is not enough to call a
+  // returned session complete.  The source also has to contain the terminal
+  // five-minute bucket (or a synthetic last-trade timestamp inside it).
+  const terminalCoverageVerified = currentBar.at.getTime() >=
+    session.end.getTime() - BAR_SECONDS * 1000;
+  const sessionCompletedAtFetch = sessionEndedAtFetch && terminalCoverageVerified;
   const completedBars = bucketBars.filter((bar, index) => {
     if (syntheticSeen && index === bucketBars.length - 1) return false;
     return (bar.bucket + BAR_SECONDS) * 1000 <= fetchedAt.getTime();
@@ -675,7 +685,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       requestedSymbol,
       returnedSymbol,
       interval: "5m",
-      range: "2d-period-window",
+      range: "5d-period-window",
       delayed: true,
       delayMinutes: delayMetadata.delayMinutes,
       delayMetadataVerified: delayMetadata.delayMetadataVerified,
@@ -703,6 +713,11 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       timeZone: session.timeZone,
       start: session.start.toISOString(),
       end: session.end.toISOString(),
+      status: sessionCompletedAtFetch ? "completed" :
+        sessionEndedAtFetch ? "ended-incomplete" : "in-progress",
+      isCompletedAtFetch: sessionCompletedAtFetch,
+      terminalCoverageVerified,
+      lastObservedAt: currentBar.at.toISOString(),
       barCount: bucketBars.length,
       expectedBarCount: expectedBucketCount,
       missingInteriorBucketCount

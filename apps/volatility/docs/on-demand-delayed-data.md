@@ -8,6 +8,11 @@ Yahoo Finance의 구조화된 chart 응답을 한 번 요청하는 best-effort �
 기능이다. 예약 작업, 백그라운드 폴링, focus·pageshow 네트워크 갱신, 화면을
 열어 둔 동안의 자동 갱신은 사용하지 않는다.
 
+페이지 시작 시에는 네트워크보다 먼저 이 기기의 캐시를 다시 검증한다. MNQ
+출처·구조·원천시각 검증을 통과한 활성 세션 캐시와 엄격한 완료 세션 조건을
+만족한 캐시만 화면에 복원한다. 두 경우 모두 새 공급자 응답이 성공할 때까지
+강제로 `referenceOnly` 처리하므로 현재 시세나 거래 계산 입력이 아니다.
+
 Yahoo는 CME 데이터를 약 10분 지연으로 안내한다. 따라서 1분마다 다시
 요청하더라도 실시간이 되지 않으며, 호출 제한과 오류만 늘어난다. 이 구현은
 호출 빈도를 줄이는 실용적 절충안이지 Jina·Yahoo·CME의 공식 시세 API,
@@ -17,27 +22,37 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
 
 ## 사용자 흐름
 
-1. Volatility 페이지에 접속하면 브라우저가 Jina Reader를 통해 Yahoo
-   `MNQ=F` 지연 시세를 한 번 요청한다.
-2. 같은 기기에서 짧은 시간 안에 반복 접속하거나 버튼을 연속으로 누르면
+1. Volatility 페이지에 접속하면 이 기기에 저장된 공급자 스냅샷을 현재 시각,
+   MNQ provenance, 세션 경계와 weekly 기준으로 다시 검증한다. 구조 검증을
+   통과한 활성 세션 캐시 또는 최근 완료 세션 캐시만 네트워크 응답 전 먼저
+   표시한다. 캐시값은 신규도가 25분 이내여도 읽기 전용이며 자동 계산을 열지
+   않는다.
+2. 이어 브라우저가 Jina Reader를 통해 Yahoo `MNQ=F`의 최근 5일치 5분봉
+   지연 시세를 한 번 요청한다. 사용자가 누르는 **오늘 시세 새로고침**도 같은
+   단발 경로만 사용한다.
+3. 같은 기기에서 짧은 시간 안에 반복 접속하거나 버튼을 연속으로 누르면
    로컬 cooldown이 추가 요청을 막는다.
-3. Jina 외부 envelope의 `code`·`status`·원본 URL·본문을 검증하고, URL의
+4. Jina 외부 envelope의 `code`·`status`·원본 URL·본문을 검증하고, URL의
    host·path·query가 요청한 Yahoo chart URL과 정확히 같을 때만 내부 Yahoo
    JSON을 파싱한다. 이어 상품 유형·CME 거래소·USD·정확한 `5m` 주기,
    종목·시각·OHLC 구조를 검증한다. Yahoo 지연 메타가 있으면 정확히 10분만
    허용하며, 없으면 검증되지 않았다는 상태를 보존한다.
-4. `MNQ=F` 데이터가 없거나 429·HTML·네트워크·timeout 오류가 나면
+5. `MNQ=F` 데이터가 없거나 429·HTML·네트워크·timeout 오류가 나면
    다른 종목을 추가 조회하지 않고 자동 계산을 잠근다. 계산에 사용할 수 없는
    NQ 대체값을 받기 위한 두 번째 요청은 보내지 않는다.
-5. 현재 세션의 완료된 중간 5분봉이 정확히 1개 완전-null이지만 Yahoo meta와
+6. 현재 세션의 완료된 중간 5분봉이 정확히 1개 완전-null이지만 Yahoo meta와
    가격 무결성 교차검증을 통과하면 범위와 안전측 계산은 유지하고 5분 ATR만
    잠근다. 첫·마지막·부분-null, 실제 timestamp gap, 둘 이상 null 또는 가격
    교차검증 실패는 전체 자동 계산을 잠근다.
-6. 조회가 실패하면 이 기기에서 앞서 성공한 로컬 스냅샷만 이전 참고값으로
-   표시한다. 공개 배포물에는 실제 Yahoo 시세 파일을 넣지 않는다.
-   원천 관측시각이 허용 범위를 넘으면 그 값으로 가격선·포지션 시나리오를
-   새로 계산하지 않고 수동 입력을 안내한다.
-7. 잠긴 값은 수동 폼에 복사하지 않는다. 사용자가 영웅문 모바일에서 방금
+7. 캐시 또는 새 응답이 승인된 MNQ이고, 현재가 세션 종료 뒤이며, 마지막
+   관측값이 종료 전 5분 이내이고, 원천시각이 96시간 이내이며, 원천일과 현재가
+   같은 weekly 기준 기간이면 **최근 완료 세션 참고값**으로 표시한다. 이때
+   `referenceOnly=true`, `calculationAllowed=false`로 두어 가격표 복기 외 ATR·
+   포지션·손절·실전 계산을 모두 금지한다. 종료 시각만 지났지만 마지막 5분
+   구간이 없거나 weekly 기간이 다르면 표시하지 않는다. 공개 배포물에는 실제
+   Yahoo 시세 파일을 넣지 않는다.
+8. 잠긴 값은 수동 폼에 복사하지 않는다. 수동 패널도 기본적으로 닫아 둔다.
+   사용자가 영웅문 모바일에서 방금
    확인한 실제 MNQ 월물의 시가·고가·저가·현재가를 모두 다시 입력하고 확인란을
    체크해야 한다. 수동값도 25분 뒤 만료된다.
 
@@ -48,13 +63,14 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
         ↓  한 번만 요청
 Jina Reader (`r.jina.ai`, 인증정보 없음)
         ↓  `https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F` 전달
-        ↓  Yahoo chart JSON (`MNQ=F` 한 번만 확인)
+        ↓  Yahoo chart JSON (`MNQ=F` 최근 5일·5분봉을 한 번만 확인)
         ↓  15초 timeout · 외부/내부 각 512 KiB · URL/provenance 검증
 CME 세션 재구성 (America/Chicago 17:00~익일 16:00)
         ↓  5분 bucket · null · OHLC · tick · 원천시각 검증
 지연 참고 스냅샷
-        ├─ 완전: 범위·안전측·완료봉 ATR
-        ├─ 정확히 1봉 결손 + H/L/current/time 메타 일치: 범위·안전측, ATR만 잠금
+        ├─ 진행 세션·≤25분·완전: 범위·안전측·완료봉 ATR
+        ├─ 진행 세션·≤25분·1봉 결손 + 가격 메타 일치: 범위·안전측, ATR만 잠금
+        ├─ 완료 세션 + 종료 마지막 5분 + ≤96h + 동일 weekly 기간: 참고 가격표만
         └─ 그 밖의 실패: 전체 자동 계산 fail-closed·수동 입력
 ```
 
@@ -89,7 +105,7 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   않고 브라우저 HTTP 캐시를 사용하지 않는다.
 - Jina 외부 envelope는 `code===200`, `status===200`, `data.url`,
   `data.content`를 요구한다. 반환 URL의 host·path와 `interval=5m`, 정확한
-  `period1`·`period2`, `includePrePost=true`, `events=div,splits` query가
+  5일 차이의 `period1`·`period2`, `includePrePost=true`, `events=div,splits` query가
   요청과 canonical하게 일치해야 내부 Yahoo JSON을 파싱한다.
 - HTTP 오류, HTML 응답, 스키마 변경, 429, timeout은 모두 정상적인
   공급원 실패로 취급하며 응답 본문을 화면이나 로그에 노출하지 않는다.
@@ -102,7 +118,10 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 - 공개 PWA에 API 키, Yahoo 쿠키, 우회 프록시 또는 브라우저 자동화 코드를
   넣지 않는다.
 - 연속선물과 실제 월물, MNQ와 NQ를 서로 같은 것으로 표시하지 않는다.
-- 이전 캐시를 성공한 새 조회처럼 표시하지 않는다.
+- 이전 캐시를 성공한 새 조회처럼 표시하지 않는다. 시작 시 다시 검증한 뒤
+  승인된 MNQ·완료 세션·종료 전 마지막 5분·원천시각 96시간 이내·동일 weekly
+  기간을 모두 만족할 때만 `referenceOnly` 참고값으로 표시한다. 이 상태는
+  `calculationAllowed=false`이며 ATR·포지션·손절·실전 계산에 소비하지 않는다.
 - 탭 간 Web Locks와 일반 10초 cooldown으로 중복 요청을 막고, 시가가 없는
   새 화면·새로고침·시스템 시계 rollback도 이 짧은 제한을 우회하지 못한다.
   공급자 429 대기(최소 60초·최대 15분)는 별도로 더 길게 유지한다.
@@ -112,11 +131,15 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   없으면 요청을 보내지 않는 쪽으로 fail-closed하고 수동 입력을 안내한다.
 - 화면을 열어 둔 중에도 로컬 만료 타이머·focus·pageshow에서 기존 값의
   신규도만 다시 검사하며, 이 이벤트로 네트워크를 요청하지 않는다. 원천
-  관측시각이 25분을 넘거나 주간 기준이 만료되면 파생 계산과 ATR 표시를
-  잠근다.
+  관측시각이 25분을 넘으면 현재 거래 계산은 잠근다. 단, 위 완료 세션 조건과
+  96시간·동일 weekly 기간을 모두 만족하면 가격표를 참고용으로만 유지한다.
+  주간 기준이 만료되거나 새 기준으로 이전 주 값을 다시 계산해야 하면 그
+  참고 가격표도 잠근다.
 - 포지션의 손절 ATR은 방향·진입가·진입시각과 출처시각을 묶어 한 번 고정하며,
   새 시세 때문에 조용히 이동시키지 않는다.
 - Service Worker는 향후 `/api/*` 응답도 캐시하지 않는다.
+- 화면 문구는 **OOS=가격선 도달률≠매매 성공률 · 조건부=마감 후 복기**로
+  해석 범위를 한 줄에 고정한다.
 
 ## 알려진 한계
 
@@ -143,8 +166,8 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 |---|---|
 | `apps/volatility/js/market-provider.js` | Jina Reader 요청·Yahoo 응답 검증·세션 재구성·결손 정책·스냅샷 생성 |
 | `apps/volatility/js/request-guard.js` | 일반 10초 경계·공급자 429 대기·시계 rollback·동시 탭 요청 잠금 |
-| `apps/volatility/js/snapshot-policy.js` | 25분 만료·심볼·주간 기준의 순수 fail-closed 판정 |
-| `apps/volatility/js/app.js` | 진입/버튼 단발 요청, 탭 잠금·cooldown, 로컬 폴백과 화면 상태 |
+| `apps/volatility/js/snapshot-policy.js` | 25분 현재 시세·96시간 완료 세션·종료 5분·동일 weekly 기간·심볼의 순수 fail-closed 판정 |
+| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 진입/버튼 단발 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |
 | `apps/volatility/js/calculator.js` | 평균·안전측·포지션·손절 계산 계약 |
 | `apps/volatility/index.html` | 지연·프록시·수동 대조 안내 UI |
 | `.github/workflows/deploy-pages.yml` | 예약 시세 갱신 없는 정적 Pages 배포 |
