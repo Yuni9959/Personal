@@ -221,6 +221,34 @@ async function stopProcess(child) {
   await waitForProcessExit(child, 5000);
 }
 
+async function removeTemporaryBrowserProfile(profilePath) {
+  const resolvedTemp = path.resolve(profilePath);
+  const resolvedOsTemp = path.resolve(os.tmpdir());
+  const relativeToOsTemp = path.relative(resolvedOsTemp, resolvedTemp);
+  if (!relativeToOsTemp || relativeToOsTemp.startsWith("..") || path.isAbsolute(relativeToOsTemp) ||
+      !path.basename(resolvedTemp).startsWith("personal-tap-smoke-")) {
+    throw new Error("브라우저 임시 프로필이 OS 임시 폴더 밖에 있습니다.");
+  }
+
+  const transientCodes = new Set(["EBUSY", "ENOTEMPTY", "EPERM"]);
+  let lastError = null;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      await fs.promises.rm(resolvedTemp, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (!transientCodes.has(error?.code)) throw error;
+      lastError = error;
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  // Chrome helpers may briefly outlive the parent on hosted Linux runners.
+  // The profile contains only disposable smoke-test data and the runner itself
+  // is ephemeral, so a cleanup race must not turn a successful product test red.
+  console.warn(`브라우저 임시 프로필 정리를 건너뜁니다: ${lastError?.code || "UNKNOWN"}`);
+}
+
 async function waitForJson(url, timeoutMs = 10000) {
   const startedAt = Date.now();
   while (Date.now() - startedAt < timeoutMs) {
@@ -2421,17 +2449,7 @@ async function run() {
     await new Promise(resolve => server.close(resolve));
     await stopProcess(browser);
 
-    const resolvedTemp = path.resolve(profilePath);
-    const resolvedOsTemp = path.resolve(os.tmpdir());
-    if (!resolvedTemp.startsWith(resolvedOsTemp)) {
-      throw new Error("브라우저 임시 프로필이 OS 임시 폴더 밖에 있습니다.");
-    }
-    fs.rmSync(resolvedTemp, {
-      recursive: true,
-      force: true,
-      maxRetries: 10,
-      retryDelay: 100
-    });
+    await removeTemporaryBrowserProfile(profilePath);
   }
 }
 
