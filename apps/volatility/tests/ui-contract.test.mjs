@@ -10,9 +10,28 @@ const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
 test("Personal Tap 허브에 Volatility 앱 입구가 활성화돼 있다", () => {
   const apps = read("apps.js");
+  const index = read("index.html");
+  const hub = read("hub.js");
   assert.match(apps, /id: "volatility"/);
   assert.match(apps, /href: "\.\/apps\/volatility\/"/);
   assert.match(apps, /enabled: true/);
+  assert.match(index, /<script type="module" src="\.\/hub\.js"><\/script>/);
+  assert.match(hub, /weekly-reference\.generated\.js/);
+  assert.doesNotMatch(hub, /상승 0\.360% · 하락 0\.295%/);
+});
+
+test("Volatility 주간 기준은 오늘 날짜 기반 생성 도구와 단일 동기화 명령으로 관리한다", () => {
+  const packageJson = JSON.parse(read("package.json"));
+  const calculator = read("apps/volatility/js/calculator.js");
+  const generated = read("apps/volatility/js/weekly-reference.generated.js");
+  const tool = read("apps/volatility/tools/build-weekly-reference.mjs");
+  assert.equal(packageJson.scripts["sync:volatility-reference"], "node apps/volatility/tools/build-weekly-reference.mjs");
+  assert.match(packageJson.scripts["sync:volatility-data"], /sync-local-nasdaq\.mjs && npm run sync:volatility-reference/);
+  assert.match(calculator, /weekly-reference\.generated\.js/);
+  assert.doesNotMatch(calculator, /effectiveFrom: "2026-/);
+  assert.match(generated, /직접 수정하지 마세요/);
+  assert.match(tool, /timeZone: "Asia\/Seoul"/);
+  assert.match(tool, /row\.date >= trainStart && row\.date < anchor/);
 });
 
 test("Personal Tap 허브에 안정 Vercel 입학정보 주소가 안전한 외부 링크로 등록돼 있다", () => {
@@ -173,10 +192,11 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.5\.0-volatility-local-archive\.1/);
+  assert.match(sw, /v3\.6\.0-volatility-weekly-reference\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",
+    "./apps/volatility/js/weekly-reference.generated.js",
     "./apps/volatility/js/market-provider.js", "./apps/volatility/js/local-market-provider.js",
     "./apps/volatility/js/request-guard.js", "./apps/volatility/js/snapshot-policy.js",
     "./apps/volatility/data/local-nasdaq-snapshot.json"

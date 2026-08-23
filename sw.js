@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.5.0-volatility-local-archive.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.6.0-volatility-weekly-reference.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -32,6 +32,7 @@ const CORE_ASSETS = [
   "./apps/volatility/styles.css",
   "./apps/volatility/js/app.js",
   "./apps/volatility/js/calculator.js",
+  "./apps/volatility/js/weekly-reference.generated.js",
   "./apps/volatility/js/market-provider.js",
   "./apps/volatility/js/local-market-provider.js",
   "./apps/volatility/js/request-guard.js",

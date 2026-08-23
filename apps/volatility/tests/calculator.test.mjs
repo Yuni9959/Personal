@@ -21,18 +21,35 @@ test("MNQ 승수와 tick을 CME 계약값으로 고정한다", () => {
   assert.equal(roundToTick(100.13), 100.25);
 });
 
-test("평균 범위·조건부 선·실전 ex-ante 선의 검증 계약을 고정한다", () => {
+test("자동 생성된 평균 범위·조건부 선·실전 ex-ante 계약의 구조와 주간 경계를 고정한다", () => {
   const reference = WEEKLY_VOLATILITY_REFERENCE;
-  assert.equal(reference.effectiveFrom, "2026-08-10");
-  assert.equal(reference.effectiveThrough, "2026-08-16");
-  assert.equal(reference.directions.bull.rangeMeanPercent, 1.7578587562480577);
-  assert.equal(reference.directions.bear.rangeMeanPercent, 1.9687778988774758);
-  assert.equal(reference.directions.bull.safePercent, 0.7079938023472419);
-  assert.equal(reference.directions.bear.safePercent, 0.8152825513548078);
-  assert.equal(reference.exAnte.up.safePercent, 0.3595381228038516);
-  assert.equal(reference.exAnte.down.safePercent, 0.29505120096620113);
-  assert.equal(reference.exAnte.up.walkForwardSampleCount, 253);
-  assert.equal(reference.exAnte.down.walkForwardSampleCount, 253);
+  const from = new Date(`${reference.effectiveFrom}T00:00:00Z`);
+  const through = new Date(`${reference.effectiveThrough}T00:00:00Z`);
+  const fitStart = new Date(`${reference.fitStart}T00:00:00Z`);
+  assert.equal(from.getUTCDay(), 1);
+  assert.equal((through - from) / 86_400_000, 6);
+  assert.equal(reference.fitEndExclusive, reference.effectiveFrom);
+  assert.equal(fitStart.getUTCFullYear(), from.getUTCFullYear() - 5);
+  assert.equal(reference.sourceDataset, "nasdaq_daily.csv");
+  assert.match(reference.sourceSha256, /^[a-f0-9]{64}$/);
+  assert.equal(Object.isFrozen(reference), true);
+  assert.equal(Object.isFrozen(reference.exAnte), true);
+  for (const line of [
+    reference.directions.bull,
+    reference.directions.bear,
+    reference.exAnte.up,
+    reference.exAnte.down
+  ]) {
+    assert.ok(line.safePercent > 0);
+    assert.ok([0.10, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50].includes(line.safeQuantile));
+    assert.ok(line.selectionWilson95Low >= 70);
+    assert.ok(line.walkForwardSampleCount > 0);
+    assert.ok(line.walkForwardHitRate >= 0 && line.walkForwardHitRate <= 100);
+    assert.ok(line.walkForwardWilson95Low <= line.walkForwardHitRate);
+    assert.ok(line.walkForwardWilson95High >= line.walkForwardHitRate);
+  }
+  assert.equal(reference.directions.bull.rangeMeanPercent, reference.bullPercent);
+  assert.equal(reference.directions.bear.rangeMeanPercent, reference.bearPercent);
   assert.equal(reference.rejectedIllustration.percent, 1.409);
 });
 

@@ -1,3 +1,5 @@
+import { WEEKLY_VOLATILITY_REFERENCE as VOLATILITY_REFERENCE } from "./apps/volatility/js/weekly-reference.generated.js";
+
 (() => {
   "use strict";
 
@@ -202,8 +204,9 @@
       }
 
       const metric = app.metric === "mkat" ? mkatMetricText() :
-        app.metric === "volatility" ? "실전선 · 상승 0.360% · 하락 0.295%" :
-        app.enabled ? "탭해서 바로 열기" : "연결할 주소가 정해지면 활성화됩니다.";
+        app.metric === "volatility"
+          ? `실전선 · 상승 ${VOLATILITY_REFERENCE.exAnte.up.safePercent.toFixed(3)}% · 하락 ${VOLATILITY_REFERENCE.exAnte.down.safePercent.toFixed(3)}%`
+          : app.enabled ? "탭해서 바로 열기" : "연결할 주소가 정해지면 활성화됩니다.";
 
       card.innerHTML = `
         <div class="app-card-topline">

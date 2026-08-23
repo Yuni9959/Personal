@@ -6,6 +6,10 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  WEEKLY_VOLATILITY_REFERENCE,
+  calculateSafeReachScenario
+} from "../../volatility/js/calculator.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(here, "..", "..", "..");
@@ -13,6 +17,44 @@ const runtimeBank = JSON.parse(fs.readFileSync(
   path.join(projectRoot, "apps", "mensa", "data", "question-bank.json"),
   "utf8"
 ));
+function weekDate(offset, time) {
+  const date = new Date(`${WEEKLY_VOLATILITY_REFERENCE.effectiveFrom}T00:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return `${date.toISOString().slice(0, 10)}T${time}`;
+}
+const VOLATILITY_SESSION_START = weekDate(3, "22:00:00.000Z");
+const VOLATILITY_FIXTURE_NOW = weekDate(4, "06:30:00.000Z");
+const VOLATILITY_FIXTURE_LOCAL_ENTRY = weekDate(4, "15:00").slice(0, 16);
+const VOLATILITY_COMPLETED_NOW = weekDate(5, "03:00:00.000Z");
+const volatilityReferenceMarket = {
+  open: 30000,
+  high: 30000,
+  low: 30000,
+  current: 30000,
+  atr5m14: null
+};
+const volatilityNumberFormat = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
+function volatilityReferenceRow(direction, percent) {
+  const scenario = calculateSafeReachScenario(volatilityReferenceMarket, direction, percent);
+  const sign = direction === "bull" ? "+" : "−";
+  return [
+    `${percent.toFixed(3)}%`,
+    `${sign}${volatilityNumberFormat.format(scenario.movePoints)} pt`,
+    volatilityNumberFormat.format(scenario.priceLine)
+  ];
+}
+const volatilityReferenceRows = {
+  bullMean: volatilityReferenceRow("bull", WEEKLY_VOLATILITY_REFERENCE.directions.bull.rangeMeanPercent),
+  bearMean: volatilityReferenceRow("bear", WEEKLY_VOLATILITY_REFERENCE.directions.bear.rangeMeanPercent),
+  bullLive: volatilityReferenceRow("bull", WEEKLY_VOLATILITY_REFERENCE.exAnte.up.safePercent),
+  bearLive: volatilityReferenceRow("bear", WEEKLY_VOLATILITY_REFERENCE.exAnte.down.safePercent),
+  bullConditional: volatilityReferenceRow("bull", WEEKLY_VOLATILITY_REFERENCE.directions.bull.safePercent),
+  bearConditional: volatilityReferenceRow("bear", WEEKLY_VOLATILITY_REFERENCE.directions.bear.safePercent)
+};
+const volatilityReferencePrices = Object.values(volatilityReferenceRows).map(row => row[2]);
 const mimeTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
@@ -23,8 +65,8 @@ const mimeTypes = {
 };
 
 function delayedMnqFixture() {
-  const start = Date.parse("2026-08-13T22:00:00.000Z") / 1000;
-  const end = Date.parse("2026-08-14T06:20:00.000Z") / 1000;
+  const start = Date.parse(VOLATILITY_SESSION_START) / 1000;
+  const end = Date.parse(VOLATILITY_FIXTURE_NOW) / 1000 - 10 * 60;
   const timestamp = [];
   for (let value = start; value <= end; value += 300) timestamp.push(value);
   const open = timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
@@ -78,7 +120,7 @@ function activeMnqFixture() {
 }
 
 function completedMnqFixture() {
-  const start = Date.parse("2026-08-13T22:00:00.000Z") / 1000;
+  const start = Date.parse(VOLATILITY_SESSION_START) / 1000;
   const timestamp = Array.from({ length: 23 * 12 }, (_, index) => start + index * 300);
   const open = timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
   const close = open.map(value => value + 0.25);
@@ -107,7 +149,7 @@ function completedMnqFixture() {
   };
 }
 
-function delayedMnqSourceUrl(fetchedAt = new Date("2026-08-14T06:30:00.000Z")) {
+function delayedMnqSourceUrl(fetchedAt = new Date(VOLATILITY_FIXTURE_NOW)) {
   const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
   const url = new URL("https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F");
   url.searchParams.set("interval", "5m");
@@ -547,7 +589,10 @@ async function run() {
       return { href: card?.getAttribute("href"), text: card?.textContent || "" };
     })()`);
     assert.equal(volatilityCard.href, "./apps/volatility/");
-    assert.match(volatilityCard.text, /실전선.*상승 0\.360%.*하락 0\.295%/s);
+    assert.match(
+      volatilityCard.text,
+      new RegExp(`실전선.*상승 ${WEEKLY_VOLATILITY_REFERENCE.exAnte.up.safePercent.toFixed(3)}%.*하락 ${WEEKLY_VOLATILITY_REFERENCE.exAnte.down.safePercent.toFixed(3)}%`, "s")
+    );
     const universityAdmissionCard = await evaluate(client, `(() => {
       const card = document.querySelector('[data-app-id="university-admission"]');
       const describedBy = (card?.getAttribute("aria-describedby") || "")
@@ -664,7 +709,7 @@ async function run() {
     const fixedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `(() => {
         const NativeDate = Date;
-        const fixedNow = Date.parse("2026-08-14T06:30:00.000Z");
+        const fixedNow = Date.parse("${VOLATILITY_FIXTURE_NOW}");
         class FixedDate extends NativeDate {
           constructor(...args) { super(...(args.length ? args : [fixedNow])); }
           static now() { return fixedNow; }
@@ -750,22 +795,15 @@ async function run() {
     assert.equal(delayedQuoteGate.refreshText, "오늘 시세 새로고침");
     assert.equal(delayedQuoteGate.refreshInTopbar, true);
     assert.deepEqual(delayedQuoteGate.liveLabels, [
-      "장중 기본 상승선 · OOS 72.7%",
-      "장중 기본 하락선 · OOS 73.5%"
+      `장중 기본 상승선 · OOS ${WEEKLY_VOLATILITY_REFERENCE.exAnte.up.walkForwardHitRate.toFixed(1)}%`,
+      `장중 기본 하락선 · OOS ${WEEKLY_VOLATILITY_REFERENCE.exAnte.down.walkForwardHitRate.toFixed(1)}%`
     ]);
     assert.deepEqual(delayedQuoteGate.conditionalLabels, [
-      "양봉 마감 조건부 복기선 · OOS 79.6%",
-      "음봉 마감 조건부 복기선 · OOS 79.3%"
+      `양봉 마감 조건부 복기선 · OOS ${WEEKLY_VOLATILITY_REFERENCE.directions.bull.walkForwardHitRate.toFixed(1)}%`,
+      `음봉 마감 조건부 복기선 · OOS ${WEEKLY_VOLATILITY_REFERENCE.directions.bear.walkForwardHitRate.toFixed(1)}%`
     ]);
     assert.equal(delayedQuoteGate.referenceOpen, "30,000.00");
-    assert.deepEqual(delayedQuoteGate.referenceLines, {
-      bullMean: ["1.758%", "+527.25 pt", "30,527.25"],
-      bearMean: ["1.969%", "−590.50 pt", "29,409.50"],
-      bullLive: ["0.360%", "+107.75 pt", "30,107.75"],
-      bearLive: ["0.295%", "−88.50 pt", "29,911.50"],
-      bullConditional: ["0.708%", "+212.25 pt", "30,212.25"],
-      bearConditional: ["0.815%", "−244.50 pt", "29,755.50"]
-    });
+    assert.deepEqual(delayedQuoteGate.referenceLines, volatilityReferenceRows);
     assert.equal(delayedQuoteGate.atr, "—");
     assert.equal(delayedQuoteGate.autoAtrDisabled, true);
     assert.equal(delayedQuoteGate.manualPanelHidden, true);
@@ -827,7 +865,7 @@ async function run() {
       );
       localStorage.setItem("personal-tap-volatility-position-v1", JSON.stringify({
         direction: "long", entry: 30000, quantity: 1, fees: 0,
-        enteredAt: "2026-08-14T15:00"
+        enteredAt: "${VOLATILITY_FIXTURE_LOCAL_ENTRY}"
       }));
       return true;
     })()`);
@@ -992,10 +1030,17 @@ async function run() {
       bullConditional: document.querySelector("#bullSafeLine").textContent,
       bearConditional: document.querySelector("#bearSafeLine").textContent
     })`);
-    assert.equal(safeLines.up, "30,000.00 + 107.75 pt = 30,107.75");
-    assert.equal(safeLines.down, "30,000.00 − 88.50 pt = 29,911.50");
-    assert.equal(safeLines.bullConditional, "30,000.00 + 212.25 = 30,212.25");
-    assert.equal(safeLines.bearConditional, "30,000.00 − 244.50 = 29,755.50");
+    const manualMarket = { open: 30000, high: 30100, low: 29900, current: 30050, atr5m14: 40.34778 };
+    const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const line = (direction, percent, operational = false) => {
+      const scenario = calculateSafeReachScenario(manualMarket, direction, percent);
+      const sign = direction === "bull" ? "+" : "−";
+      return `${numberFormat.format(manualMarket.open)} ${sign} ${numberFormat.format(scenario.movePoints)}${operational ? " pt" : ""} = ${numberFormat.format(scenario.priceLine)}`;
+    };
+    assert.equal(safeLines.up, line("bull", WEEKLY_VOLATILITY_REFERENCE.exAnte.up.safePercent, true));
+    assert.equal(safeLines.down, line("bear", WEEKLY_VOLATILITY_REFERENCE.exAnte.down.safePercent, true));
+    assert.equal(safeLines.bullConditional, line("bull", WEEKLY_VOLATILITY_REFERENCE.directions.bull.safePercent));
+    assert.equal(safeLines.bearConditional, line("bear", WEEKLY_VOLATILITY_REFERENCE.directions.bear.safePercent));
     await evaluate(client, "document.querySelector('#scenarioTitle').scrollIntoView(); true");
     await captureOptionalScreenshot(client, "volatility-safe-lines-desktop");
     const volatilityResult = await evaluate(client, `(() => {
@@ -1265,10 +1310,7 @@ async function run() {
     assert.equal(lockedFallback.atr, "—");
     assert.deepEqual(lockedFallback.quoteValues, ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
     assert.equal(lockedFallback.referenceOpen, "30,000.00");
-    assert.deepEqual(lockedFallback.referencePrices, [
-      "30,527.25", "29,409.50", "30,107.75",
-      "29,911.50", "30,212.25", "29,755.50"
-    ]);
+    assert.deepEqual(lockedFallback.referencePrices, volatilityReferencePrices);
     assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
     assert.equal(lockedFallback.manualConfirmed, false);
     assert.match(lockedFallback.notice, /O\/H\/L\/마지막 관측가/);
@@ -1278,7 +1320,7 @@ async function run() {
     assert.equal(lockedFallback.refreshText, "오늘 시세 새로고침");
     assert.equal(lockedFallback.manualPanelHidden, true);
     assert.equal(lockedFallback.manualExpanded, "false");
-    assert.equal(lockedFallback.rateLimitUntil, Date.parse("2026-08-14T06:32:00.000Z"));
+    assert.equal(lockedFallback.rateLimitUntil, Date.parse(VOLATILITY_FIXTURE_NOW) + 120_000);
     assert.match(lockedFallback.notice, /120초/);
     await evaluate(client, `(() => {
       localStorage.setItem(
@@ -1401,11 +1443,11 @@ async function run() {
       identifier: fixedTimeScript.identifier
     });
 
-    const completedTime = new Date("2026-08-15T03:00:00.000Z");
+    const completedTime = new Date(VOLATILITY_COMPLETED_NOW);
     const completedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `(() => {
         const NativeDate = Date;
-        const fixedNow = Date.parse("2026-08-15T03:00:00.000Z");
+        const fixedNow = Date.parse("${VOLATILITY_COMPLETED_NOW}");
         class FixedDate extends NativeDate {
           constructor(...args) { super(...(args.length ? args : [fixedNow])); }
           static now() { return fixedNow; }
@@ -1481,10 +1523,7 @@ async function run() {
       ["30,000.00", "30,004.75", "29,999.50", "30,001.00"]);
     assert.equal(completedSessionReference.referenceOpenLabel, "최근 세션 시가");
     assert.equal(completedSessionReference.referenceOpen, "30,000.00");
-    assert.deepEqual(completedSessionReference.referencePrices, [
-      "30,527.25", "29,409.50", "30,107.75",
-      "29,911.50", "30,212.25", "29,755.50"
-    ]);
+    assert.deepEqual(completedSessionReference.referencePrices, volatilityReferencePrices);
     assert.equal(completedSessionReference.atr, "—");
     assert.equal(completedSessionReference.autoAtrDisabled, true);
     assert.equal(completedSessionReference.calculationsHidden, true);

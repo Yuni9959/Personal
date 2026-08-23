@@ -1,96 +1,11 @@
+import { WEEKLY_VOLATILITY_REFERENCE } from "./weekly-reference.generated.js";
+
 export const MNQ_CONTRACT = Object.freeze({
   pointValueUsd: 2,
   tickSize: 0.25
 });
 
-export const WEEKLY_VOLATILITY_REFERENCE = Object.freeze({
-  schemaVersion: 2,
-  effectiveFrom: "2026-08-10",
-  effectiveThrough: "2026-08-16",
-  calculatedAt: "2026-08-13T23:16:02+09:00",
-  sourceSymbol: "NQ continuous proxy",
-  sourceDataset: "nasdaq_daily.csv",
-  sourceSha256: "9df0f28c3e53355cbaece35823baf3e3378194e5c026f748d64778f774162076",
-  fitStart: "2021-08-10",
-  fitEndExclusive: "2026-08-10",
-  lookbackYears: 5,
-  method: "5년·2σ 정제·주간 고정·selection 70% Wilson 하한 정책",
-  bullPercent: 1.7578587562480577,
-  bearPercent: 1.9687778988774758,
-  directions: Object.freeze({
-    bull: Object.freeze({
-      rangeMeanPercent: 1.7578587562480577,
-      rangeRawSampleCount: 673,
-      rangeUsedSampleCount: 649,
-      safePercent: 0.7079938023472419,
-      safeQuantile: 0.25,
-      selectionHitRate: 74.10909090909091,
-      selectionWilson95Low: 72.4390966386705,
-      walkForwardSampleCount: 137,
-      walkForwardHitRate: 79.56204379562044,
-      walkForwardWilson95Low: 72.04740623045701,
-      walkForwardWilson95High: 85.46406850023395,
-      walkForwardBlock95Low: 69.28571428571428,
-      walkForwardBlock95High: 88.97073297823066,
-      currentWindowSampleCount: 673,
-      currentWindowUsedCount: 648
-    }),
-    bear: Object.freeze({
-      rangeMeanPercent: 1.9687778988774758,
-      rangeRawSampleCount: 587,
-      rangeUsedSampleCount: 559,
-      safePercent: 0.8152825513548078,
-      safeQuantile: 0.25,
-      selectionHitRate: 75.25681107637338,
-      selectionWilson95Low: 73.4271594808857,
-      walkForwardSampleCount: 116,
-      walkForwardHitRate: 79.3103448275862,
-      walkForwardWilson95Low: 71.05774078005253,
-      walkForwardWilson95High: 85.68389159755486,
-      walkForwardBlock95Low: 70.9090909090909,
-      walkForwardBlock95High: 87.40403543307083,
-      currentWindowSampleCount: 587,
-      currentWindowUsedCount: 561
-    })
-  }),
-  // Before the closing direction is known, these all-day lines are the
-  // operational defaults.  They are intentionally lower than the
-  // direction-conditional diagnostic lines above.
-  exAnte: Object.freeze({
-    up: Object.freeze({
-      safePercent: 0.3595381228038516,
-      safeQuantile: 0.25,
-      selectionHitRate: 74.63014794082367,
-      selectionWilson95Low: 73.40571403183099,
-      walkForwardSampleCount: 253,
-      walkForwardHitRate: 72.72727272727273,
-      walkForwardWilson95Low: 66.93011721124994,
-      walkForwardWilson95High: 77.844585645536,
-      walkForwardBlock95Low: 66.40316205533597,
-      walkForwardBlock95High: 78.17460317460318,
-      currentWindowSampleCount: 1260,
-      currentWindowUsedCount: 1210
-    }),
-    down: Object.freeze({
-      safePercent: 0.29505120096620113,
-      safeQuantile: 0.25,
-      selectionHitRate: 75.00999600159935,
-      selectionWilson95Low: 73.7912823892375,
-      walkForwardSampleCount: 253,
-      walkForwardHitRate: 73.51778656126482,
-      walkForwardWilson95Low: 67.75837960746508,
-      walkForwardWilson95High: 78.57370421825253,
-      walkForwardBlock95Low: 67.06827309236948,
-      walkForwardBlock95High: 79.52755905511812,
-      currentWindowSampleCount: 1260,
-      currentWindowUsedCount: 1199
-    })
-  }),
-  rejectedIllustration: Object.freeze({
-    percent: 1.409,
-    reason: "최근 52주 방향 미확정 도달률이 상승 19.4%, 하락 25.7%로 안전선에 부적합"
-  })
-});
+export { WEEKLY_VOLATILITY_REFERENCE };
 
 function finiteNumber(value) {
   if (value === "" || value === null || value === undefined) return null;
