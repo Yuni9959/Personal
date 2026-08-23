@@ -64,8 +64,11 @@ function sourceReferenceCoverageReason(snapshot, reference) {
   const sourceAt = new Date(snapshot?.market?.latestBarAt || "");
   if (!Number.isFinite(sourceAt.getTime())) return "가격 원천일을 확인할 수 없습니다.";
   const sourceDate = kstDate(sourceAt);
-  if (sourceDate < reference.effectiveFrom || sourceDate > reference.effectiveThrough) {
-    return `가격 원천일 ${sourceDate}은 현재 주간 Volatility 기준 기간에 포함되지 않아 이전 가격선을 다시 계산하지 않습니다.`;
+  if (sourceDate < reference.effectiveFrom) {
+    return `가격 원천일 ${sourceDate}은 현재 주간 Volatility 기준 기간보다 이전입니다.`;
+  }
+  if (sourceDate > reference.effectiveThrough) {
+    return `가격 원천일 ${sourceDate}은 현재 주간 Volatility 기준 기간보다 이후입니다.`;
   }
   return "";
 }
@@ -148,8 +151,11 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
 
   const expiredReference = referenceExpiryReason(now, reference);
   const sourceReferenceMismatch = sourceReferenceCoverageReason(snapshot, reference);
-  const referenceFailure = expiredReference || sourceReferenceMismatch;
-  const referenceValid = referenceFailure === "";
+  // A current weekly contract may be converted from a recent completed
+  // session's open even when that source session belongs to the prior week.
+  // This remains a read-only reference line; live, position, ATR and stop
+  // calculations stay locked. Only an expired weekly contract blocks it.
+  const referenceValid = expiredReference === "";
 
   if (snapshot?.mode === "manual") {
     if (!manualConfirmationValid(snapshot)) {
@@ -173,7 +179,7 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
         marketState: "reference-expired",
         ageMinutes,
         referenceValid,
-        reason: referenceFailure
+        reason: expiredReference
       });
     }
     return decision({
@@ -215,9 +221,11 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       ageMinutes: Math.max(0, ageMinutes),
       referenceValid,
       sessionEndedAt: providerSession.end.toISOString(),
-      reason: referenceValid
-        ? "사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. MNQ가 아니므로 포지션·ATR·손절 계산에는 사용하지 않습니다."
-        : `사용자가 동기화한 최근 완료 NQ 세션의 O/H/L/마지막 관측가만 표시합니다. ${referenceFailure}`
+      reason: !referenceValid
+        ? `사용자가 동기화한 최근 완료 NQ 세션의 O/H/L/마지막 관측가만 표시합니다. ${expiredReference}`
+        : sourceReferenceMismatch
+          ? `사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, MNQ 포지션·ATR·손절 계산에는 사용하지 않습니다.`
+          : "사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. MNQ가 아니므로 포지션·ATR·손절 계산에는 사용하지 않습니다."
     });
   }
 
@@ -252,7 +260,7 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       ageMinutes,
       referenceValid,
       sessionEndedAt: providerSession.end.toISOString(),
-      reason: referenceFailure
+      reason: expiredReference
     });
   }
 
@@ -287,7 +295,9 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       ageMinutes: Math.max(0, ageMinutes),
       referenceValid: true,
       sessionEndedAt: providerSession.end.toISOString(),
-      reason: "최근 완료된 MNQ 세션의 참고값입니다. 현재 시세가 아니며 포지션·ATR·손절 계산에는 사용하지 않습니다."
+      reason: sourceReferenceMismatch
+        ? `최근 완료된 MNQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, 포지션·ATR·손절 계산에는 사용하지 않습니다.`
+        : "최근 완료된 MNQ 세션의 참고값입니다. 현재 시세가 아니며 포지션·ATR·손절 계산에는 사용하지 않습니다."
     });
   }
 

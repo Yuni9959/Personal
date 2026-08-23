@@ -896,6 +896,7 @@ async function run() {
       marketTitle: document.querySelector("#marketTitle").textContent,
       quoteLabel: document.querySelector("#quoteGrid").getAttribute("aria-label"),
       referenceOpenLabel: document.querySelector("#referenceOpenLabel").textContent,
+      referenceOpenContext: document.querySelector("#referenceOpenContext").textContent,
       delay: document.querySelector("#delayText").textContent,
       notice: document.querySelector("#dataNotice").textContent,
       quoteValues: ["openPrice", "highPrice", "lowPrice", "currentPrice"]
@@ -918,7 +919,8 @@ async function run() {
     assert.equal(pendingActiveCacheGate.currentLabel, "마지막 관측가");
     assert.equal(pendingActiveCacheGate.marketTitle, "이전 참고 시세");
     assert.equal(pendingActiveCacheGate.quoteLabel, "MNQ 이전 참고 시세");
-    assert.equal(pendingActiveCacheGate.referenceOpenLabel, "이전 확인 시가");
+    assert.equal(pendingActiveCacheGate.referenceOpenLabel, "최근 기준 시가");
+    assert.match(pendingActiveCacheGate.referenceOpenContext, /KST 기준$/);
     assert.match(pendingActiveCacheGate.delay, /이전 검증 시세 참고/);
     assert.match(pendingActiveCacheGate.notice, /이전에 검증한 세션/);
     assert.deepEqual(pendingActiveCacheGate.quoteValues,
@@ -1499,6 +1501,7 @@ async function run() {
         .map(id => document.querySelector("#" + id).textContent),
       referenceOpenLabel: document.querySelector("#referenceOpenLabel").textContent,
       referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referenceOpenContext: document.querySelector("#referenceOpenContext").textContent,
       referencePrices: [
         "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
         "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
@@ -1521,8 +1524,9 @@ async function run() {
     assert.equal(completedSessionReference.currentLabel, "마지막 관측가");
     assert.deepEqual(completedSessionReference.quoteValues,
       ["30,000.00", "30,004.75", "29,999.50", "30,001.00"]);
-    assert.equal(completedSessionReference.referenceOpenLabel, "최근 세션 시가");
+    assert.equal(completedSessionReference.referenceOpenLabel, "최근 기준 시가");
     assert.equal(completedSessionReference.referenceOpen, "30,000.00");
+    assert.match(completedSessionReference.referenceOpenContext, /KST 기준$/);
     assert.deepEqual(completedSessionReference.referencePrices, volatilityReferencePrices);
     assert.equal(completedSessionReference.atr, "—");
     assert.equal(completedSessionReference.autoAtrDisabled, true);

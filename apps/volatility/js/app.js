@@ -320,11 +320,8 @@ function renderReferenceContext(snapshot = null, assessment = null) {
     return;
   }
   if (assessment.referenceOnly) {
-    const completedSession = ["completed-session", "local-completed-session"].includes(assessment.marketState);
-    els.referenceOpenLabel.textContent = completedSession ? "최근 세션 시가" : "이전 확인 시가";
-    els.referenceOpenContext.textContent = completedSession
-      ? `${formatCompactDate(snapshot.session?.end)} · 종료`
-      : `${formatCompactDate(snapshot.market?.latestBarAt)} · 이전`;
+    els.referenceOpenLabel.textContent = "최근 기준 시가";
+    els.referenceOpenContext.textContent = `${formatCompactDate(snapshot.market?.latestBarAt)} 기준`;
     return;
   }
   els.referenceOpenLabel.textContent = snapshot.mode === "manual" ? "확인 시가" : "오늘 시가";

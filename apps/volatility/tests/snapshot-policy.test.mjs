@@ -127,7 +127,7 @@ test("평일 휴장에도 같은 주간 기준이 유효하면 최근 완료 세
   assert.equal(result.calculationAllowed, false);
 });
 
-test("새 주간 기준으로 이전 주의 완료 세션 가격선을 다시 계산하지 않는다", () => {
+test("새 주 월요일에는 이전 주의 최근 완료 세션을 기준시각이 있는 읽기 전용 가격선으로 연다", () => {
   const monday = new Date("2026-08-17T14:00:00.000Z");
   const newReference = { effectiveFrom: "2026-08-17", effectiveThrough: "2026-08-23" };
   const priorWeek = snapshot({
@@ -139,10 +139,13 @@ test("새 주간 기준으로 이전 주의 완료 세션 가격선을 다시 �
   });
   const result = assessSnapshot(priorWeek, monday, newReference);
   assert.equal(result.usable, false);
-  assert.equal(result.displayable, false);
-  assert.equal(result.referenceLineCalculationAllowed, false);
-  assert.equal(result.marketState, "reference-expired");
+  assert.equal(result.calculationAllowed, false);
+  assert.equal(result.displayable, true);
+  assert.equal(result.referenceOnly, true);
+  assert.equal(result.referenceLineCalculationAllowed, true);
+  assert.equal(result.marketState, "completed-session");
   assert.match(result.reason, /가격 원천일/);
+  assert.match(result.reason, /현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선/);
 });
 
 test("종료됐더라도 마지막 5분 구간이 없으면 완료 세션으로 승격하지 않는다", () => {
@@ -258,6 +261,37 @@ test("승인된 로컬 NQ 보관값은 완료 세션 참고로만 표시한다",
   assert.equal(result.referenceLineCalculationAllowed, true);
   assert.equal(result.marketState, "local-completed-session");
   assert.match(result.reason, /MNQ가 아니므로/);
+});
+
+test("새 주 월요일에도 96시간 이내 로컬 NQ 시가로 상승·하락 참고선을 표시한다", () => {
+  const monday = new Date("2026-08-23T16:00:00.000Z");
+  const newReference = { effectiveFrom: "2026-08-24", effectiveThrough: "2026-08-30" };
+  const local = snapshot({
+    mode: "local-archive",
+    assessedAt: monday,
+    latestAt: "2026-08-21T20:55:00.000Z",
+    sessionStart: "2026-08-20T22:00:00.000Z",
+    sessionEnd: "2026-08-21T21:00:00.000Z",
+    sessionStatus: "completed",
+    requestedSymbol: "NQ=F",
+    returnedSymbol: "NQ=F",
+    tier: "nq-local-archive-reference"
+  });
+  Object.assign(local.provider, {
+    localArchive: true,
+    sourceFile: "nasdaq_5m.csv",
+    sourceSha256: "c".repeat(64)
+  });
+  local.session.terminalCoverageVerified = true;
+
+  const result = assessSnapshot(local, monday, newReference);
+  assert.equal(result.usable, false);
+  assert.equal(result.displayable, true);
+  assert.equal(result.referenceOnly, true);
+  assert.equal(result.referenceLineCalculationAllowed, true);
+  assert.equal(result.referenceValid, true);
+  assert.match(result.reason, /가격 원천일 2026-08-22/);
+  assert.match(result.reason, /읽기 전용 참고선/);
 });
 
 test("주간 기준이 만료돼도 로컬 NQ의 원시 완료 세션 값만 표시한다", () => {
