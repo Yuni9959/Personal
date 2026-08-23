@@ -804,8 +804,8 @@ async function run() {
     ]);
     assert.equal(delayedQuoteGate.referenceOpen, "30,000.00");
     assert.deepEqual(delayedQuoteGate.referenceLines, volatilityReferenceRows);
-    assert.equal(delayedQuoteGate.atr, "—");
-    assert.equal(delayedQuoteGate.autoAtrDisabled, true);
+    assert.notEqual(delayedQuoteGate.atr, "—");
+    assert.equal(delayedQuoteGate.autoAtrDisabled, false);
     assert.equal(delayedQuoteGate.manualPanelHidden, true);
     assert.equal(delayedQuoteGate.manualExpanded, "false");
     assert.match(delayedQuoteGate.notice, /5분봉 1개 결손/);
@@ -927,14 +927,13 @@ async function run() {
       ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
     assert.equal(pendingActiveCacheGate.referenceOpen, "30,000.00");
     assert.equal(pendingActiveCacheGate.referencePrices.every(value => value !== "—"), true);
-    assert.equal(pendingActiveCacheGate.atr, "—");
-    assert.equal(pendingActiveCacheGate.autoAtrDisabled, true);
+    assert.notEqual(pendingActiveCacheGate.atr, "—");
+    assert.equal(pendingActiveCacheGate.autoAtrDisabled, false);
     assert.equal(pendingActiveCacheGate.calculationsHidden, true);
     assert.equal(pendingActiveCacheGate.locked, true);
     assert.match(pendingActiveCacheGate.lockText, /읽기 전용/);
-    assert.match(pendingActiveCacheGate.positionEmpty, /이전에 검증한 시세/);
-    assert.match(pendingActiveCacheGate.positionEmpty, /포지션·손절 계산/);
-    assert.equal(pendingActiveCacheGate.positionResultsHidden, true);
+    assert.match(pendingActiveCacheGate.positionEmpty, /방향·체결가격·체결시간/);
+    assert.equal(pendingActiveCacheGate.positionResultsHidden, false);
     assert.equal(pendingActiveCacheGate.manualPanelHidden, true);
     assert.doesNotMatch([
       pendingActiveCacheGate.marketTitle,
@@ -1054,10 +1053,7 @@ async function run() {
       };
       set("#positionDirection", "long");
       set("#entryPrice", current - 100);
-      set("#quantity", 2);
-      set("#maxQuantity", 2);
       set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
-      set("#positionAtr", 20);
       set("#ema1h", "bearish");
       set("#rsi1h", 44);
       set("#atrPercentile", 80);
@@ -1085,27 +1081,23 @@ async function run() {
         element.value = value;
         element.dispatchEvent(new Event("input", { bubbles: true }));
       };
-      set("#entryPrice", current + 45);
-      set("#maxQuantity", 5);
+      set("#entryPrice", current + 91);
       set("#enteredAt", new Date(Date.now() - 12 * 60 * 60000).toISOString().slice(0, 16));
-      set("#positionAtr", 20);
       return {
         headline: document.querySelector("#positionRiskHeadline").textContent,
         statuses: [...document.querySelectorAll("#positionRiskChecklist li")]
           .map(item => item.querySelector("b").textContent),
         text: document.querySelector("#positionRiskPanel").textContent,
-        savedMax: JSON.parse(localStorage.getItem("personal-tap-volatility-position-v1")).maxQuantity
+        autoAtr: document.querySelector("#positionSummary article:nth-child(2) strong").textContent,
+        savedKeys: Object.keys(JSON.parse(localStorage.getItem("personal-tap-volatility-position-v1"))).sort()
       };
     })()`);
     assert.match(positionLossRisk.headline, /손실 위험 패턴 · 청산 권고/);
-    assert.deepEqual(positionLossRisk.statuses, ["해당", "해당", "해당", "시간 미도달", "미해당"]);
+    assert.deepEqual(positionLossRisk.statuses, ["해당", "해당", "해당", "해당", "시간 미도달"]);
     assert.match(positionLossRisk.text, /−2\.25 ATR/);
-    assert.equal(positionLossRisk.savedMax, "5");
-    const fixedAtrBefore = await evaluate(client, `(() => ({
-      atr: document.querySelector("#positionAtr").value,
-      stop: document.querySelector("#positionSummary article:nth-child(2) strong").textContent
-    }))()`);
-    const fixedAtrAfter = await evaluate(client, `(() => {
+    assert.equal(positionLossRisk.autoAtr, "40.35 pt");
+    assert.deepEqual(positionLossRisk.savedKeys, ["direction", "enteredAt", "entry"]);
+    const automaticAtrAfter = await evaluate(client, `(() => {
       const values = {
         manualOpen: 30000,
         manualHigh: 30125,
@@ -1117,12 +1109,12 @@ async function run() {
       document.querySelector("#manualConfirm").checked = true;
       document.querySelector("#manualPanel").requestSubmit();
       return {
-        atr: document.querySelector("#positionAtr").value,
-        stop: document.querySelector("#positionSummary article:nth-child(2) strong").textContent
+        atr: document.querySelector("#positionSummary article:nth-child(2) strong").textContent,
+        source: document.querySelector("#positionMarketNote").textContent
       };
     })()`);
-    assert.deepEqual(fixedAtrBefore, fixedAtrAfter);
-    assert.equal(fixedAtrAfter.atr, "20");
+    assert.equal(automaticAtrAfter.atr, "80.12 pt");
+    assert.match(automaticAtrAfter.source, /수동 확인 MNQ/);
     const volatilityDesktopLayout = await evaluate(client, `(() => ({
       fitsViewport: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
       overflowing: [...document.body.querySelectorAll("*")]
@@ -1333,7 +1325,7 @@ async function run() {
     assert.equal(rateLimitRequestCount, 1);
     assert.equal(lockedFallback.locked, true);
     assert.equal(lockedFallback.calculationsHidden, true);
-    assert.equal(lockedFallback.atr, "—");
+    assert.notEqual(lockedFallback.atr, "—");
     assert.deepEqual(lockedFallback.quoteValues, ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
     assert.equal(lockedFallback.referenceOpen, "30,000.00");
     assert.deepEqual(lockedFallback.referencePrices, volatilityReferencePrices);
@@ -1552,17 +1544,17 @@ async function run() {
     assert.equal(completedSessionReference.referenceOpen, "30,000.00");
     assert.match(completedSessionReference.referenceOpenContext, /KST 기준$/);
     assert.deepEqual(completedSessionReference.referencePrices, volatilityReferencePrices);
-    assert.equal(completedSessionReference.atr, "—");
-    assert.equal(completedSessionReference.autoAtrDisabled, true);
+    assert.notEqual(completedSessionReference.atr, "—");
+    assert.equal(completedSessionReference.autoAtrDisabled, false);
     assert.equal(completedSessionReference.calculationsHidden, true);
     assert.equal(completedSessionReference.locked, true);
     assert.match(completedSessionReference.lockText, /읽기 전용/);
-    assert.match(completedSessionReference.positionEmpty, /포지션·손절 계산/);
-    assert.equal(completedSessionReference.positionResultsHidden, true);
+    assert.equal(completedSessionReference.positionResultsHidden, false);
     assert.equal(completedSessionReference.manualPanelHidden, true);
     assert.equal(completedSessionReference.manualExpanded, "false");
     assert.match(completedSessionReference.notice, /O\/H\/L\/마지막 관측가/);
-    assert.match(completedSessionReference.notice, /포지션·ATR·손절 계산은 잠급니다/);
+    assert.match(completedSessionReference.notice, /자동 ATR 위험 판정은 참고값으로 열고/);
+    assert.match(completedSessionReference.notice, /손절·실전 계산은 잠급니다/);
     assert.deepEqual(browserErrors.splice(errorsBeforeCompletedSession), []);
     await client.send("Page.removeScriptToEvaluateOnNewDocument", {
       identifier: completedTimeScript.identifier
@@ -2436,6 +2428,14 @@ async function run() {
       "navigator.serviceWorker.controller !== null",
       15000
     );
+    await evaluate(client, `(() => {
+      localStorage.setItem("personal-tap-volatility-position-v1", JSON.stringify({
+        direction: "long",
+        entry: 29387.75,
+        enteredAt: "2026-08-21T12:00"
+      }));
+      return true;
+    })()`);
     const errorsBeforeOffline = browserErrors.length;
     await client.send("Network.emulateNetworkConditions", {
       offline: true,
@@ -2461,6 +2461,9 @@ async function run() {
       locked: !document.querySelector("#calculationLock").hidden,
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
       current: document.querySelector("#currentPrice").textContent,
+      atr: document.querySelector("#atrValue").textContent,
+      positionResultsHidden: document.querySelector("#positionResults").hidden,
+      positionSource: document.querySelector("#positionMarketNote").textContent,
       manualPanelHidden: document.querySelector("#manualPanel").hidden,
       manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded")
     }))()`);
@@ -2468,6 +2471,9 @@ async function run() {
     assert.equal(offlineVolatility.locked, true);
     assert.equal(offlineVolatility.calculationsHidden, true);
     assert.notEqual(offlineVolatility.current, "—");
+    assert.notEqual(offlineVolatility.atr, "—");
+    assert.equal(offlineVolatility.positionResultsHidden, false);
+    assert.match(offlineVolatility.positionSource, /최근 완료 NQ.*최근 관측 참고값/);
     assert.equal(offlineVolatility.manualPanelHidden, true);
     assert.equal(offlineVolatility.manualExpanded, "false");
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
@@ -2504,7 +2510,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "Volatility 5조건 손실 위험·청산 권고, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 3입력·자동 ATR·5단계 위험·청산 권고, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

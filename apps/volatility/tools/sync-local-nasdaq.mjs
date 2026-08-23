@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { calculateWilderAtrFromBars } from "../js/calculator.js";
 import { cmeEquitySessionFor } from "../js/market-provider.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -23,6 +24,13 @@ function fail(message) {
 function tickAligned(value) {
   return Number.isFinite(value) && value > 0 &&
     Math.abs(value / TICK - Math.round(value / TICK)) <= 1e-6;
+}
+
+function latestContiguousBars(bars) {
+  if (!bars.length) return [];
+  let start = bars.length - 1;
+  while (start > 0 && bars[start].at.getTime() - bars[start - 1].at.getTime() === BAR_MS) start -= 1;
+  return bars.slice(start);
 }
 
 function parseCsv(source) {
@@ -87,6 +95,8 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
   const high = Math.max(...selected.map(bar => bar.high));
   const low = Math.min(...selected.map(bar => bar.low));
   const current = selected.at(-1).close;
+  const atrBars = latestContiguousBars(selected);
+  const atr = calculateWilderAtrFromBars(atrBars);
   return {
     schemaVersion: 1,
     mode: "local-archive",
@@ -105,7 +115,8 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
       sourceRowCount: bars.length,
       barQuality: missing.length ? "one-interior-missing-bucket" : "complete",
       missingInteriorBucketCount: missing.length,
-      missingInteriorBucketAt: missing[0] || null
+      missingInteriorBucketAt: missing[0] || null,
+      atrSourceBarCount: atrBars.length
     },
     session: {
       label: `${session.sessionDate} 17:00 CT ~ 16:00 CT · 로컬 보관`,
@@ -127,12 +138,13 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
       low,
       current,
       latestBarAt: latest.at.toISOString(),
-      atr5m14: null,
-      atrLastCompletedBarAt: null
+      atr5m14: atr === null ? null : Number(atr.toFixed(6)),
+      atrLastCompletedBarAt: atr === null ? null : latest.at.toISOString()
     },
     limitations: [
       "사용자가 별도 수집한 NQ=F 연속선물 5분봉의 최근 완료 세션 참고값입니다.",
-      "MNQ 실제 월물이 아니므로 포지션·ATR·손절·실전 계산에는 사용하지 않습니다.",
+      "최신 연속 완료 5분봉으로 Wilder ATR(14)을 자동 계산했습니다.",
+      "MNQ 실제 월물이 아니므로 최근 관측가 기반 포지션 위험 참고 외의 손절·실전 계산에는 사용하지 않습니다.",
       "정적 동기화 시점 이후 값은 포함하지 않으며 주문 전 증권사 실제 월물과 대조해야 합니다."
     ]
   };

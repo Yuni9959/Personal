@@ -54,6 +54,12 @@ export function validateLocalNasdaqSnapshot(snapshot) {
   if (!market.valid) {
     throw invalidLocalSnapshot(`로컬 나스닥 가격 검증에 실패했습니다. ${market.errors.join(" ")}`);
   }
+  const atrAt = validDate(snapshot.market?.atrLastCompletedBarAt);
+  if (!Number.isFinite(Number(snapshot.market?.atr5m14)) || Number(snapshot.market.atr5m14) <= 0 ||
+      !atrAt || atrAt.getTime() !== sourceAt.getTime() ||
+      !Number.isInteger(provider.atrSourceBarCount) || provider.atrSourceBarCount < 14) {
+    throw invalidLocalSnapshot("로컬 나스닥의 자동 5분 ATR 출처를 검증할 수 없습니다.");
+  }
   return snapshot;
 }
 

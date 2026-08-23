@@ -1,7 +1,6 @@
 import {
   WEEKLY_VOLATILITY_REFERENCE as REFERENCE,
   assessPositionLossRisk,
-  calculatePositionScenario,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
   classifyPatternRisk,
@@ -68,10 +67,9 @@ const els = {
   manualCurrent: $("#manualCurrent"), manualAtr: $("#manualAtr"), manualConfirm: $("#manualConfirm"),
   useAutoAtrBtn: $("#useAutoAtrBtn"),
   positionForm: $("#positionForm"), positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
-  quantity: $("#quantity"), maxQuantity: $("#maxQuantity"), fees: $("#fees"),
-  positionAtr: $("#positionAtr"), enteredAt: $("#enteredAt"),
+  enteredAt: $("#enteredAt"),
   positionEmpty: $("#positionEmpty"), positionResults: $("#positionResults"),
-  positionSummary: $("#positionSummary"), positionScenarioGrid: $("#positionScenarioGrid"),
+  positionSummary: $("#positionSummary"), positionMarketNote: $("#positionMarketNote"),
   positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
   positionRiskSummary: $("#positionRiskSummary"), positionRiskMetrics: $("#positionRiskMetrics"),
   positionRiskChecklist: $("#positionRiskChecklist"),
@@ -105,13 +103,11 @@ const state = {
   lastRequestAt: 0,
   rateLimitUntil: 0,
   forceLockReason: "",
-  positionAtrBinding: { identity: "", source: "", sourceBarAt: "", capturedAt: "" },
   expiryTimer: null,
   transientNotice: ""
 };
-const POSITION_EMPTY_MESSAGE = "포지션을 입력하면 MNQ $2/point 기준 시나리오 손익과 1.0×5분 ATR 손절선을 보여줍니다.";
+const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 위험 진행 5단계를 점검합니다.";
 const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const moneyFormat = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2 });
 const kstFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
 });
@@ -135,42 +131,6 @@ function formatNumber(value, suffix = "") {
 
 function isFiniteValue(value) {
   return value !== null && value !== undefined && value !== "" && Number.isFinite(Number(value));
-}
-
-function positionIdentity(input = positionInput()) {
-  const direction = input?.direction;
-  const entry = Number(input?.entry);
-  const enteredAt = String(input?.enteredAt || "");
-  if (!['long', 'short'].includes(direction) || !Number.isFinite(entry) || entry <= 0) return "";
-  return `${direction}|${entry}|${enteredAt || "time-unset"}`;
-}
-
-function resetPositionAtrBinding() {
-  state.positionAtrBinding = { identity: "", source: "", sourceBarAt: "", capturedAt: "" };
-}
-
-function isValidAtrBinding(binding, identity) {
-  if (!binding || binding.identity !== identity ||
-      !["validated-provider-snapshot", "confirmed-manual-snapshot", "user-fixed"]
-        .includes(binding.source) ||
-      !Number.isFinite(new Date(binding.capturedAt || "").getTime())) return false;
-  if (["validated-provider-snapshot", "confirmed-manual-snapshot"].includes(binding.source)) {
-    return Number.isFinite(new Date(binding.sourceBarAt || "").getTime());
-  }
-  return true;
-}
-
-function capturePositionAtrFromSnapshot() {
-  const identity = positionIdentity();
-  const atr = state.snapshot?.market?.atr5m14;
-  if (!identity || !state.calculationAllowed || !isFiniteValue(atr)) return;
-  els.positionAtr.value = atr;
-  state.positionAtrBinding = {
-    identity,
-    source: state.snapshot?.mode === "manual" ? "confirmed-manual-snapshot" : "validated-provider-snapshot",
-    sourceBarAt: state.snapshot.market.latestBarAt,
-    capturedAt: new Date().toISOString()
-  };
 }
 
 function formatDate(value) {
@@ -213,7 +173,7 @@ function delayDescription(snapshot, assessment) {
     const referenceLabel = ["completed-session", "local-completed-session"].includes(assessment.marketState)
       ? "최근 완료 세션 참고"
       : "이전 검증 시세 참고";
-    return `${age} · ${referenceLabel} · 계산 잠금`;
+    return `${age} · ${referenceLabel} · 실전 계산 잠금`;
   }
   const delayLabel = snapshot?.provider?.delayMetadataVerified === false
     ? "지연시간 메타 없음 · 원천시각 기준"
@@ -240,8 +200,8 @@ function barQualityNotice(snapshot, assessment) {
   if (!assessment.displayable || snapshot?.mode === "manual" ||
       provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
   return provider.regularMarketOpenMetadataAvailable
-    ? "5분봉 1개 결손 · 일중 O/H/L/현재가·시각은 공급자 메타와 교차검증 · ATR/손절 자동 계산 중지"
-    : "5분봉 1개 결손 · H/L/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR/손절 자동 계산 중지";
+    ? "5분봉 1개 결손 · 일중 O/H/L/현재가·시각은 공급자 메타와 교차검증 · ATR은 결손 이후 연속 완료봉으로 재계산"
+    : "5분봉 1개 결손 · H/L/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR은 결손 이후 연속 완료봉으로 재계산";
 }
 
 function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
@@ -269,7 +229,7 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     const referenceDetail = assessment.referenceLineCalculationAllowed
       ? "이번 주 기준 환산선도 함께 표시하지만"
       : "주간 기준 환산선은 잠그고";
-    els.dataNotice.textContent = `${assessment.reason} ${sourceLabel}의 O/H/L/마지막 관측가를 표시하고 ${referenceDetail} 포지션·ATR·손절 계산은 잠급니다.`;
+    els.dataNotice.textContent = `${assessment.reason} ${sourceLabel}의 O/H/L/마지막 관측가와 자동 ATR 위험 판정은 참고값으로 열고 ${referenceDetail} 손절·실전 계산은 잠급니다.`;
   } else if (!assessment.usable) {
     els.dataNotice.classList.add(assessment.key === "error" ? "error" : "warning");
     const ageDetail = ageMinutes === null ? "" : ` 마지막 참고 가격은 ${ageMinutes}분 전 값입니다.`;
@@ -474,7 +434,9 @@ function renderMarket() {
   els.highPrice.textContent = displayable ? formatNumber(market.high) : "—";
   els.lowPrice.textContent = displayable ? formatNumber(market.low) : "—";
   els.currentPrice.textContent = displayable ? formatNumber(market.current) : "—";
-  els.atrValue.textContent = assessment.usable ? formatNumber(market.atr5m14, " pt") : "—";
+  els.atrValue.textContent = displayable && isFiniteValue(market.atr5m14)
+    ? formatNumber(market.atr5m14, " pt")
+    : "—";
   els.symbolLabel.textContent = `${providerDescription(state.snapshot)} · ${state.snapshot.session?.label || "수동 세션"}`;
   els.barUpdateText.textContent = formatDate(market.latestBarAt);
   els.lastUpdateText.textContent = formatDate(state.snapshot.generatedAt);
@@ -483,9 +445,9 @@ function renderMarket() {
   if (!assessment.usable) {
     state.scenarios = null;
     state.operational = null;
-    state.autoAtr = null;
+    state.autoAtr = displayable && isFiniteValue(market.atr5m14) ? market.atr5m14 : null;
     scheduleExpiryCheck();
-    els.useAutoAtrBtn.disabled = true;
+    els.useAutoAtrBtn.disabled = !isFiniteValue(state.autoAtr);
     const lockReason = assessment.referenceOnly
       ? `${assessment.reason} 위 첫 기준표는 읽기 전용 검토값입니다.`
       : assessment.reason;
@@ -520,9 +482,6 @@ function renderMarket() {
   if (state.snapshot.mode !== "manual" && isFiniteValue(market.atr5m14)) state.autoAtr = market.atr5m14;
   else state.autoAtr = null;
   els.useAutoAtrBtn.disabled = !isFiniteValue(state.autoAtr);
-  // The stop ATR is captured once for a position identity. A later quote must
-  // never move a fixed stop silently; only a new position identity can rebind it.
-  if (!isFiniteValue(els.positionAtr.value)) capturePositionAtrFromSnapshot();
   renderPosition();
   scheduleExpiryCheck();
 }
@@ -790,27 +749,39 @@ function positionInput() {
   return {
     direction: els.positionDirection.value,
     entry: els.entryPrice.value,
-    quantity: els.quantity.value,
-    maxQuantity: els.maxQuantity.value,
-    fees: els.fees.value,
-    atr5m14: els.positionAtr.value,
     enteredAt: els.enteredAt.value
   };
 }
 
-function moneyClass(value) {
-  return value > 0 ? "money-positive" : value < 0 ? "money-negative" : "";
+function positionMarketContext() {
+  const market = state.snapshot?.market;
+  const assessment = state.assessment;
+  if (!market || assessment?.displayable !== true ||
+      !isFiniteValue(market.current) || !isFiniteValue(market.atr5m14)) return null;
+  const referenceOnly = assessment.referenceOnly === true;
+  const sourceLabel = state.snapshot.mode === "local-archive" ? "최근 완료 NQ" :
+    referenceOnly ? "최근 관측 MNQ" : state.snapshot.mode === "manual" ? "수동 확인 MNQ" : "검증 MNQ";
+  return {
+    current: Number(market.current),
+    atr5m14: Number(market.atr5m14),
+    latestBarAt: market.latestBarAt,
+    ageMinutes: assessment.ageMinutes,
+    referenceOnly,
+    sourceLabel
+  };
 }
 
-function renderPositionLossRisk(input) {
+function renderPositionLossRisk(input, marketContext) {
   const result = assessPositionLossRisk({
     ...input,
-    current: state.snapshot.market.current
+    current: marketContext.current,
+    atr5m14: marketContext.atr5m14
   });
   const verdicts = {
     critical: ["손실 위험 패턴 · 청산 권고", "추가 진입을 중단하고 청산 또는 즉시 축소를 우선 검토하세요."],
     danger: ["위험 확대 패턴 · 축소·청산 검토", "추가 진입을 중단하고 노출 축소 또는 청산을 검토하세요."],
     caution: ["손실 지속 점검", "1시간 이상 손실 상태입니다. 최초 손절 기준과 청산 계획을 다시 확인하세요."],
+    watch: ["불리한 방향 진행 · 관찰", "현재가는 진입가보다 불리한 방향입니다. 시간·ATR 위험 단계 진입 여부를 계속 확인하세요."],
     safe: ["현재 5개 조건 미해당", "현재 입력에서는 5개 위험 조건이 발동하지 않았습니다. 위험이 없다는 뜻은 아닙니다."]
   };
   const needsInput = !result.complete && result.triggeredRuleIds.length === 0;
@@ -830,22 +801,17 @@ function renderPositionLossRisk(input) {
   els.positionRiskMetrics.innerHTML = `
     <span>보유 <strong>${holdingText}</strong></span>
     <span>방향성 변동 <strong>${result.signedMoveAtr === null ? "—" : `${result.signedMoveAtr.toFixed(2)} ATR`}</strong></span>
-    <span>현재/최대 <strong>${input.quantity || "—"}/${result.effectiveMaxQuantity ?? "—"}계약</strong></span>`;
+    <span>가격 변동 <strong>${result.signedMovePoints === null ? "—" : formatNumber(result.signedMovePoints, " pt")}</strong></span>`;
   els.positionRiskChecklist.innerHTML = result.rules.map((rule, index) => {
     const [statusLabel, statusClass] = statusLabels[rule.status];
     return `<li class="${statusClass}"><span class="risk-rule-number">${index + 1}</span><div><strong>${rule.label}</strong><small>${rule.threshold}</small></div><b>${statusLabel}</b></li>`;
   }).join("");
+  return result;
 }
 
 function renderPosition() {
   const input = positionInput();
-  const identity = positionIdentity(input);
-  writeJson(POSITION_KEY, {
-    ...input,
-    atr5m14: identity && isFiniteValue(input.atr5m14) ? input.atr5m14 : "",
-    positionIdentity: identity,
-    atrBinding: identity ? state.positionAtrBinding : null
-  });
+  writeJson(POSITION_KEY, input);
   if (state.snapshot && state.calculationAllowed) {
     const currentAssessment = assessSnapshot(state.snapshot);
     if (!currentAssessment.usable) {
@@ -855,14 +821,13 @@ function renderPosition() {
       return;
     }
   }
-  if (!state.snapshot || !state.calculationAllowed || !state.scenarios) {
+  const marketContext = positionMarketContext();
+  if (!marketContext) {
     els.positionEmpty.hidden = false;
-    els.positionEmpty.textContent = state.assessment?.referenceOnly
-      ? (state.assessment.marketState === "completed-session"
-          ? "최근 완료 세션은 읽기 전용 참고값입니다. 포지션·손절 계산은 검증된 진행 시세 또는 직접 확인한 수동 시세에서만 열립니다."
-          : "이전에 검증한 시세는 새 조회 전 읽기 전용 참고값입니다. 포지션·손절 계산은 새 공급자 응답 또는 직접 확인한 수동 시세에서만 열립니다.")
+    els.positionEmpty.textContent = state.snapshot && state.assessment?.displayable
+      ? "자동 5분 ATR을 계산할 최신 연속 완료봉 14개가 부족합니다. 나스닥 데이터를 동기화하거나 오늘 시세를 다시 확인하세요."
       : state.snapshot
-        ? "시세가 오래됐거나 MNQ가 아닌 대체값이어서 포지션 계산을 중지했습니다. 실제 MNQ 값을 수동 입력하세요."
+        ? "사용 가능한 현재가를 검증하지 못해 위험 패턴 판정을 중지했습니다. 나스닥 데이터를 동기화하거나 실제 MNQ 값을 수동 확인하세요."
         : POSITION_EMPTY_MESSAGE;
     els.positionResults.hidden = true;
     renderRisk();
@@ -876,29 +841,23 @@ function renderPosition() {
     return;
   }
   try {
-    if (!state.operational?.up || !state.operational?.down) {
-      throw new Error("안전측 분석값이 확정된 뒤 포지션 시나리오를 계산할 수 있습니다.");
+    const entry = Number(input.entry);
+    if (!Number.isFinite(entry) || entry <= 0) throw new Error("체결가격을 입력하세요.");
+    if (Math.abs(entry / 0.25 - Math.round(entry / 0.25)) > 1e-6) {
+      throw new Error("체결가격은 MNQ 0.25포인트 틱에 맞아야 합니다.");
     }
-    const up = calculatePositionScenario(input, state.snapshot.market, state.operational.up);
-    const down = calculatePositionScenario(input, state.snapshot.market, state.operational.down);
+    if (!input.enteredAt) throw new Error("체결시간을 입력하세요.");
+    const result = renderPositionLossRisk(input, marketContext);
+    const ageText = Number.isFinite(marketContext.ageMinutes)
+      ? `${Math.max(0, Math.round(marketContext.ageMinutes))}분 전 관측`
+      : "관측시각 미확인";
     els.positionSummary.innerHTML = `
-      <article><span>현재 순손익 가정</span><strong class="${moneyClass(up.currentNetUsd)}">${moneyFormat.format(up.currentNetUsd)}</strong></article>
-      <article><span>1.0×5분 ATR 고정 손절선</span><strong>${formatNumber(up.stopPrice)}</strong></article>
-      <article><span>손절 체결 시 순손익 가정</span><strong class="${moneyClass(up.stopNetUsd)}">${moneyFormat.format(up.stopNetUsd)}</strong></article>`;
-    els.positionScenarioGrid.innerHTML = [
-      ["상승 실전 기본선", up, REFERENCE.exAnte.up],
-      ["하락 실전 기본선", down, REFERENCE.exAnte.down]
-    ].map(([title, result, reference]) => `
-      <article>
-        <h3>${title}</h3>
-        <p><span>시가 기준 안전측 선 (${formatPercent(reference.safePercent)})</span><strong>${formatNumber(result.thresholdPrice)}</strong></p>
-        <p><span>현재가→가격선 손익 변화 (비용 미차감)</span><strong class="${moneyClass(result.incrementalGrossUsd)}">${moneyFormat.format(result.incrementalGrossUsd)}</strong></p>
-        <p><span>진입가→가격선 순손익 가정</span><strong class="${moneyClass(result.projectedNetUsd)}">${moneyFormat.format(result.projectedNetUsd)}</strong></p>
-        <p><span>현재가→가격선 포인트</span><strong class="${moneyClass(result.incrementalPoints)}">${formatNumber(result.incrementalPoints, " pt")}</strong></p>
-      </article>`).join("");
+      <article><span>${marketContext.referenceOnly ? "마지막 관측가" : "현재가"}</span><strong>${formatNumber(marketContext.current)}</strong></article>
+      <article><span>자동 5분 ATR(14)</span><strong>${formatNumber(marketContext.atr5m14, " pt")}</strong></article>
+      <article><span>진입 대비 방향성 변동</span><strong class="${result.signedMovePoints < 0 ? "money-negative" : result.signedMovePoints > 0 ? "money-positive" : ""}">${formatNumber(result.signedMovePoints, " pt")}</strong></article>`;
+    els.positionMarketNote.textContent = `${marketContext.sourceLabel} · ${ageText} · ${formatDate(marketContext.latestBarAt)}${marketContext.referenceOnly ? " · 최근 관측 참고값" : ""}`;
     els.positionEmpty.hidden = true;
     els.positionResults.hidden = false;
-    renderPositionLossRisk(input);
   } catch (error) {
     els.positionEmpty.hidden = false;
     els.positionEmpty.textContent = error.message;
@@ -911,24 +870,7 @@ function restorePosition() {
   const saved = readJson(POSITION_KEY, {});
   els.positionDirection.value = ["long", "short"].includes(saved.direction) ? saved.direction : "none";
   els.entryPrice.value = saved.entry ?? "";
-  els.quantity.value = saved.quantity || "1";
-  els.maxQuantity.value = saved.maxQuantity || saved.quantity || "1";
-  els.fees.value = saved.fees ?? "0";
   els.enteredAt.value = saved.enteredAt ?? "";
-  const identity = positionIdentity();
-  if (identity && saved.positionIdentity === identity && isFiniteValue(saved.atr5m14) &&
-      isValidAtrBinding(saved.atrBinding, identity)) {
-    els.positionAtr.value = saved.atr5m14;
-    state.positionAtrBinding = {
-      identity,
-      source: String(saved.atrBinding.source),
-      sourceBarAt: String(saved.atrBinding.sourceBarAt || ""),
-      capturedAt: String(saved.atrBinding.capturedAt || "")
-    };
-  } else {
-    els.positionAtr.value = "";
-    resetPositionAtrBinding();
-  }
 }
 
 function riskInput() {
@@ -1038,19 +980,7 @@ els.useAutoAtrBtn.addEventListener("click", () => {
   if (isFiniteValue(state.autoAtr)) els.manualAtr.value = state.autoAtr;
 });
 els.refreshBtn.addEventListener("click", () => refreshMarket({ trigger: "button" }));
-els.positionForm.addEventListener("input", event => {
-  if ([els.positionDirection, els.entryPrice, els.enteredAt].includes(event.target)) {
-    els.positionAtr.value = "";
-    resetPositionAtrBinding();
-    capturePositionAtrFromSnapshot();
-  } else if (event.target === els.positionAtr) {
-    const identity = positionIdentity();
-    state.positionAtrBinding = identity && isFiniteValue(els.positionAtr.value)
-      ? { identity, source: "user-fixed", sourceBarAt: "", capturedAt: new Date().toISOString() }
-      : { identity: "", source: "", sourceBarAt: "", capturedAt: "" };
-  }
-  renderPosition();
-});
+els.positionForm.addEventListener("input", renderPosition);
 els.riskForm.addEventListener("input", renderRisk);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && state.snapshot) renderMarket();

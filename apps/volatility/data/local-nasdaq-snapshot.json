@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "mode": "local-archive",
-  "generatedAt": "2026-08-23T14:57:42.200Z",
+  "generatedAt": "2026-08-23T17:55:01.139Z",
   "provider": {
     "name": "사용자 관리 로컬 Nasdaq 보관 데이터",
     "requestedSymbol": "NQ=F",
@@ -16,7 +16,8 @@
     "sourceRowCount": 91093,
     "barQuality": "one-interior-missing-bucket",
     "missingInteriorBucketCount": 1,
-    "missingInteriorBucketAt": "2026-08-21T04:00:00.000Z"
+    "missingInteriorBucketAt": "2026-08-21T04:00:00.000Z",
+    "atrSourceBarCount": 203
   },
   "session": {
     "label": "2026-08-20 17:00 CT ~ 16:00 CT · 로컬 보관",
@@ -38,12 +39,13 @@
     "low": 29220,
     "current": 29387.75,
     "latestBarAt": "2026-08-21T20:55:00.000Z",
-    "atr5m14": null,
-    "atrLastCompletedBarAt": null
+    "atr5m14": 15.199233,
+    "atrLastCompletedBarAt": "2026-08-21T20:55:00.000Z"
   },
   "limitations": [
     "사용자가 별도 수집한 NQ=F 연속선물 5분봉의 최근 완료 세션 참고값입니다.",
-    "MNQ 실제 월물이 아니므로 포지션·ATR·손절·실전 계산에는 사용하지 않습니다.",
+    "최신 연속 완료 5분봉으로 Wilder ATR(14)을 자동 계산했습니다.",
+    "MNQ 실제 월물이 아니므로 최근 관측가 기반 포지션 위험 참고 외의 손절·실전 계산에는 사용하지 않습니다.",
     "정적 동기화 시점 이후 값은 포함하지 않으며 주문 전 증권사 실제 월물과 대조해야 합니다."
   ]
 }

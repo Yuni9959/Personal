@@ -226,7 +226,7 @@ test("마지막 진행봉의 synthetic timestamp는 같은 bucket에 한 번만 
   assert.equal(result.market.atrLastCompletedBarAt, "2026-08-12T23:30:00.000Z");
 });
 
-test("현재 세션의 완전-null 중간 bucket 하나는 cadence를 보존하고 ATR만 중지한다", () => {
+test("현재 세션의 완전-null 중간 bucket 하나는 cadence를 보존하고 최신 연속봉 ATR을 다시 계산한다", () => {
   const source = payload();
   const quote = source.chart.result[0].indicators.quote[0];
   for (const field of ["open", "high", "low", "close"]) quote[field][3] = null;
@@ -237,9 +237,10 @@ test("현재 세션의 완전-null 중간 bucket 하나는 cadence를 보존하�
   assert.equal(result.provider.missingInteriorBucketAt, "2026-08-12T22:05:00.000Z");
   assert.equal(result.session.barCount, 19);
   assert.equal(result.session.expectedBarCount, 20);
-  assert.equal(result.market.atr5m14, null);
-  assert.equal(result.market.atrLastCompletedBarAt, null);
-  assert.match(result.limitations.at(-1), /5분 ATR은 중지/);
+  assert.ok(result.provider.atrSourceBarCount >= 14);
+  assert.ok(result.market.atr5m14 > 0);
+  assert.equal(result.market.atrLastCompletedBarAt, result.market.latestBarAt);
+  assert.match(result.limitations.at(-1), /연속 완료봉으로 5분 ATR을 다시 계산/);
 });
 
 test("partial-null과 첫·마지막·두 개의 완전-null bucket은 차단한다", async t => {

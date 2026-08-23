@@ -22,8 +22,9 @@ function decision({
     // identical to the stronger trading-calculation permission.
     usable,
     calculationAllowed: usable,
-    // `displayable` may be true for a completed-session preview even while all
-    // position, stop, ATR and live-trading calculations remain locked.
+    // `displayable` may be true for a completed-session preview. General stop
+    // and live-trading calculations stay locked, while the position panel may
+    // use a validated automatic ATR for an explicitly labelled risk review.
     displayable,
     referenceOnly,
     referenceLineCalculationAllowed,
@@ -224,8 +225,8 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       reason: !referenceValid
         ? `사용자가 동기화한 최근 완료 NQ 세션의 O/H/L/마지막 관측가만 표시합니다. ${expiredReference}`
         : sourceReferenceMismatch
-          ? `사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, MNQ 포지션·ATR·손절 계산에는 사용하지 않습니다.`
-          : "사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. MNQ가 아니므로 포지션·ATR·손절 계산에는 사용하지 않습니다."
+          ? `사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, MNQ가 아니므로 자동 ATR 포지션 위험 복기 외의 손절·실전 계산에는 사용하지 않습니다.`
+          : "사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. MNQ가 아니므로 자동 ATR 포지션 위험 복기 외의 손절·실전 계산에는 사용하지 않습니다."
     });
   }
 
@@ -296,8 +297,8 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       referenceValid: true,
       sessionEndedAt: providerSession.end.toISOString(),
       reason: sourceReferenceMismatch
-        ? `최근 완료된 MNQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, 포지션·ATR·손절 계산에는 사용하지 않습니다.`
-        : "최근 완료된 MNQ 세션의 참고값입니다. 현재 시세가 아니며 포지션·ATR·손절 계산에는 사용하지 않습니다."
+        ? `최근 완료된 MNQ 세션의 참고값입니다. ${sourceReferenceMismatch} 현재 주간 기준을 최근 세션 시가에 환산한 읽기 전용 참고선이며, 자동 ATR 포지션 위험 복기 외의 손절·실전 계산에는 사용하지 않습니다.`
+        : "최근 완료된 MNQ 세션의 참고값입니다. 현재 시세가 아니며 자동 ATR 포지션 위험 복기 외의 손절·실전 계산에는 사용하지 않습니다."
     });
   }
 

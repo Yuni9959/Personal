@@ -6,14 +6,13 @@ export const MNQ_CONTRACT = Object.freeze({
 });
 
 export const POSITION_LOSS_RISK_RULES = Object.freeze({
+  currentAdverseAtr: 0,
   oneHourMinutes: 60,
   fourHourMinutes: 240,
   fourHourAdverseAtr: -2.25,
   twelveHourMinutes: 720,
   twelveHourAdverseAtr: -1.5,
-  twelveHourQuantity: 5,
-  twentyFourHourMinutes: 1440,
-  largeQuantity: 7
+  twentyFourHourMinutes: 1440
 });
 
 export { WEEKLY_VOLATILITY_REFERENCE };
@@ -69,6 +68,31 @@ export function validateMarketBar(candidate) {
   }
 
   return { valid: errors.length === 0, values, errors };
+}
+
+export function calculateWilderAtrFromBars(bars, period = 14) {
+  if (!Array.isArray(bars)) throw new TypeError("5분봉 배열이 필요합니다.");
+  if (!Number.isInteger(period) || period < 1) throw new TypeError("ATR 기간은 1 이상의 정수여야 합니다.");
+  const normalized = bars.map(bar => ({
+    high: finiteNumber(bar?.high),
+    low: finiteNumber(bar?.low),
+    close: finiteNumber(bar?.close)
+  }));
+  if (normalized.some(bar => bar.high === null || bar.low === null || bar.close === null ||
+      bar.high <= 0 || bar.low <= 0 || bar.close <= 0 ||
+      bar.high < Math.max(bar.low, bar.close) || bar.low > bar.close)) {
+    throw new Error("ATR 계산용 5분봉이 올바르지 않습니다.");
+  }
+  if (normalized.length < period) return null;
+  const trueRanges = normalized.map((bar, index) => {
+    const previousClose = normalized[index - 1]?.close;
+    return previousClose === undefined
+      ? bar.high - bar.low
+      : Math.max(bar.high - bar.low, Math.abs(bar.high - previousClose), Math.abs(bar.low - previousClose));
+  });
+  let atr = trueRanges.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
+  for (const value of trueRanges.slice(period)) atr = ((atr * (period - 1)) + value) / period;
+  return atr;
 }
 
 export function calculateVolatilityScenario(bar, percent) {
@@ -210,14 +234,6 @@ export function assessPositionLossRisk(position, now = new Date()) {
   const entry = finiteNumber(position?.entry);
   const current = finiteNumber(position?.current);
   const atr = finiteNumber(position?.atr5m14);
-  const quantity = finiteNumber(position?.quantity);
-  const recordedMaxQuantity = finiteNumber(position?.maxQuantity);
-  const validQuantity = quantity !== null && quantity >= 1 && Number.isInteger(quantity);
-  const validRecordedMax = recordedMaxQuantity !== null && recordedMaxQuantity >= 1 &&
-    Number.isInteger(recordedMaxQuantity);
-  const effectiveMaxQuantity = validQuantity
-    ? Math.max(quantity, validRecordedMax ? recordedMaxQuantity : quantity)
-    : null;
 
   const priceInputsComplete = ["long", "short"].includes(direction) &&
     entry !== null && entry > 0 && current !== null && current > 0 && atr !== null && atr > 0;
@@ -244,6 +260,13 @@ export function assessPositionLossRisk(position, now = new Date()) {
   };
   const rules = [
     {
+      id: "current-adverse-move",
+      label: "현재가가 진입가보다 불리한 방향",
+      threshold: "손실 위험 진행의 첫 관찰 단계",
+      status: signedMoveAtr === null ? "incomplete" :
+        signedMoveAtr < POSITION_LOSS_RISK_RULES.currentAdverseAtr ? "triggered" : "clear"
+    },
+    {
       id: "one-hour-loss",
       label: "1시간 이상 보유 + 현재 손실",
       threshold: "1시간부터 손실 포지션 최초 재점검",
@@ -264,14 +287,13 @@ export function assessPositionLossRisk(position, now = new Date()) {
       )
     },
     {
-      id: "twelve-hour-scaled-loss",
-      label: "12시간 이상 + −1.5 ATR 이하 + 최대 5계약 이상",
-      threshold: "장시간·확대 손실의 최상위 위험 조합",
+      id: "twelve-hour-loss",
+      label: "12시간 이상 + −1.5 ATR 이하",
+      threshold: "장시간 손실의 최상위 위험 조합",
       status: timedStatus(
         POSITION_LOSS_RISK_RULES.twelveHourMinutes,
-        signedMoveAtr !== null && signedMoveAtr <= POSITION_LOSS_RISK_RULES.twelveHourAdverseAtr &&
-          effectiveMaxQuantity !== null && effectiveMaxQuantity >= POSITION_LOSS_RISK_RULES.twelveHourQuantity,
-        signedMoveAtr !== null && effectiveMaxQuantity !== null
+        signedMoveAtr !== null && signedMoveAtr <= POSITION_LOSS_RISK_RULES.twelveHourAdverseAtr,
+        signedMoveAtr !== null
       )
     },
     {
@@ -279,20 +301,14 @@ export function assessPositionLossRisk(position, now = new Date()) {
       label: "24시간 이상 보유",
       threshold: "의무 청산·재진입 분리 검토 후보",
       status: timedStatus(POSITION_LOSS_RISK_RULES.twentyFourHourMinutes, true)
-    },
-    {
-      id: "seven-contract-exposure",
-      label: "현재 또는 최대 7계약 이상",
-      threshold: "추가 확대 중단·노출 축소 검토",
-      status: effectiveMaxQuantity === null ? "incomplete" :
-        effectiveMaxQuantity >= POSITION_LOSS_RISK_RULES.largeQuantity ? "triggered" : "clear"
     }
   ];
   const triggeredRuleIds = rules.filter(rule => rule.status === "triggered").map(rule => rule.id);
   const has = id => triggeredRuleIds.includes(id);
-  const severity = has("twenty-four-hour-hold") || has("twelve-hour-scaled-loss") ? "critical" :
-    has("four-hour-large-loss") || has("seven-contract-exposure") ? "danger" :
-      has("one-hour-loss") ? "caution" : "safe";
+  const severity = has("twenty-four-hour-hold") || has("twelve-hour-loss") ? "critical" :
+    has("four-hour-large-loss") ? "danger" :
+      has("one-hour-loss") ? "caution" :
+        has("current-adverse-move") ? "watch" : "safe";
 
   return {
     severity,
@@ -302,7 +318,6 @@ export function assessPositionLossRisk(position, now = new Date()) {
     timingIssue,
     signedMovePoints,
     signedMoveAtr,
-    effectiveMaxQuantity,
     complete: rules.every(rule => rule.status !== "incomplete")
   };
 }

@@ -25,6 +25,7 @@ test("Volatility 주간 기준은 오늘 날짜 기반 생성 도구와 단일 �
   const calculator = read("apps/volatility/js/calculator.js");
   const generated = read("apps/volatility/js/weekly-reference.generated.js");
   const tool = read("apps/volatility/tools/build-weekly-reference.mjs");
+  const localTool = read("apps/volatility/tools/sync-local-nasdaq.mjs");
   assert.equal(packageJson.scripts["sync:volatility-reference"], "node apps/volatility/tools/build-weekly-reference.mjs");
   assert.match(packageJson.scripts["sync:volatility-data"], /sync-local-nasdaq\.mjs && npm run sync:volatility-reference/);
   assert.match(calculator, /weekly-reference\.generated\.js/);
@@ -32,6 +33,8 @@ test("Volatility 주간 기준은 오늘 날짜 기반 생성 도구와 단일 �
   assert.match(generated, /직접 수정하지 마세요/);
   assert.match(tool, /timeZone: "Asia\/Seoul"/);
   assert.match(tool, /row\.date >= trainStart && row\.date < anchor/);
+  assert.match(localTool, /calculateWilderAtrFromBars/);
+  assert.match(localTool, /latestContiguousBars/);
 });
 
 test("Personal Tap 허브에 안정 Vercel 입학정보 주소가 안전한 외부 링크로 등록돼 있다", () => {
@@ -141,12 +144,15 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
-  assert.match(html, /id="positionAtr"[^>]+step="any"/);
-  assert.match(html, /id="maxQuantity"[^>]+min="1"[^>]+step="1"/);
+  for (const id of ["positionDirection", "entryPrice", "enteredAt"]) assert.match(html, new RegExp(`id="${id}"`));
+  for (const id of ["positionAtr", "quantity", "maxQuantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   assert.match(html, /id="positionRiskPanel"[^>]+aria-live="polite"/);
-  assert.match(html, /5개 손실 위험 조건/);
+  assert.match(html, /자동 위험 진행 5단계/);
+  assert.match(html, /방향·체결가격·체결시간만 입력하세요/);
   assert.match(app, /assessPositionLossRisk/);
-  assert.match(app, /state\.snapshot\.market\.current/);
+  assert.match(app, /function positionMarketContext\(\)/);
+  assert.match(app, /market\.atr5m14/);
+  assert.match(app, /assessment\?\.displayable !== true/);
   assert.match(app, /판정 보류 · 입력 필요/);
   assert.match(app, /미완성 입력은 안전으로 판정하지 않습니다/);
   assert.match(styles, /\.position-risk-checklist/);
@@ -174,7 +180,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(app, /setCompactDataStatus\("manual", "수동 입력"\)/);
   assert.match(app, /els\.currentPrice\.textContent = displayable \? formatNumber\(market\.current\) : "—"/);
   assert.match(app, /state\.calculationAllowed = assessment\.calculationAllowed === true/);
-  assert.match(app, /5분봉 1개 결손 · H\/L\/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR\/손절 자동 계산 중지/);
+  assert.match(app, /5분봉 1개 결손 · H\/L\/현재가·시각은 공급자 메타와 교차검증, 시가는 첫 세션봉 기준 · ATR은 결손 이후 연속 완료봉으로 재계산/);
   assert.ok(scheduleStart >= 0 && scheduleEnd > scheduleStart);
   assert.match(scheduleExpiry, /if \(!state\.snapshot \|\| !state\.assessment\?\.displayable\) return/);
   assert.match(scheduleExpiry, /if \(state\.assessment\.referenceOnly\) \{[\s\S]*window\.setTimeout\([\s\S]*renderMarket\(\)[\s\S]*60_000[\s\S]*return/s);
@@ -183,10 +189,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(app, /actualContractConfirmed: true/);
   assert.match(app, /withExclusiveRequest/);
   assert.match(app, /A wall-clock rollback must not turn the request guard into a bypass/);
-  assert.match(app, /A later quote must/);
-  assert.match(app, /positionAtrBinding/);
-  assert.match(app, /source: "user-fixed"/);
-  assert.match(app, /isValidAtrBinding/);
+  assert.doesNotMatch(app, /positionAtrBinding|source: "user-fixed"|isValidAtrBinding/);
   assert.doesNotMatch(app, /Number\.isFinite\(Number\(state\.autoAtr\)\)/);
   assert.doesNotMatch(app, /populateManual/);
   assert.match(policy, /MAX_SOURCE_AGE_MINUTES = 25/);
@@ -203,7 +206,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.7\.0-volatility-position-risk\.1/);
+  assert.match(sw, /v3\.8\.0-volatility-three-input-risk\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

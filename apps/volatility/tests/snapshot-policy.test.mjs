@@ -90,7 +90,7 @@ test("토요일에는 종료 5분 이내까지 관측된 최근 완료 세션만
   assert.equal(result.key, "reference");
   assert.equal(result.marketState, "completed-session");
   assert.equal(result.sessionEndedAt, "2026-08-14T21:00:00.000Z");
-  assert.match(result.reason, /포지션·ATR·손절 계산에는 사용하지 않습니다/);
+  assert.match(result.reason, /자동 ATR 포지션 위험 복기 외의 손절·실전 계산에는 사용하지 않습니다/);
 });
 
 test("v3.3 캐시는 sourceEventAt 일치 검증 후 완료 세션 참고값으로 안전 호환한다", () => {

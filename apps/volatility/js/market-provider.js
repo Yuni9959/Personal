@@ -1,3 +1,5 @@
+import { calculateWilderAtrFromBars } from "./calculator.js";
+
 const CHICAGO_TIME_ZONE = "America/Chicago";
 const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"]);
 const YAHOO_HOST = "query2.finance.yahoo.com";
@@ -549,6 +551,13 @@ function validateCurrentSession(timestamps, quote) {
   };
 }
 
+function latestContiguousCompletedBars(bars) {
+  if (!bars.length) return [];
+  let start = bars.length - 1;
+  while (start > 0 && bars[start].bucket - bars[start - 1].bucket === BAR_SECONDS) start -= 1;
+  return bars.slice(start);
+}
+
 function requiredRegularMarketPrice(meta, field, label) {
   const value = meta[field];
   if (typeof value !== "number" || !Number.isFinite(value) || value <= 0 || !isTickAligned(value)) {
@@ -666,17 +675,10 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
     if (syntheticSeen && index === bucketBars.length - 1) return false;
     return (bar.bucket + BAR_SECONDS) * 1000 <= fetchedAt.getTime();
   });
-  const trueRanges = missingInteriorBucketCount > 0 ? [] : completedBars.map((bar, index) => {
-    const previousClose = completedBars[index - 1]?.close;
-    return previousClose === undefined
-      ? bar.high - bar.low
-      : Math.max(bar.high - bar.low, Math.abs(bar.high - previousClose), Math.abs(bar.low - previousClose));
-  });
-  let atr = null;
-  if (trueRanges.length >= 14) {
-    atr = trueRanges.slice(0, 14).reduce((sum, value) => sum + value, 0) / 14;
-    for (const value of trueRanges.slice(14)) atr = ((atr * 13) + value) / 14;
-  }
+  // A single old gap does not invalidate a current ATR forever. Restart the
+  // Wilder series at the newest uninterrupted run and require a full 14 bars.
+  const atrBars = latestContiguousCompletedBars(completedBars);
+  const atr = calculateWilderAtrFromBars(atrBars);
 
   return {
     schemaVersion: 1,
@@ -704,6 +706,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       barQuality: missingInteriorBucketCount > 0 ? "one-interior-null-bucket" : "complete",
       missingInteriorBucketCount,
       missingInteriorBucketAt,
+      atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
       regularMarketOpenMetadataAvailable: regularMarketVerification.openMetadataAvailable,
       regularMarketFieldsVerified: regularMarketVerification.fieldsVerified
@@ -730,9 +733,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       current: regularMarketVerification.observed.current,
       latestBarAt: currentBar.at.toISOString(),
       atr5m14: atr === null ? null : Number(atr.toFixed(6)),
-      atrLastCompletedBarAt: missingInteriorBucketCount > 0
-        ? null
-        : completedBars.at(-1)?.at.toISOString() || null
+      atrLastCompletedBarAt: atr === null ? null : atrBars.at(-1)?.at.toISOString() || null
     },
     limitations: [
       "MNQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
@@ -740,7 +741,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
       "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다.",
       ...(missingInteriorBucketCount > 0
-        ? ["현재 세션 중간 5분봉 1개가 완전히 누락되어 Yahoo regularMarket H/L/current/time을 교차검증했고 5분 ATR은 중지했습니다."]
+        ? [atr === null
+            ? "현재 세션 중간 5분봉 1개 이후 연속 완료봉이 14개보다 적어 5분 ATR을 중지했습니다."
+            : "현재 세션 중간 5분봉 1개 이후의 최신 연속 완료봉으로 5분 ATR을 다시 계산했습니다."]
         : [])
     ]
   };
