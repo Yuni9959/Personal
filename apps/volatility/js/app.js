@@ -8,6 +8,10 @@ import {
 } from "./calculator.js";
 import { fetchYahooSnapshot } from "./market-provider.js";
 import {
+  fetchLocalNasdaqSnapshot,
+  shouldPreferLocalArchive
+} from "./local-market-provider.js";
+import {
   REQUEST_COOLDOWN_MS,
   REQUEST_DEADLINE_MS,
   calculateRateLimitBackoff,
@@ -188,6 +192,7 @@ function providerDescription(snapshot) {
   if (snapshot?.mode === "manual") return "MNQ · 사용자 수동 확인";
   const provider = snapshot?.provider || {};
   const symbol = String(provider.returnedSymbol || provider.requestedSymbol || "종목 미확인");
+  if (snapshot?.mode === "local-archive") return `${symbol} · 사용자 동기화 로컬 보관 참고값 (MNQ 아님)`;
   if (isNqFallback(snapshot)) return `${symbol} · NQ 연속선물 대체 프록시 (MNQ 아님)`;
   if (symbol.toUpperCase() === "MNQ=F") return `${symbol} · MNQ 연속선물 프록시`;
   return `${symbol} · Yahoo 지연 참고시세`;
@@ -200,7 +205,7 @@ function delayDescription(snapshot, assessment) {
   if (assessment.ageMinutes === null) return "시각 확인 불가 · 계산 중지";
   const age = `${Math.max(0, Math.round(assessment.ageMinutes))}분 전 가격`;
   if (assessment.referenceOnly) {
-    const referenceLabel = assessment.marketState === "completed-session"
+    const referenceLabel = ["completed-session", "local-completed-session"].includes(assessment.marketState)
       ? "최근 완료 세션 참고"
       : "이전 검증 시세 참고";
     return `${age} · ${referenceLabel} · 계산 잠금`;
@@ -224,6 +229,9 @@ function setRefreshBusy(busy) {
 function barQualityNotice(snapshot, assessment) {
   const provider = snapshot?.provider || {};
   const missingCount = Number(provider.missingInteriorBucketCount || 0);
+  if (assessment.displayable && snapshot?.mode === "local-archive" && missingCount === 1) {
+    return "로컬 보관 5분봉 1개가 누락되어 ATR은 제공하지 않습니다.";
+  }
   if (!assessment.displayable || snapshot?.mode === "manual" ||
       provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
   return provider.regularMarketOpenMetadataAvailable
@@ -250,10 +258,13 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     els.dataNotice.textContent = "수동 입력값으로 계산 중입니다. 주문 전 실제 월물 시세와 다시 대조하세요.";
   } else if (assessment.referenceOnly) {
     els.dataNotice.classList.add("warning");
-    const sourceLabel = assessment.marketState === "completed-session"
+    const sourceLabel = ["completed-session", "local-completed-session"].includes(assessment.marketState)
       ? "최근 완료 세션"
       : "이전에 검증한 세션";
-    els.dataNotice.textContent = `${assessment.reason} ${sourceLabel}의 O/H/L/마지막 관측가와 이번 주 기준 환산선만 표시하며 포지션·ATR·손절 계산은 잠급니다.`;
+    const referenceDetail = assessment.referenceLineCalculationAllowed
+      ? "이번 주 기준 환산선도 함께 표시하지만"
+      : "주간 기준 환산선은 잠그고";
+    els.dataNotice.textContent = `${assessment.reason} ${sourceLabel}의 O/H/L/마지막 관측가를 표시하고 ${referenceDetail} 포지션·ATR·손절 계산은 잠급니다.`;
   } else if (!assessment.usable) {
     els.dataNotice.classList.add(assessment.key === "error" ? "error" : "warning");
     const ageDetail = ageMinutes === null ? "" : ` 마지막 참고 가격은 ${ageMinutes}분 전 값입니다.`;
@@ -309,7 +320,7 @@ function renderReferenceContext(snapshot = null, assessment = null) {
     return;
   }
   if (assessment.referenceOnly) {
-    const completedSession = assessment.marketState === "completed-session";
+    const completedSession = ["completed-session", "local-completed-session"].includes(assessment.marketState);
     els.referenceOpenLabel.textContent = completedSession ? "최근 세션 시가" : "이전 확인 시가";
     els.referenceOpenContext.textContent = completedSession
       ? `${formatCompactDate(snapshot.session?.end)} · 종료`
@@ -447,13 +458,15 @@ function renderMarket() {
   setStatus(state.snapshot, assessment);
   renderReferenceContext(state.snapshot, assessment);
   renderReferencePrices(referenceVisible ? market : null);
-  const completedSessionPreview = assessment.referenceOnly && assessment.marketState === "completed-session";
+  const completedSessionPreview = assessment.referenceOnly &&
+    ["completed-session", "local-completed-session"].includes(assessment.marketState);
   els.marketTitle.textContent = assessment.referenceOnly
     ? (completedSessionPreview ? "최근 완료 세션" : "이전 참고 시세")
     : "오늘의 시세";
+  const displayedSymbol = state.snapshot.mode === "local-archive" ? "NQ" : "MNQ";
   els.quoteGrid.setAttribute("aria-label", assessment.referenceOnly
-    ? (completedSessionPreview ? "MNQ 최근 완료 세션 참고 시세" : "MNQ 이전 참고 시세")
-    : "MNQ 오늘 시세");
+    ? (completedSessionPreview ? `${displayedSymbol} 최근 완료 세션 참고 시세` : `${displayedSymbol} 이전 참고 시세`)
+    : `${displayedSymbol} 오늘 시세`);
   els.currentPriceLabel.textContent = assessment.referenceOnly ? "마지막 관측가" : "현재가";
   els.openPrice.textContent = displayable ? formatNumber(market.open) : "—";
   els.highPrice.textContent = displayable ? formatNumber(market.high) : "—";
@@ -652,8 +665,12 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   setRefreshBusy(true);
   setCompactDataStatus("loading", "조회 중");
   state.transientNotice = "";
+  const requestedAt = new Date();
+  const preferLocalArchive = shouldPreferLocalArchive(requestedAt);
   const cooldownRemaining = cooldownRemainingMs();
-  const backoffRemaining = rateLimitRemainingMs();
+  // A provider-directed backoff must not block the same-origin local archive
+  // during the regular weekend closure because no relay request is sent then.
+  const backoffRemaining = preferLocalArchive ? 0 : rateLimitRemainingMs();
   const remaining = Math.max(cooldownRemaining, backoffRemaining);
   if (remaining > 0) {
     const seconds = Math.ceil(remaining / 1000);
@@ -679,16 +696,57 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   state.lastRequestAt = Date.now();
   writeJson(LAST_REQUEST_KEY, state.lastRequestAt);
   try {
-    const snapshot = validateSnapshot(await fetchYahooSnapshot(fetch, new Date(), {
-      timeoutMs: REQUEST_DEADLINE_MS
-    }));
+    let result = null;
+    let localFailure = null;
+    if (preferLocalArchive) {
+      try {
+        const localSnapshot = validateSnapshot(await fetchLocalNasdaqSnapshot(fetch));
+        const localAssessment = assessSnapshot(localSnapshot);
+        if (!localAssessment.displayable) {
+          throw new Error(localAssessment.reason || "로컬 NQ 참고값을 표시할 수 없습니다.");
+        }
+        result = { snapshot: localSnapshot, source: "local", remoteFailure: null };
+      } catch (error) {
+        localFailure = error;
+      }
+    }
+    if (!result) {
+      try {
+        result = {
+          snapshot: await fetchYahooSnapshot(fetch, requestedAt, { timeoutMs: REQUEST_DEADLINE_MS }),
+          source: "remote",
+          remoteFailure: null
+        };
+      } catch (remoteFailure) {
+        try {
+          result = {
+            snapshot: await fetchLocalNasdaqSnapshot(fetch),
+            source: "local",
+            remoteFailure
+          };
+        } catch {
+          throw remoteFailure || localFailure;
+        }
+      }
+    }
+    const snapshot = validateSnapshot(result.snapshot);
     const assessment = assessSnapshot(snapshot);
-    state.rateLimitUntil = 0;
-    try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
-    catch { /* Successful data is already verified; stale backoff cleanup is best-effort. */ }
-    state.transientNotice = trigger === "load"
-      ? "이 화면을 열어 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
-      : "버튼 요청으로 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
+    if (result.source === "local" && !assessment.displayable) {
+      throw result.remoteFailure || new Error(assessment.reason || "로컬 NQ 참고값을 표시할 수 없습니다.");
+    }
+    if (result.source === "remote") {
+      state.rateLimitUntil = 0;
+      try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
+      catch { /* Successful data is already verified; stale backoff cleanup is best-effort. */ }
+      state.transientNotice = trigger === "load"
+        ? "이 화면을 열어 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
+        : "버튼 요청으로 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
+    } else {
+      const remoteDetail = result.remoteFailure
+        ? ` ${requestFailureReason(result.remoteFailure)}`
+        : "";
+      state.transientNotice = `주말·휴장용으로 동기화된 로컬 NQ 최근 완료 세션을 불러왔습니다.${remoteDetail}`;
+    }
     applySnapshot(snapshot, { cache: assessment.displayable });
   } catch (error) {
     const failureReason = requestFailureReason(error);

@@ -8,6 +8,7 @@
     "enrich:content": "node apps/mensa/tools/enrich-content-v2.mjs",
     "generate:answer-key": "node apps/mensa/tools/generate-answer-key.mjs",
     "sync:bank": "node apps/mensa/tools/sync-bank.mjs",
+    "sync:volatility-data": "node apps/volatility/tools/sync-local-nasdaq.mjs",
     "test:volatility": "node --test apps/volatility/tests/*.test.mjs",
     "test:browser": "node apps/mensa/tests/browser-smoke.mjs",
     "validate:bank": "node apps/mensa/tests/validate-bank.mjs --profile=content-complete",

@@ -85,6 +85,16 @@ export function isApprovedMnqProxy(snapshot) {
   return tierMatches && requested === "MNQ=F" && returned === "MNQ=F";
 }
 
+export function isApprovedLocalNqArchive(snapshot) {
+  const provider = snapshot?.provider || {};
+  return snapshot?.mode === "local-archive" &&
+    provider.tier === "nq-local-archive-reference" &&
+    provider.localArchive === true &&
+    provider.requestedSymbol === "NQ=F" && provider.returnedSymbol === "NQ=F" &&
+    provider.sourceFile === "nasdaq_5m.csv" &&
+    /^[a-f0-9]{64}$/.test(String(provider.sourceSha256 || ""));
+}
+
 function manualConfirmationValid(snapshot) {
   const provider = snapshot?.provider || {};
   const confirmedAt = new Date(provider.confirmedAt || "");
@@ -174,6 +184,40 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
       marketState: "active-manual",
       ageMinutes: Math.max(0, ageMinutes),
       referenceValid: true
+    });
+  }
+
+  if (isApprovedLocalNqArchive(snapshot)) {
+    const providerSession = validatedProviderSession(snapshot, now);
+    if (!providerSession || !providerSession.ended || !providerSession.terminalCoverageVerified) {
+      return decision({
+        ageMinutes,
+        referenceValid,
+        reason: "로컬 NQ 보관값의 완료 세션 경계와 마지막 관측시각을 검증할 수 없습니다."
+      });
+    }
+    if (ageMinutes > MAX_REFERENCE_SOURCE_AGE_MINUTES) {
+      return decision({
+        key: "stale",
+        marketState: "reference-expired",
+        ageMinutes,
+        referenceValid,
+        sessionEndedAt: providerSession.end.toISOString(),
+        reason: `로컬 NQ 보관값이 ${Math.round(ageMinutes)}분 전이어서 최근 완료 세션 참고 범위를 벗어났습니다.`
+      });
+    }
+    return decision({
+      displayable: true,
+      referenceOnly: true,
+      referenceLineCalculationAllowed: referenceValid,
+      key: "reference",
+      marketState: "local-completed-session",
+      ageMinutes: Math.max(0, ageMinutes),
+      referenceValid,
+      sessionEndedAt: providerSession.end.toISOString(),
+      reason: referenceValid
+        ? "사용자가 동기화한 최근 완료 NQ 세션의 참고값입니다. MNQ가 아니므로 포지션·ATR·손절 계산에는 사용하지 않습니다."
+        : `사용자가 동기화한 최근 완료 NQ 세션의 O/H/L/마지막 관측가만 표시합니다. ${referenceFailure}`
     });
   }
 

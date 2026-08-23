@@ -61,21 +61,41 @@ Personal Tap의 MNQ 일중 변동폭·포지션 점검 앱입니다. 매매 신�
 ## 요청형 지연 시세와 폴백
 
 Volatility는 화면을 열어 두는 동안 시세를 추적하지 않는다. 페이지 최초 진입
-또는 사용자가 **오늘 시세 새로고침** 버튼을 누를 때만 한 번의 조회 시퀀스를
-시작한다. 브라우저는 [Jina Reader](https://jina.ai/reader/)를 전달 경로로 삼아
-Yahoo Finance의 약 10분 지연 `MNQ=F` chart 응답을 받는다. 시가 유무와
-관계없이 일반 반복 요청은 기기 로컬 10초 cooldown으로 막고, 새로고침·다른
-탭에도 그 짧은 제한을 유지한다. 공급자 429 대기는 별도로 최소 60초·최대
-15분을 유지한다. 예약 실행·주기 폴링·focus 갱신·백그라운드 갱신은 하지 않는다.
+또는 사용자가 **오늘 시세 새로고침** 버튼을 누를 때만 한 번의 확인 시퀀스를
+시작한다. Chicago 기준 금요일 16:00부터 일요일 17:00 전까지는 사용자가
+동기화한 로컬 `NQ=F` 최근 완료 세션을 먼저 읽는다. 그 밖에는 브라우저가
+[Jina Reader](https://jina.ai/reader/)를 전달 경로로 삼아 Yahoo Finance의 약
+10분 지연 `MNQ=F` chart 응답을 한 번 받고, 그 요청이 실패하면 로컬 NQ 완료
+세션을 참고값으로 시도한다. 일반 반복 확인은 기기 로컬 10초 cooldown으로
+막고, 새로고침·다른 탭에도 그 짧은 제한을 유지한다. 공급자 429 대기는 별도로
+최소 60초·최대 15분을 유지하되 주말의 같은 출처 로컬 파일 읽기는 막지 않는다.
+예약 실행·주기 폴링·focus 갱신·백그라운드 갱신은 하지 않는다.
+
+로컬 원본의 기본 경로는
+`C:\Users\tmddb\Desktop\quant\data\nasdaq_5m.csv`다. 원본을 갱신한 뒤 저장소
+루트에서 아래 명령을 실행하면 최신 완료 CME 세션만 검증해 작은 정적
+`data/local-nasdaq-snapshot.json`으로 동기화한다. 절대경로와 전체 CSV는
+배포물에 넣지 않으며, 출력에는 원본 SHA-256·행수·세션 경계·마지막 원천시각을
+남긴다.
+
+```powershell
+npm run sync:volatility-data
+```
+
+다른 원본으로 시험할 때는
+`node apps/volatility/tools/sync-local-nasdaq.mjs --source "경로"`를 사용할 수
+있다. 최신 세션 첫 봉이나 종료 전 마지막 5분 구간이 없거나, 중복·비정상
+OHLC·0.25 tick 위반·중간 bucket 2개 이상 누락이면 출력하지 않는다.
 
 Jina Reader는 Yahoo URL을 대신 읽어 브라우저에 전달할 뿐 시세 공급원이나
 거래소 권한 제공자가 아니다. 조회는 주말과 3일 연휴에도 최근 완료 세션을
 검증할 수 있도록 `MNQ=F` 5일치 5분봉만 한 번 사용한다.
 MNQ 데이터가 없거나 429·HTML·네트워크·timeout 오류가 나면 다른 종목으로
-재호출하지 않고 자동 계산을 잠근다. `America/Chicago` 17:00~익일 16:00
+네트워크 재호출하지 않고, 동기화된 NQ 완료 세션만 읽기 전용 폴백으로 확인한
+뒤 자동 계산을 잠근다. `America/Chicago` 17:00~익일 16:00
 세션을 timezone-aware로 재구성하며 5분 ATR은 완료된 봉만 사용한다.
 
-응답은 Jina 외부 envelope의 성공 상태·원본 Yahoo URL과 canonical query를
+응답은 Jina 외부 envelope의 성공 상태(`code=200`, `status=200|20000`)·원본 Yahoo URL과 canonical query를
 먼저 확인한 뒤 내부 Yahoo JSON의 FUTURE/CME/USD/정확한 5분봉·반환심볼·
 시각·OHLC·0.25 tick을 검증한다. 지연 메타가 있으면 정확히 10분만 허용하고,
 없으면 미확인 상태를 숨기지 않는다. 전체 timeout은 15초다.
@@ -89,7 +109,7 @@ MNQ 데이터가 없거나 429·HTML·네트워크·timeout 오류가 나면 다
 Jina 외부·Yahoo 내부 JSON은 각각 512 KiB를 넘으면 읽기를 중단한다. 429의
 유효한 `Retry-After`는 안전한 대기정보로 정규화하고, 없거나 무효하면 기본
 60초를 적용한다. 어느 경우에도 자동 재시도하지 않는다.
-신규도는 다운로드 시각이 아니라 원천 5분봉 시각을 기준으로 한다.
+신규도는 다운로드·동기화 시각이 아니라 원천 5분봉 시각을 기준으로 한다.
 진행 중인 MNQ 세션의 원천 관측값이 25분을 넘거나 미래시각·불일치·429·
 timeout·CORS 오류가 있으면 fail-closed하고 수동 입력을 안내한다. 이 기기에서
 앞서 검증된 로컬 캐시는 시작 시 다시 감사한다. 최근 완료 세션 조건을 모두
@@ -114,8 +134,10 @@ MNQ 월물 O/H/L/현재가와 대조해야 한다.
 
 상세 흐름과 안전 계약은
 [`docs/on-demand-delayed-data.md`](./docs/on-demand-delayed-data.md)에 기록한다.
-공개 재배포를 피하기 위해 실제 Yahoo 시세가 든 정적 `market.json`과 갱신
-도구는 제거했다. Service Worker와 Pages artifact에도 시장 스냅샷을 넣지 않는다.
+기존 자동수집 `market.json`과 예약 갱신은 사용하지 않는다. 사용자가 명시적으로
+관리하는 로컬 NQ 원본에서는 최근 완료 세션의 작은 참고 스냅샷만 동기화해
+Pages/PWA에 포함한다. 이 값은 `NQ=F`이며 MNQ가 아니므로 최대 96시간 동안
+O/H/L/마지막 관측가만 참고 표시하고 포지션·ATR·손절 계산은 항상 잠근다.
 
 ## GitHub Pages 배포
 

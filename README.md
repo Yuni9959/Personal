@@ -11,16 +11,16 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 
 | 항목 | 상태 |
 | --- | --- |
-| 확인일 | 2026-08-15 (Asia/Seoul) |
+| 확인일 | 2026-08-23 (Asia/Seoul) |
 | 문제은행 | `2026.08.10-content.4`, 59개 유형·990문제·6,298개 보기 |
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
 | 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 `대학 입학정보` |
-| Volatility 시세 | 페이지 진입·버튼 클릭 때만 Jina Reader를 거쳐 Yahoo CME 약 10분 지연 `MNQ=F` 최근 5일을 단발 조회; 시작 시 검증 캐시·최근 완료 세션 참고값 복원; 예약·자동·백그라운드 폴링 없음 |
-| 자동 검증 | `npm run test:release` 성공 — Node 191/191 및 Chromium·오프라인·320/390px 검증 통과 |
+| Volatility 시세 | 주말에는 사용자 관리 `quant/data/nasdaq_5m.csv`에서 동기화한 최근 완료 `NQ=F` 세션을 우선 표시; 평일에는 Jina Reader→Yahoo 지연 `MNQ=F` 단발 조회 후 실패 시 로컬 NQ 참고값 폴백; 로컬값은 거래 계산 잠금 |
+| 자동 검증 | `npm run test:release` 성공 — Node 198/198 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.4.0-volatility-weekend-review.1` — Volatility 2열 기준표·주말 완료 세션 참고·10초 일반 재조회 정책 정적 자산 cache-first |
+| PWA 캐시 | `v3.5.0-volatility-local-archive.1` — 로컬 NQ 스냅샷은 online-first 갱신·offline fallback, 나머지 버전 고정 정적 자산은 cache-first |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -95,7 +95,9 @@ Volatility에 들어오면 첫 화면의 **이번 주 고정 기준** 상승·�
         └── tools/
     └── volatility/
         ├── index.html, styles.css
-        ├── js/                 # 계산·시세 재구성·UI
+        ├── js/                 # 계산·외부/로컬 시세 검증·UI
+        ├── data/               # 동기화된 최근 완료 NQ 참고 스냅샷
+        ├── tools/              # quant/data 5분봉 동기화 도구
         ├── docs/               # 요청형 지연 시세 설계·작업 기록
         └── tests/
 ```
@@ -256,6 +258,12 @@ pageshow에서도 네트워크를 다시 요청하지 않으며, 진행 세션 �
 [`apps/volatility/docs/on-demand-delayed-data.md`](./apps/volatility/docs/on-demand-delayed-data.md)에
 있습니다.
 
+CME 정규 주말 휴장에는 `C:\Users\tmddb\Desktop\quant\data\nasdaq_5m.csv`에서
+동기화한 최근 완료 `NQ=F` 세션을 먼저 읽습니다. 평일 외부 요청 실패 때도 같은
+파일을 폴백으로 사용합니다. 원본을 갱신한 뒤 `npm run sync:volatility-data`를
+실행해야 배포 스냅샷이 갱신됩니다. NQ는 MNQ가 아니므로 이 값은 최대 96시간의
+읽기 전용 O/H/L/마지막 관측가 참고에만 쓰고 ATR·포지션·손절 계산은 열지 않습니다.
+
 모든 내부 경로는 상대경로로 작성되어 있어 `https://사용자명.github.io/Repository명/` 형태에서도 동작합니다.
 
 ## 문제은행 검증
@@ -314,8 +322,9 @@ Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
    쌓인 뒤 문제 난이도와 제한시간을 재평가합니다.
 4. **선택적 기기 간 동기화 설계**: 현재 JSON 내보내기 계약을 유지하면서
    Supabase 등 원격 동기화의 범위와 개인정보 정책을 먼저 정합니다.
-5. **Volatility 요청형 조회 실사용 검증**: 페이지 진입·버튼 단발 조회의
-   성공률, Jina·Yahoo 429/timeout/포맷 실패율과 원천시각 지연을 기록하고,
+5. **Volatility 요청형 조회·로컬 동기화 실사용 검증**: `quant/data` 갱신 뒤
+   `npm run sync:volatility-data` 실행을 운영 루틴에 연결하고, 페이지 진입·버튼
+   단발 조회의 성공률, Jina·Yahoo 429/timeout/포맷 실패율과 원천시각 지연을 기록하고,
    1봉 결손 시 가격 교차검증·ATR 잠금이 의도대로 동작하는지 영웅문 모바일의
    실제 MNQ 월물 O/H/L·ATR·가격선과 나란히 대조합니다. 정식 공급원을
    확보하면 UI 대신 provider 어댑터만 교체합니다.

@@ -2397,10 +2397,10 @@ async function run() {
       manualPanelHidden: document.querySelector("#manualPanel").hidden,
       manualExpanded: document.querySelector("#manualToggleBtn").getAttribute("aria-expanded")
     }))()`);
-    assert.equal(offlineVolatility.status, "시세 없음");
+    assert.match(offlineVolatility.status, /시세 참고|세션 참고/);
     assert.equal(offlineVolatility.locked, true);
     assert.equal(offlineVolatility.calculationsHidden, true);
-    assert.equal(offlineVolatility.current, "—");
+    assert.notEqual(offlineVolatility.current, "—");
     assert.equal(offlineVolatility.manualPanelHidden, true);
     assert.equal(offlineVolatility.manualExpanded, "false");
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);

@@ -230,6 +230,63 @@ test("NQ 대체값·미승인 tier·세션 위조는 미리보기에도 사용�
   assert.equal(assessSnapshot(mismatchedSession, now, reference).displayable, false);
 });
 
+test("승인된 로컬 NQ 보관값은 완료 세션 참고로만 표시한다", () => {
+  const saturday = new Date("2026-08-22T12:00:00.000Z");
+  const currentReference = { effectiveFrom: "2026-08-17", effectiveThrough: "2026-08-23" };
+  const local = snapshot({
+    mode: "local-archive",
+    assessedAt: saturday,
+    latestAt: "2026-08-21T20:55:00.000Z",
+    sessionStart: "2026-08-20T22:00:00.000Z",
+    sessionEnd: "2026-08-21T21:00:00.000Z",
+    sessionStatus: "completed",
+    requestedSymbol: "NQ=F",
+    returnedSymbol: "NQ=F",
+    tier: "nq-local-archive-reference"
+  });
+  Object.assign(local.provider, {
+    localArchive: true,
+    sourceFile: "nasdaq_5m.csv",
+    sourceSha256: "a".repeat(64)
+  });
+  local.session.terminalCoverageVerified = true;
+
+  const result = assessSnapshot(local, saturday, currentReference);
+  assert.equal(result.usable, false);
+  assert.equal(result.displayable, true);
+  assert.equal(result.referenceOnly, true);
+  assert.equal(result.referenceLineCalculationAllowed, true);
+  assert.equal(result.marketState, "local-completed-session");
+  assert.match(result.reason, /MNQ가 아니므로/);
+});
+
+test("주간 기준이 만료돼도 로컬 NQ의 원시 완료 세션 값만 표시한다", () => {
+  const saturday = new Date("2026-08-22T12:00:00.000Z");
+  const local = snapshot({
+    mode: "local-archive",
+    assessedAt: saturday,
+    latestAt: "2026-08-21T20:55:00.000Z",
+    sessionStart: "2026-08-20T22:00:00.000Z",
+    sessionEnd: "2026-08-21T21:00:00.000Z",
+    sessionStatus: "completed",
+    requestedSymbol: "NQ=F",
+    returnedSymbol: "NQ=F",
+    tier: "nq-local-archive-reference"
+  });
+  Object.assign(local.provider, {
+    localArchive: true,
+    sourceFile: "nasdaq_5m.csv",
+    sourceSha256: "b".repeat(64)
+  });
+  local.session.terminalCoverageVerified = true;
+
+  const result = assessSnapshot(local, saturday, reference);
+  assert.equal(result.displayable, true);
+  assert.equal(result.referenceOnly, true);
+  assert.equal(result.referenceLineCalculationAllowed, false);
+  assert.match(result.reason, /기준은 .*만료/);
+});
+
 test("미래시각·누락시각·비정상 OHLC와 불완전 수동 확인은 fail-close한다", () => {
   assert.equal(assessSnapshot(snapshot({ ageMinutes: -0.001 }), now, reference).usable, false);
 

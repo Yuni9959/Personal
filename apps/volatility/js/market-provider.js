@@ -301,8 +301,9 @@ function comparableSourceUrl(value) {
 }
 
 function parseReaderEnvelope(envelope, expectedSourceUrl) {
+  const successStatus = envelope?.status === 200 || envelope?.status === 20000;
   if (!envelope || typeof envelope !== "object" || Array.isArray(envelope) ||
-      envelope.code !== 200 || envelope.status !== 200 ||
+      envelope.code !== 200 || !successStatus ||
       !envelope.data || typeof envelope.data !== "object" || Array.isArray(envelope.data)) {
     throw providerError("Jina Reader JSON envelope 검증에 실패했습니다.", {
       metadata: { code: "invalid-reader-envelope" }

@@ -92,8 +92,9 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   const startup = app.slice(startupStart);
   assert.match(html, /오늘 시세 새로고침/);
   assert.match(html, /class="topbar-actions"/);
-  assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만/);
-  assert.match(html, /시가 유무와 관계없이 일반 반복 요청은 최대 10초만 막고/);
+  assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만 값을 확인합니다/);
+  assert.match(html, /CME 주말 휴장에는 사용자가 동기화한 로컬 NQ 완료 세션을 먼저 읽고/);
+  assert.match(html, /일반 반복 확인은 최대 10초만 막고/);
   assert.match(html, /공급자 429 제한은 최소 60초 이상 따로 지킵니다/);
   assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
   assert.match(html, /제공자 가격시각/);
@@ -126,7 +127,9 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(guard, /requestedAt = Math\.max\(memoryAt, storedAt\)/);
   assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
-  assert.match(app, /fetchYahooSnapshot\(fetch, new Date\(\), \{\s*timeoutMs: REQUEST_DEADLINE_MS\s*\}\)/);
+  assert.match(app, /fetchYahooSnapshot\(fetch, requestedAt, \{ timeoutMs: REQUEST_DEADLINE_MS \}\)/);
+  assert.match(app, /shouldPreferLocalArchive\(requestedAt\)/);
+  assert.match(app, /fetchLocalNasdaqSnapshot\(fetch\)/);
   assert.match(app, /forceLockReason: reason/);
   assert.doesNotMatch(app, /clearManualQuoteInputs|populateManual/);
   assert.match(app, /setManualPanelExpanded\(false\)/);
@@ -170,16 +173,18 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.4\.0-volatility-weekend-review\.1/);
+  assert.match(sw, /v3\.5\.0-volatility-local-archive\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",
-    "./apps/volatility/js/market-provider.js", "./apps/volatility/js/request-guard.js",
-    "./apps/volatility/js/snapshot-policy.js"
+    "./apps/volatility/js/market-provider.js", "./apps/volatility/js/local-market-provider.js",
+    "./apps/volatility/js/request-guard.js", "./apps/volatility/js/snapshot-policy.js",
+    "./apps/volatility/data/local-nasdaq-snapshot.json"
   ]) assert.ok(sw.includes(`"${asset}"`), asset);
   assert.match(sw, /request\.url\.includes\("\/apps\/volatility\/"\)/);
   assert.match(sw, /const cached = await caches\.match\(request\);\s*if \(cached\) return cached;/);
   assert.match(sw, /new Request\(asset, \{ cache: "reload" \}\)/);
+  assert.match(sw, /local-nasdaq-snapshot\.json[\s\S]*new Request\(request, \{ cache: "no-store" \}\)/);
   assert.doesNotMatch(sw, /apps\/volatility\/data\/market\.json/);
 });
 

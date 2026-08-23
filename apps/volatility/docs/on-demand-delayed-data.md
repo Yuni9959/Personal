@@ -37,9 +37,11 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
    JSON을 파싱한다. 이어 상품 유형·CME 거래소·USD·정확한 `5m` 주기,
    종목·시각·OHLC 구조를 검증한다. Yahoo 지연 메타가 있으면 정확히 10분만
    허용하며, 없으면 검증되지 않았다는 상태를 보존한다.
-5. `MNQ=F` 데이터가 없거나 429·HTML·네트워크·timeout 오류가 나면
-   다른 종목을 추가 조회하지 않고 자동 계산을 잠근다. 계산에 사용할 수 없는
-   NQ 대체값을 받기 위한 두 번째 요청은 보내지 않는다.
+5. Chicago 기준 정규 주말 휴장에는 정적 앱에 동기화된 로컬 `NQ=F` 최근 완료
+   세션을 먼저 읽는다. 평일에는 `MNQ=F` 요청이 429·HTML·네트워크·timeout으로
+   실패할 때 같은 로컬 파일을 폴백으로 확인한다. 로컬 값은 별도 네트워크 종목
+   재호출이 아니며, MNQ가 아니므로 최대 96시간의 `referenceOnly` 원시 가격
+   표시에만 쓰고 포지션·ATR·손절 계산은 열지 않는다.
 6. 현재 세션의 완료된 중간 5분봉이 정확히 1개 완전-null이지만 Yahoo meta와
    가격 무결성 교차검증을 통과하면 범위와 안전측 계산은 유지하고 5분 ATR만
    잠근다. 첫·마지막·부분-null, 실제 timestamp gap, 둘 이상 null 또는 가격
@@ -49,8 +51,9 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
    같은 weekly 기준 기간이면 **최근 완료 세션 참고값**으로 표시한다. 이때
    `referenceOnly=true`, `calculationAllowed=false`로 두어 가격표 복기 외 ATR·
    포지션·손절·실전 계산을 모두 금지한다. 종료 시각만 지났지만 마지막 5분
-   구간이 없거나 weekly 기간이 다르면 표시하지 않는다. 공개 배포물에는 실제
-   Yahoo 시세 파일을 넣지 않는다.
+   구간이 없거나 weekly 기간이 다르면 표시하지 않는다. 자동으로 받은 MNQ
+   응답은 정적 파일로 배포하지 않고 브라우저 로컬 캐시에만 둔다. 별도로
+   동기화한 NQ 완료 세션 스냅샷은 위 5번의 제한된 참고 폴백으로만 배포한다.
 8. 잠긴 값은 수동 폼에 복사하지 않는다. 수동 패널도 기본적으로 닫아 둔다.
    사용자가 영웅문 모바일에서 방금
    확인한 실제 MNQ 월물의 시가·고가·저가·현재가를 모두 다시 입력하고 확인란을
@@ -61,8 +64,9 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
 ```text
 페이지 진입 또는 버튼 클릭
         ↓  한 번만 요청
-Jina Reader (`r.jina.ai`, 인증정보 없음)
-        ↓  `https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F` 전달
+주말: 동기화된 `data/local-nasdaq-snapshot.json` 우선
+평일: Jina Reader (`r.jina.ai`, 인증정보 없음)
+        ↓  `https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F` 전달, 실패 시 로컬 NQ
         ↓  Yahoo chart JSON (`MNQ=F` 최근 5일·5분봉을 한 번만 확인)
         ↓  15초 timeout · 외부/내부 각 512 KiB · URL/provenance 검증
 CME 세션 재구성 (America/Chicago 17:00~익일 16:00)
@@ -103,7 +107,7 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 - 네트워크는 `r.jina.ai`에 canonical Yahoo URL을 붙인 GET 한 번뿐이다.
   `Accept: application/json` 외 비단순 헤더, 쿠키·자격증명·referrer를 보내지
   않고 브라우저 HTTP 캐시를 사용하지 않는다.
-- Jina 외부 envelope는 `code===200`, `status===200`, `data.url`,
+- Jina 외부 envelope는 `code===200`, `status===200|20000`, `data.url`,
   `data.content`를 요구한다. 반환 URL의 host·path와 `interval=5m`, 정확한
   5일 차이의 `period1`·`period2`, `includePrePost=true`, `events=div,splits` query가
   요청과 canonical하게 일치해야 내부 Yahoo JSON을 파싱한다.
@@ -117,6 +121,10 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   10분이라고 추정해 채우지 않고 `delayMetadataVerified=false`로 기록한다.
 - 공개 PWA에 API 키, Yahoo 쿠키, 우회 프록시 또는 브라우저 자동화 코드를
   넣지 않는다.
+- 로컬 동기화 도구는 기본 `C:\Users\tmddb\Desktop\quant\data\nasdaq_5m.csv`의
+  정확한 5분봉·0.25 tick·OHLC·세션 첫 봉·종료 전 마지막 봉·중복과 누락 수를
+  검증한다. 배포 스냅샷에는 절대경로를 넣지 않고 원본 파일명·SHA-256·행수만
+  기록한다.
 - 연속선물과 실제 월물, MNQ와 NQ를 서로 같은 것으로 표시하지 않는다.
 - 이전 캐시를 성공한 새 조회처럼 표시하지 않는다. 시작 시 다시 검증한 뒤
   승인된 MNQ·완료 세션·종료 전 마지막 5분·원천시각 96시간 이내·동일 weekly
@@ -165,6 +173,8 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 | 파일 | 역할 |
 |---|---|
 | `apps/volatility/js/market-provider.js` | Jina Reader 요청·Yahoo 응답 검증·세션 재구성·결손 정책·스냅샷 생성 |
+| `apps/volatility/js/local-market-provider.js` | 동기화된 로컬 NQ 스냅샷 출처·세션·가격 검증과 주말 판정 |
+| `apps/volatility/tools/sync-local-nasdaq.mjs` | 사용자 관리 `nasdaq_5m.csv`에서 최근 완료 세션 스냅샷 생성 |
 | `apps/volatility/js/request-guard.js` | 일반 10초 경계·공급자 429 대기·시계 rollback·동시 탭 요청 잠금 |
 | `apps/volatility/js/snapshot-policy.js` | 25분 현재 시세·96시간 완료 세션·종료 5분·동일 weekly 기간·심볼의 순수 fail-closed 판정 |
 | `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 진입/버튼 단발 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |

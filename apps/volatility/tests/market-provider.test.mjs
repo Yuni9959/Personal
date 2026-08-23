@@ -392,6 +392,13 @@ test("MNQ 성공 시 한 번만 조회하고 인증정보·캐시 없이 요청�
   assert.match(snapshot.provider.sourceUrl, /^https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/MNQ=F\?/);
 });
 
+test("현재 Jina 성공 envelope의 status 20000도 code 200과 함께 허용한다", async () => {
+  const response = readerEnvelope(payload(), FETCHED_AT);
+  response.status = 20000;
+  const snapshot = await fetchYahooSnapshot(async () => jsonResponse(response), FETCHED_AT);
+  assert.equal(snapshot.provider.returnedSymbol, "MNQ=F");
+});
+
 test("Jina Reader JSON envelope와 canonical 고정 원본 URL만 허용한다", async t => {
   for (const [name, mutate, expected] of [
     ["code", envelope => { envelope.code = 201; }, /envelope 검증/],

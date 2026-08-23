@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.4.0-volatility-weekend-review.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.5.0-volatility-local-archive.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -33,8 +33,10 @@ const CORE_ASSETS = [
   "./apps/volatility/js/app.js",
   "./apps/volatility/js/calculator.js",
   "./apps/volatility/js/market-provider.js",
+  "./apps/volatility/js/local-market-provider.js",
   "./apps/volatility/js/request-guard.js",
-  "./apps/volatility/js/snapshot-policy.js"
+  "./apps/volatility/js/snapshot-policy.js",
+  "./apps/volatility/data/local-nasdaq-snapshot.json"
 ];
 
 self.addEventListener("install", event => {
@@ -81,6 +83,22 @@ self.addEventListener("fetch", event => {
   // A local bridge may later serve /api/* below this scope; it must remain
   // network-only so a stale quote cannot be replayed by the PWA cache.
   if (/\/api(?:\/|$)/.test(url.pathname)) return;
+
+  if (url.pathname.endsWith("/apps/volatility/data/local-nasdaq-snapshot.json")) {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(new Request(request, { cache: "no-store" }));
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put(request, response.clone());
+        }
+        return response;
+      } catch {
+        return caches.match(request);
+      }
+    })());
+    return;
+  }
 
   if (request.mode === "navigate") {
     event.respondWith((async () => {
