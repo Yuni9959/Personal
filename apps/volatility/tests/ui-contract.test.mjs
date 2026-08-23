@@ -142,6 +142,14 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
   assert.match(html, /id="positionAtr"[^>]+step="any"/);
+  assert.match(html, /id="maxQuantity"[^>]+min="1"[^>]+step="1"/);
+  assert.match(html, /id="positionRiskPanel"[^>]+aria-live="polite"/);
+  assert.match(html, /5개 손실 위험 조건/);
+  assert.match(app, /assessPositionLossRisk/);
+  assert.match(app, /state\.snapshot\.market\.current/);
+  assert.match(app, /판정 보류 · 입력 필요/);
+  assert.match(app, /미완성 입력은 안전으로 판정하지 않습니다/);
+  assert.match(styles, /\.position-risk-checklist/);
   assert.doesNotMatch(html, /자동 시세 새로고침|실시간 시세|LIVE DEFAULT/);
   assert.match(app, /REQUEST_COOLDOWN_MS/);
   assert.doesNotMatch(app, /hasUsableQuote/);
@@ -195,7 +203,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.6\.1-volatility-recent-reference\.1/);
+  assert.match(sw, /v3\.7\.0-volatility-position-risk\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

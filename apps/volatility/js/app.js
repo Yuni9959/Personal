@@ -1,5 +1,6 @@
 import {
   WEEKLY_VOLATILITY_REFERENCE as REFERENCE,
+  assessPositionLossRisk,
   calculatePositionScenario,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
@@ -67,9 +68,13 @@ const els = {
   manualCurrent: $("#manualCurrent"), manualAtr: $("#manualAtr"), manualConfirm: $("#manualConfirm"),
   useAutoAtrBtn: $("#useAutoAtrBtn"),
   positionForm: $("#positionForm"), positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
-  quantity: $("#quantity"), fees: $("#fees"), positionAtr: $("#positionAtr"), enteredAt: $("#enteredAt"),
+  quantity: $("#quantity"), maxQuantity: $("#maxQuantity"), fees: $("#fees"),
+  positionAtr: $("#positionAtr"), enteredAt: $("#enteredAt"),
   positionEmpty: $("#positionEmpty"), positionResults: $("#positionResults"),
   positionSummary: $("#positionSummary"), positionScenarioGrid: $("#positionScenarioGrid"),
+  positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
+  positionRiskSummary: $("#positionRiskSummary"), positionRiskMetrics: $("#positionRiskMetrics"),
+  positionRiskChecklist: $("#positionRiskChecklist"),
   riskForm: $("#riskForm"), ema1h: $("#ema1h"), rsi1h: $("#rsi1h"),
   atrPercentile: $("#atrPercentile"), noFavorableExcursion: $("#noFavorableExcursion"),
   stopHesitation: $("#stopHesitation"), p6Result: $("#p6Result"), killResult: $("#killResult"), p7Result: $("#p7Result")
@@ -786,6 +791,7 @@ function positionInput() {
     direction: els.positionDirection.value,
     entry: els.entryPrice.value,
     quantity: els.quantity.value,
+    maxQuantity: els.maxQuantity.value,
     fees: els.fees.value,
     atr5m14: els.positionAtr.value,
     enteredAt: els.enteredAt.value
@@ -794,6 +800,41 @@ function positionInput() {
 
 function moneyClass(value) {
   return value > 0 ? "money-positive" : value < 0 ? "money-negative" : "";
+}
+
+function renderPositionLossRisk(input) {
+  const result = assessPositionLossRisk({
+    ...input,
+    current: state.snapshot.market.current
+  });
+  const verdicts = {
+    critical: ["손실 위험 패턴 · 청산 권고", "추가 진입을 중단하고 청산 또는 즉시 축소를 우선 검토하세요."],
+    danger: ["위험 확대 패턴 · 축소·청산 검토", "추가 진입을 중단하고 노출 축소 또는 청산을 검토하세요."],
+    caution: ["손실 지속 점검", "1시간 이상 손실 상태입니다. 최초 손절 기준과 청산 계획을 다시 확인하세요."],
+    safe: ["현재 5개 조건 미해당", "현재 입력에서는 5개 위험 조건이 발동하지 않았습니다. 위험이 없다는 뜻은 아닙니다."]
+  };
+  const needsInput = !result.complete && result.triggeredRuleIds.length === 0;
+  const [headline, summary] = needsInput
+    ? ["판정 보류 · 입력 필요", "진입 시각 등 빠진 값을 입력해야 5개 조건을 모두 판정할 수 있습니다."]
+    : verdicts[result.severity];
+  const statusLabels = {
+    triggered: ["해당", "triggered"], clear: ["미해당", "clear"],
+    pending: ["시간 미도달", "pending"], incomplete: ["입력 필요", "incomplete"]
+  };
+  const holdingText = result.holdingMinutes === null ?
+    (result.timingIssue === "future" ? "진입 시각 오류" : "진입 시각 필요") :
+    result.holdingMinutes < 60 ? `${Math.floor(result.holdingMinutes)}분` : `${(result.holdingMinutes / 60).toFixed(1)}시간`;
+  els.positionRiskPanel.className = `position-risk-panel ${needsInput ? "incomplete" : result.severity}`;
+  els.positionRiskHeadline.textContent = headline;
+  els.positionRiskSummary.textContent = result.complete ? summary : `${summary} 미완성 입력은 안전으로 판정하지 않습니다.`;
+  els.positionRiskMetrics.innerHTML = `
+    <span>보유 <strong>${holdingText}</strong></span>
+    <span>방향성 변동 <strong>${result.signedMoveAtr === null ? "—" : `${result.signedMoveAtr.toFixed(2)} ATR`}</strong></span>
+    <span>현재/최대 <strong>${input.quantity || "—"}/${result.effectiveMaxQuantity ?? "—"}계약</strong></span>`;
+  els.positionRiskChecklist.innerHTML = result.rules.map((rule, index) => {
+    const [statusLabel, statusClass] = statusLabels[rule.status];
+    return `<li class="${statusClass}"><span class="risk-rule-number">${index + 1}</span><div><strong>${rule.label}</strong><small>${rule.threshold}</small></div><b>${statusLabel}</b></li>`;
+  }).join("");
 }
 
 function renderPosition() {
@@ -857,6 +898,7 @@ function renderPosition() {
       </article>`).join("");
     els.positionEmpty.hidden = true;
     els.positionResults.hidden = false;
+    renderPositionLossRisk(input);
   } catch (error) {
     els.positionEmpty.hidden = false;
     els.positionEmpty.textContent = error.message;
@@ -870,6 +912,7 @@ function restorePosition() {
   els.positionDirection.value = ["long", "short"].includes(saved.direction) ? saved.direction : "none";
   els.entryPrice.value = saved.entry ?? "";
   els.quantity.value = saved.quantity || "1";
+  els.maxQuantity.value = saved.maxQuantity || saved.quantity || "1";
   els.fees.value = saved.fees ?? "0";
   els.enteredAt.value = saved.enteredAt ?? "";
   const identity = positionIdentity();

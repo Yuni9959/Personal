@@ -1055,6 +1055,7 @@ async function run() {
       set("#positionDirection", "long");
       set("#entryPrice", current - 100);
       set("#quantity", 2);
+      set("#maxQuantity", 2);
       set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
       set("#positionAtr", 20);
       set("#ema1h", "bearish");
@@ -1077,6 +1078,29 @@ async function run() {
     assert.match(volatilityResult.p6, /P6 shadow 경고 후보/);
     assert.match(volatilityResult.kill, /기존 OR 규칙 감지 · 비활성/);
     assert.match(volatilityResult.p7, /P7 입력 기반 안전 알림 · 미검증/);
+    const positionLossRisk = await evaluate(client, `(() => {
+      const current = Number(document.querySelector("#currentPrice").textContent.replaceAll(",", ""));
+      const set = (selector, value) => {
+        const element = document.querySelector(selector);
+        element.value = value;
+        element.dispatchEvent(new Event("input", { bubbles: true }));
+      };
+      set("#entryPrice", current + 45);
+      set("#maxQuantity", 5);
+      set("#enteredAt", new Date(Date.now() - 12 * 60 * 60000).toISOString().slice(0, 16));
+      set("#positionAtr", 20);
+      return {
+        headline: document.querySelector("#positionRiskHeadline").textContent,
+        statuses: [...document.querySelectorAll("#positionRiskChecklist li")]
+          .map(item => item.querySelector("b").textContent),
+        text: document.querySelector("#positionRiskPanel").textContent,
+        savedMax: JSON.parse(localStorage.getItem("personal-tap-volatility-position-v1")).maxQuantity
+      };
+    })()`);
+    assert.match(positionLossRisk.headline, /손실 위험 패턴 · 청산 권고/);
+    assert.deepEqual(positionLossRisk.statuses, ["해당", "해당", "해당", "시간 미도달", "미해당"]);
+    assert.match(positionLossRisk.text, /−2\.25 ATR/);
+    assert.equal(positionLossRisk.savedMax, "5");
     const fixedAtrBefore = await evaluate(client, `(() => ({
       atr: document.querySelector("#positionAtr").value,
       stop: document.querySelector("#positionSummary article:nth-child(2) strong").textContent
@@ -2480,7 +2504,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 5조건 손실 위험·청산 권고, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

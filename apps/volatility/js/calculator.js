@@ -5,6 +5,17 @@ export const MNQ_CONTRACT = Object.freeze({
   tickSize: 0.25
 });
 
+export const POSITION_LOSS_RISK_RULES = Object.freeze({
+  oneHourMinutes: 60,
+  fourHourMinutes: 240,
+  fourHourAdverseAtr: -2.25,
+  twelveHourMinutes: 720,
+  twelveHourAdverseAtr: -1.5,
+  twelveHourQuantity: 5,
+  twentyFourHourMinutes: 1440,
+  largeQuantity: 7
+});
+
 export { WEEKLY_VOLATILITY_REFERENCE };
 
 function finiteNumber(value) {
@@ -191,6 +202,108 @@ export function calculatePositionScenario(position, bar, scenario) {
     projectedNetUsd: projectedPoints * dollarsPerPoint - fees,
     stopPoints,
     stopNetUsd: stopPoints * dollarsPerPoint - fees
+  };
+}
+
+export function assessPositionLossRisk(position, now = new Date()) {
+  const direction = position?.direction;
+  const entry = finiteNumber(position?.entry);
+  const current = finiteNumber(position?.current);
+  const atr = finiteNumber(position?.atr5m14);
+  const quantity = finiteNumber(position?.quantity);
+  const recordedMaxQuantity = finiteNumber(position?.maxQuantity);
+  const validQuantity = quantity !== null && quantity >= 1 && Number.isInteger(quantity);
+  const validRecordedMax = recordedMaxQuantity !== null && recordedMaxQuantity >= 1 &&
+    Number.isInteger(recordedMaxQuantity);
+  const effectiveMaxQuantity = validQuantity
+    ? Math.max(quantity, validRecordedMax ? recordedMaxQuantity : quantity)
+    : null;
+
+  const priceInputsComplete = ["long", "short"].includes(direction) &&
+    entry !== null && entry > 0 && current !== null && current > 0 && atr !== null && atr > 0;
+  const sign = direction === "long" ? 1 : -1;
+  const signedMovePoints = priceInputsComplete ? sign * (current - entry) : null;
+  const signedMoveAtr = priceInputsComplete ? signedMovePoints / atr : null;
+
+  const enteredAt = new Date(position?.enteredAt || "");
+  const nowDate = new Date(now);
+  const rawHoldingMinutes = Number.isFinite(enteredAt.getTime()) && Number.isFinite(nowDate.getTime())
+    ? (nowDate.getTime() - enteredAt.getTime()) / 60000
+    : null;
+  const holdingMinutes = rawHoldingMinutes !== null && rawHoldingMinutes >= 0
+    ? rawHoldingMinutes
+    : null;
+  const timingIssue = rawHoldingMinutes !== null && rawHoldingMinutes < 0 ? "future" :
+    rawHoldingMinutes === null ? "missing" : "";
+
+  const timedStatus = (minutes, condition, requiredInputsComplete = true) => {
+    if (holdingMinutes === null) return "incomplete";
+    if (holdingMinutes < minutes) return "pending";
+    if (!requiredInputsComplete) return "incomplete";
+    return condition ? "triggered" : "clear";
+  };
+  const rules = [
+    {
+      id: "one-hour-loss",
+      label: "1시간 이상 보유 + 현재 손실",
+      threshold: "1시간부터 손실 포지션 최초 재점검",
+      status: timedStatus(
+        POSITION_LOSS_RISK_RULES.oneHourMinutes,
+        signedMoveAtr !== null && signedMoveAtr < 0,
+        signedMoveAtr !== null
+      )
+    },
+    {
+      id: "four-hour-large-loss",
+      label: "4시간 이상 + −2.25 ATR 이하",
+      threshold: "대형손실 위험: 축소·청산 검토",
+      status: timedStatus(
+        POSITION_LOSS_RISK_RULES.fourHourMinutes,
+        signedMoveAtr !== null && signedMoveAtr <= POSITION_LOSS_RISK_RULES.fourHourAdverseAtr,
+        signedMoveAtr !== null
+      )
+    },
+    {
+      id: "twelve-hour-scaled-loss",
+      label: "12시간 이상 + −1.5 ATR 이하 + 최대 5계약 이상",
+      threshold: "장시간·확대 손실의 최상위 위험 조합",
+      status: timedStatus(
+        POSITION_LOSS_RISK_RULES.twelveHourMinutes,
+        signedMoveAtr !== null && signedMoveAtr <= POSITION_LOSS_RISK_RULES.twelveHourAdverseAtr &&
+          effectiveMaxQuantity !== null && effectiveMaxQuantity >= POSITION_LOSS_RISK_RULES.twelveHourQuantity,
+        signedMoveAtr !== null && effectiveMaxQuantity !== null
+      )
+    },
+    {
+      id: "twenty-four-hour-hold",
+      label: "24시간 이상 보유",
+      threshold: "의무 청산·재진입 분리 검토 후보",
+      status: timedStatus(POSITION_LOSS_RISK_RULES.twentyFourHourMinutes, true)
+    },
+    {
+      id: "seven-contract-exposure",
+      label: "현재 또는 최대 7계약 이상",
+      threshold: "추가 확대 중단·노출 축소 검토",
+      status: effectiveMaxQuantity === null ? "incomplete" :
+        effectiveMaxQuantity >= POSITION_LOSS_RISK_RULES.largeQuantity ? "triggered" : "clear"
+    }
+  ];
+  const triggeredRuleIds = rules.filter(rule => rule.status === "triggered").map(rule => rule.id);
+  const has = id => triggeredRuleIds.includes(id);
+  const severity = has("twenty-four-hour-hold") || has("twelve-hour-scaled-loss") ? "critical" :
+    has("four-hour-large-loss") || has("seven-contract-exposure") ? "danger" :
+      has("one-hour-loss") ? "caution" : "safe";
+
+  return {
+    severity,
+    rules,
+    triggeredRuleIds,
+    holdingMinutes,
+    timingIssue,
+    signedMovePoints,
+    signedMoveAtr,
+    effectiveMaxQuantity,
+    complete: rules.every(rule => rule.status !== "incomplete")
   };
 }
 

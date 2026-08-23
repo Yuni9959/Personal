@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.6.1-volatility-recent-reference.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.7.0-volatility-position-risk.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",

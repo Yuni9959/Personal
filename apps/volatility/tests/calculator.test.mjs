@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   MNQ_CONTRACT,
+  POSITION_LOSS_RISK_RULES,
   WEEKLY_VOLATILITY_REFERENCE,
+  assessPositionLossRisk,
   calculatePositionScenario,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
@@ -128,6 +130,78 @@ test("포지션 진입가는 0.25 tick을 강제하지만 ATR 평균은 소수 �
     direction: "long", entry: 29900.25, quantity: 1, fees: 0, atr5m14: 40.34778
   }, bar, scenario);
   assert.equal(valid.atr, 40.34778);
+});
+
+test("포지션 손실 위험의 다섯 경계값을 고정한다", () => {
+  assert.deepEqual(POSITION_LOSS_RISK_RULES, {
+    oneHourMinutes: 60,
+    fourHourMinutes: 240,
+    fourHourAdverseAtr: -2.25,
+    twelveHourMinutes: 720,
+    twelveHourAdverseAtr: -1.5,
+    twelveHourQuantity: 5,
+    twentyFourHourMinutes: 1440,
+    largeQuantity: 7
+  });
+});
+
+test("1시간 손실과 4시간 −2.25 ATR 경계를 방향성 변동으로 판정한다", () => {
+  const now = new Date("2026-08-24T12:00:00Z");
+  const oneHour = assessPositionLossRisk({
+    direction: "long", entry: 30000, current: 29999.75, atr5m14: 20,
+    quantity: 2, maxQuantity: 2, enteredAt: "2026-08-24T11:00:00Z"
+  }, now);
+  assert.equal(oneHour.signedMoveAtr, -0.0125);
+  assert.equal(oneHour.rules[0].status, "triggered");
+  assert.equal(oneHour.rules[1].status, "pending");
+  assert.equal(oneHour.severity, "caution");
+
+  const fourHourShort = assessPositionLossRisk({
+    direction: "short", entry: 30000, current: 30045, atr5m14: 20,
+    quantity: 2, maxQuantity: 2, enteredAt: "2026-08-24T08:00:00Z"
+  }, now);
+  assert.equal(fourHourShort.signedMoveAtr, -2.25);
+  assert.equal(fourHourShort.rules[1].status, "triggered");
+  assert.equal(fourHourShort.severity, "danger");
+});
+
+test("12시간 확대 손실과 24시간 보유는 청산 권고 단계로 올린다", () => {
+  const now = new Date("2026-08-24T12:00:00Z");
+  const twelveHour = assessPositionLossRisk({
+    direction: "long", entry: 30000, current: 29970, atr5m14: 20,
+    quantity: 2, maxQuantity: 5, enteredAt: "2026-08-24T00:00:00Z"
+  }, now);
+  assert.equal(twelveHour.rules[2].status, "triggered");
+  assert.equal(twelveHour.effectiveMaxQuantity, 5);
+  assert.equal(twelveHour.severity, "critical");
+
+  const twentyFourHour = assessPositionLossRisk({
+    direction: "long", entry: 30000, current: 30020, atr5m14: 20,
+    quantity: 1, maxQuantity: 1, enteredAt: "2026-08-23T12:00:00Z"
+  }, now);
+  assert.equal(twentyFourHour.rules[3].status, "triggered");
+  assert.equal(twentyFourHour.severity, "critical");
+});
+
+test("현재보다 작은 최대 계약 입력은 낮춰 잡지 않고 7계약 노출을 경고한다", () => {
+  const result = assessPositionLossRisk({
+    direction: "long", entry: 30000, current: 30020, atr5m14: 20,
+    quantity: 7, maxQuantity: 2, enteredAt: "2026-08-24T11:50:00Z"
+  }, new Date("2026-08-24T12:00:00Z"));
+  assert.equal(result.effectiveMaxQuantity, 7);
+  assert.equal(result.rules[4].status, "triggered");
+  assert.equal(result.severity, "danger");
+});
+
+test("진입 시각 누락·미래값은 시간 규칙을 안전으로 오판하지 않는다", () => {
+  const base = { direction: "long", entry: 30000, current: 30020, atr5m14: 20, quantity: 2 };
+  const missing = assessPositionLossRisk(base, new Date("2026-08-24T12:00:00Z"));
+  assert.equal(missing.complete, false);
+  assert.equal(missing.rules[0].status, "incomplete");
+  assert.equal(missing.rules[4].status, "clear");
+  const future = assessPositionLossRisk({ ...base, enteredAt: "2026-08-24T12:01:00Z" }, new Date("2026-08-24T12:00:00Z"));
+  assert.equal(future.timingIssue, "future");
+  assert.equal(future.rules[3].status, "incomplete");
 });
 
 test("안전측 가격선의 포지션 손익은 기대수익이 아닌 부호 있는 임계선 시나리오다", () => {

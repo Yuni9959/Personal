@@ -244,6 +244,29 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .position-scenario-grid p { margin: 0; }
 .money-positive { color: var(--mint); }
 .money-negative { color: var(--red); }
+.position-risk-panel { margin-top: 12px; padding: 17px; border: 1px solid rgba(98,226,189,.2); border-radius: 16px; background: var(--surface-soft); }
+.position-risk-verdict > span { color: var(--muted); font-size: 10px; font-weight: 800; }
+.position-risk-verdict strong { display: block; margin-top: 5px; color: var(--mint); font-size: 20px; }
+.position-risk-verdict p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.position-risk-panel.caution { border-color: rgba(255,198,109,.3); background: var(--amber-soft); }
+.position-risk-panel.caution .position-risk-verdict > strong { color: var(--amber); }
+.position-risk-panel.incomplete .position-risk-verdict > strong { color: var(--muted); }
+.position-risk-panel.danger, .position-risk-panel.critical { border-color: rgba(255,126,139,.38); background: var(--red-soft); }
+.position-risk-panel.danger .position-risk-verdict > strong, .position-risk-panel.critical .position-risk-verdict > strong { color: var(--red); }
+.position-risk-metrics { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.position-risk-metrics span { padding: 7px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 9px; }
+.position-risk-metrics strong { color: var(--text); }
+.position-risk-checklist { display: grid; gap: 7px; margin: 13px 0 0; padding: 0; list-style: none; }
+.position-risk-checklist li { display: grid; grid-template-columns: 24px minmax(0,1fr) auto; align-items: center; gap: 9px; padding: 9px; border: 1px solid var(--line); border-radius: 11px; background: rgba(1,12,17,.42); }
+.risk-rule-number { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.06); color: var(--muted); font-size: 10px; font-weight: 900; }
+.position-risk-checklist strong, .position-risk-checklist small { display: block; }
+.position-risk-checklist strong { font-size: 10px; line-height: 1.4; }
+.position-risk-checklist small { margin-top: 2px; color: var(--muted); font-size: 8px; line-height: 1.4; }
+.position-risk-checklist b { color: var(--muted); font-size: 9px; white-space: nowrap; }
+.position-risk-checklist li.triggered { border-color: rgba(255,126,139,.35); }
+.position-risk-checklist li.triggered b { color: var(--red); }
+.position-risk-checklist li.clear b { color: var(--mint); }
+.position-risk-checklist li.pending b { color: var(--amber); }
 
 .risk-layout { display: grid; grid-template-columns: 310px minmax(0,1fr); gap: 18px; margin-top: 20px; }
 .risk-form { display: grid; gap: 12px; align-content: start; }
@@ -340,6 +363,16 @@ footer a { color: var(--mint); text-decoration: none; }
   .position-scenario-grid article { grid-template-columns: 1fr; gap: 8px; }
   .position-scenario-grid h3 { grid-column: auto; }
   .position-output-pane .calculation-note { margin-inline: 0; font-size: 8px; }
+  .position-risk-panel { padding: 10px; border-radius: 12px; }
+  .position-risk-verdict strong { font-size: 15px; }
+  .position-risk-verdict p { font-size: 9px; }
+  .position-risk-metrics { gap: 5px; margin-top: 9px; }
+  .position-risk-metrics span { padding: 5px 7px; font-size: 8px; }
+  .position-risk-checklist { gap: 5px; margin-top: 9px; }
+  .position-risk-checklist li { grid-template-columns: 20px minmax(0,1fr) auto; gap: 6px; padding: 7px; }
+  .risk-rule-number { width: 20px; height: 20px; font-size: 8px; }
+  .position-risk-checklist strong { font-size: 8px; }
+  .position-risk-checklist small, .position-risk-checklist b { font-size: 7px; }
   .risk-layout { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 8px; }
   .risk-form { gap: 8px; }
   .risk-results { grid-template-columns: 1fr; }

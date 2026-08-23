@@ -217,9 +217,10 @@
               <label><span>방향</span><select id="positionDirection"><option value="none">포지션 없음</option><option value="long">Long (매수)</option><option value="short">Short (매도)</option></select></label>
               <label><span>진입가</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
               <label><span>계약 수</span><input id="quantity" type="number" inputmode="numeric" min="1" step="1" value="1" /></label>
+              <label><span>최대 보유 계약 수</span><input id="maxQuantity" type="number" inputmode="numeric" min="1" step="1" value="1" /></label>
               <label><span>총 수수료·제비용 (USD)</span><input id="fees" type="number" inputmode="decimal" min="0" step="0.01" value="0" /></label>
               <label><span>고정 손절용 5분 ATR</span><input id="positionAtr" type="number" inputmode="decimal" min="0" step="any" /></label>
-              <label><span>진입 시각 (P7 점검)</span><input id="enteredAt" type="datetime-local" /></label>
+              <label><span>진입 시각 (보유시간 점검)</span><input id="enteredAt" type="datetime-local" /></label>
             </div>
           </form>
         </div>
@@ -229,6 +230,15 @@
           <div id="positionResults" class="position-results" hidden>
             <div id="positionSummary" class="position-summary"></div>
             <div id="positionScenarioGrid" class="position-scenario-grid"></div>
+            <section id="positionRiskPanel" class="position-risk-panel safe" aria-labelledby="positionRiskHeadline" aria-live="polite">
+              <div class="position-risk-verdict">
+                <span>5개 손실 위험 조건</span>
+                <strong id="positionRiskHeadline">판정 대기</strong>
+                <p id="positionRiskSummary">포지션과 검증된 현재가를 입력하면 조건별로 점검합니다.</p>
+              </div>
+              <div id="positionRiskMetrics" class="position-risk-metrics"></div>
+              <ol id="positionRiskChecklist" class="position-risk-checklist"></ol>
+            </section>
             <p class="calculation-note">안전측 가격선 시나리오 손익은 해당 선에서 가격이 형성된다고 가정한 단순 계산입니다. 통계적 기대값이 아닙니다. 현재가→가격선 변화는 비용 미차감, 진입가→가격선은 입력한 총비용 차감 값입니다. 손절선은 계산값일 뿐 주문을 전송하지 않습니다.</p>
           </div>
         </div>
@@ -265,6 +275,7 @@
         <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 값을 확인합니다. CME 주말 휴장에는 사용자가 동기화한 로컬 NQ 완료 세션을 먼저 읽고, 그 밖에는 Yahoo 지연 MNQ 시세를 한 번 요청한 뒤 실패할 때 로컬 NQ를 참고값으로 사용합니다. 일반 반복 확인은 최대 10초만 막고, 공급자 429 제한은 최소 60초 이상 따로 지킵니다. 백그라운드·주기 갱신은 하지 않습니다.</li>
         <li>MNQ=F는 실제 월물이 아닌 MNQ 연속선물 프록시이며 약 10분 지연될 수 있습니다. NQ=F 대체 프록시, 25분을 넘긴 가격, 검증 실패값과 저장된 이전값은 표시만 하고 자동 계산을 중지합니다.</li>
         <li>CME 세션은 America/Chicago 17:00~익일 16:00을 서머타임 포함해 재구성하며, 5분 ATR은 완료된 봉만 사용한 Wilder ATR(14)입니다.</li>
+        <li>5개 손실 위험 알림은 완결 거래 복기에서 정한 경험 규칙입니다. 현재가의 진입 대비 방향성 변동을 진입 시 고정한 5분 ATR로 나누며, 미래 손실 확률이나 최적 청산가를 예측하지 않습니다.</li>
         <li>MNQ 계약 승수는 $2/point, 최소호가는 0.25 point ($0.50/계약)입니다. <a href="https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html" target="_blank" rel="noopener noreferrer">CME 공식 명세 ↗</a></li>
       </ul>
       <p>이 도구는 자기 매매 규칙을 점검하는 보조수단이며 주문을 실행하거나 수익·손실 한도를 보장하지 않습니다.</p>
