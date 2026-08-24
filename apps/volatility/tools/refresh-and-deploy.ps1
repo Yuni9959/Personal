@@ -39,6 +39,34 @@ function Changed-TrackedFiles {
     } | Where-Object { $_ })
 }
 
+function Artifact-Fingerprint {
+    param(
+        [Parameter(Mandatory = $true)][string]$SnapshotText,
+        [Parameter(Mandatory = $true)][string]$WeeklyText
+    )
+    $snapshot = $SnapshotText | ConvertFrom-Json
+    $snapshot.PSObject.Properties.Remove("generatedAt")
+    $snapshot.provider.PSObject.Properties.Remove("sourceSha256")
+    $snapshot.provider.PSObject.Properties.Remove("sourceRowCount")
+
+    $weeklyMatch = [regex]::Match($WeeklyText, 'deepFreeze\((?<json>[\s\S]+)\);\s*$')
+    if (!$weeklyMatch.Success) {
+        throw "Unable to parse weekly-reference.generated.js for semantic comparison."
+    }
+    $weekly = $weeklyMatch.Groups["json"].Value | ConvertFrom-Json
+    $weekly.PSObject.Properties.Remove("calculatedAt")
+    $weekly.PSObject.Properties.Remove("sourceSha256")
+
+    $canonical = @{ snapshot = $snapshot; weekly = $weekly } | ConvertTo-Json -Depth 100 -Compress
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($canonical)
+    $hasher = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        return ([System.BitConverter]::ToString($hasher.ComputeHash($bytes))).Replace("-", "").ToLowerInvariant()
+    } finally {
+        $hasher.Dispose()
+    }
+}
+
 try {
     $acquired = $mutex.WaitOne(0)
     if (!$acquired) {
@@ -69,8 +97,25 @@ try {
         Invoke-Checked git -C $repo merge --ff-only origin/main
     }
 
+    $headSnapshot = (Git-Lines show "HEAD:$($allowedFiles[0])") -join "`n"
+    $headWeekly = (Git-Lines show "HEAD:$($allowedFiles[1])") -join "`n"
+    $headFingerprint = Artifact-Fingerprint -SnapshotText $headSnapshot -WeeklyText $headWeekly
+
     Write-Host "[RUN] Generate the local Nasdaq fallback and weekly reference."
     Invoke-Checked npm run sync:volatility-data
+
+    $workSnapshot = Get-Content -LiteralPath (Join-Path $repo $allowedFiles[0]) -Raw -Encoding utf8
+    $workWeekly = Get-Content -LiteralPath (Join-Path $repo $allowedFiles[1]) -Raw -Encoding utf8
+    $workFingerprint = Artifact-Fingerprint -SnapshotText $workSnapshot -WeeklyText $workWeekly
+    if ($headFingerprint -eq $workFingerprint) {
+        $restoreArguments = @("-C", $repo, "restore", "--worktree", "--") + $allowedFiles
+        Invoke-Checked -Program "git" -Arguments $restoreArguments
+        Write-Host "[OK] No completed-session or weekly-analysis change; timestamp-only output was discarded."
+        if (!$NoPush -and $ahead -gt 0) {
+            Invoke-Checked git -C $repo push origin main
+        }
+        exit 0
+    }
 
     $afterChanges = @(Changed-TrackedFiles)
     $unsafeAfter = @($afterChanges | Where-Object { $_ -notin $allowedFiles })

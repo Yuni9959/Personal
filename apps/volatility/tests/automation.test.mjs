@@ -16,6 +16,10 @@ test("Volatility refresh deploy is fail-closed and only stages generated market 
   assert.match(script, /push origin main/);
   assert.match(script, /unrelated tracked changes/);
   assert.match(script, /PersonalTapVolatilityRefresh/);
+  assert.match(script, /function Artifact-Fingerprint/);
+  assert.match(script, /sourceRowCount/);
+  assert.match(script, /No completed-session or weekly-analysis change/);
+  assert.match(script, /@\("-C", \$repo, "restore", "--worktree", "--"\) \+ \$allowedFiles/);
   assert.match(script, /local-nasdaq-snapshot\.json/);
   assert.match(script, /weekly-reference\.generated\.js/);
 });

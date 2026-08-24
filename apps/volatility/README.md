@@ -104,7 +104,8 @@ npm run publish:volatility-data
 - `apps/volatility/js/weekly-reference.generated.js`
 
 키움 거래내역·현재 포지션·개인 분석 산출물은 이 배포 파이프라인이 읽거나
-Git에 추가하지 않습니다.
+Git에 추가하지 않습니다. 같은 완료 세션에서 실행시각·원본 전체 해시만 달라진
+경우에는 생성 결과를 원복해 중복 커밋과 중복 배포를 만들지 않습니다.
 
 이 명령은 5분봉 완료 세션 스냅샷을 만든 뒤 `nasdaq_daily.csv`와 실행 당일의
 한국 날짜를 읽어 이번 주 월요일~일요일 기준을 자동 계산한다. 직전 5년만

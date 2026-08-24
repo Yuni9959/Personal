@@ -22,7 +22,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 자동 검증 | `npm run test:release` 성공 — Node 215/215 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
 | PWA 캐시 | `v3.10.0-volatility-automation.1` — 자동 배포된 로컬 스냅샷·주간 기준을 network-first로 갱신 |
-| Volatility 데이터 자동화 | `quant` 예약 수집 성공 → 로컬 스냅샷·주간 기준 생성 → 전체 검사 → 허용된 생성 파일만 commit/push |
+| Volatility 데이터 자동화 | `quant` 예약 수집 성공 → 의미 변경 감지 → 로컬 스냅샷·주간 기준 생성 → 전체 검사 → 허용된 생성 파일만 commit/push |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
