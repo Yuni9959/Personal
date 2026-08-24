@@ -17,6 +17,7 @@ test("Volatility refresh deploy is fail-closed and only stages generated market 
   assert.match(script, /unrelated tracked changes/);
   assert.match(script, /PersonalTapVolatilityRefresh/);
   assert.match(script, /function Artifact-Fingerprint/);
+  assert.match(script, /export const WEEKLY_VOLATILITY_REFERENCE = deepFreeze/);
   assert.match(script, /sourceRowCount/);
   assert.match(script, /No completed-session or weekly-analysis change/);
   assert.match(script, /@\("-C", \$repo, "restore", "--worktree", "--"\) \+ \$allowedFiles/);

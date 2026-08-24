@@ -49,7 +49,10 @@ function Artifact-Fingerprint {
     $snapshot.provider.PSObject.Properties.Remove("sourceSha256")
     $snapshot.provider.PSObject.Properties.Remove("sourceRowCount")
 
-    $weeklyMatch = [regex]::Match($WeeklyText, 'deepFreeze\((?<json>[\s\S]+)\);\s*$')
+    $weeklyMatch = [regex]::Match(
+        $WeeklyText,
+        'export const WEEKLY_VOLATILITY_REFERENCE = deepFreeze\((?<json>[\s\S]+)\);\s*$'
+    )
     if (!$weeklyMatch.Success) {
         throw "Unable to parse weekly-reference.generated.js for semantic comparison."
     }
