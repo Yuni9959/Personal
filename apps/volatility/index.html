@@ -211,57 +211,69 @@
       </div>
       <div class="position-layout">
         <div class="position-input-pane">
-          <div class="column-heading"><strong>포지션 입력</strong><small>방향·체결가격·체결시간만 입력하세요.</small></div>
+          <div class="column-heading"><strong>포지션 입력</strong><small>기본 3개를 입력하고, 계약 정보를 더하면 대손실 판정이 완성됩니다.</small></div>
           <form id="positionForm">
             <div class="input-grid">
               <label><span>방향</span><select id="positionDirection"><option value="none">포지션 없음</option><option value="long">Long (매수)</option><option value="short">Short (매도)</option></select></label>
-              <label><span>체결가격</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
+              <label><span>평균 체결가격</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
               <label><span>체결시간</span><input id="enteredAt" type="datetime-local" /></label>
             </div>
+            <details class="precision-inputs" open>
+              <summary>대손실 정밀입력 <small>계약 수·추가 진입</small></summary>
+              <div class="input-grid">
+                <label><span>현재 계약 수</span><input id="currentQuantity" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2" /></label>
+                <label><span>거래 중 최대 계약 수</span><input id="maxQuantity" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 5" /></label>
+                <label><span>추가 진입 횟수</span><input id="addCount" type="number" inputmode="numeric" min="0" step="1" placeholder="없으면 0" /></label>
+              </div>
+            </details>
           </form>
         </div>
         <div class="position-output-pane">
-          <div class="column-heading"><strong>자동 위험 패턴 판정</strong><small>현재가와 최신 연속 5분봉 ATR(14)을 자동 반영합니다.</small></div>
-          <div id="positionEmpty" class="empty-state">방향·체결가격·체결시간을 입력하면 위험 진행 5단계를 자동으로 점검합니다.</div>
+          <div class="column-heading"><strong>대손실 회피 점검</strong><small>현재가·ATR·보유 경로·계약 확대를 한 체크리스트로 검증합니다.</small></div>
+          <div class="tail-evidence-summary" aria-label="대손실 분석 근거">
+            <span><b>7.53%</b> 손실 거래 비중</span>
+            <span><b>78.3%</b> 승리 이익 훼손</span>
+            <span><b>40.0%</b> 최고 위험등급 손실률</span>
+          </div>
+          <div id="positionEmpty" class="empty-state">방향·체결가격·체결시간을 입력하면 대손실 회피 체크리스트를 자동으로 점검합니다.</div>
           <div id="positionResults" class="position-results" hidden>
             <div id="positionSummary" class="position-summary"></div>
             <p id="positionMarketNote" class="position-market-note"></p>
             <section id="positionRiskPanel" class="position-risk-panel safe" aria-labelledby="positionRiskHeadline" aria-live="polite">
               <div class="position-risk-verdict">
-                <span>자동 위험 진행 5단계</span>
+                <span>대손실 회피 체크리스트 · 8항목</span>
                 <strong id="positionRiskHeadline">판정 대기</strong>
-                <p id="positionRiskSummary">세 입력값과 자동 현재가·ATR로 조건별 상태를 점검합니다.</p>
+                <p id="positionRiskSummary">분석으로 확인된 손실 확대 신호를 조건별로 검증합니다.</p>
               </div>
               <div id="positionRiskMetrics" class="position-risk-metrics"></div>
               <ol id="positionRiskChecklist" class="position-risk-checklist"></ol>
             </section>
-            <p class="calculation-note">진행 시세가 없을 때는 최근 96시간 안의 완료 NQ 세션을 참고값으로 사용할 수 있습니다. 이 판정은 통계적 기대값이 아닙니다. 마지막 관측가 기준임을 명시하며, 현재 실시간 위험이나 최적 청산가를 보장하지 않고 주문도 전송하지 않습니다.</p>
+
+            <section class="integrated-pattern-review" aria-labelledby="riskTitle">
+              <div class="integrated-subheading">
+                <div><p class="eyebrow">AUTO PATTERN REVIEW</p><h3 id="riskTitle">시장·거래 패턴 보조 판정</h3></div>
+                <span class="future-badge">같은 포지션 입력 사용</span>
+              </div>
+              <div id="patternEmpty" class="empty-state pattern-empty">완료 5분봉 차트를 확인하면 EMA50·EMA200·RSI14·ATR 백분위와 네 가지 과거 군집 중 현재 경향을 함께 보여줍니다.</div>
+              <div id="patternResults" class="pattern-results" hidden>
+                <div class="pattern-hero">
+                  <span>현재 거래 경향</span>
+                  <strong id="patternHeadline">판정 대기</strong>
+                  <p id="patternSummary"></p>
+                  <div id="patternEvidence" class="pattern-evidence"></div>
+                </div>
+                <div id="patternIndicators" class="pattern-indicators"></div>
+                <div class="risk-results">
+                  <article id="p6Result" class="risk-card"><span>고변동·약세 복합 경고</span><strong>판단 보류</strong><p>완료 5분봉 지표를 기다립니다.</p></article>
+                  <article id="killResult" class="risk-card"><span>시장 레짐 주의점</span><strong>판단 보류</strong><p>EMA·RSI·ATR 상태를 자동 확인합니다.</p></article>
+                  <article id="p7Result" class="risk-card"><span>10분 무반응 경고</span><strong>판단 보류</strong><p>진입 이후 차트의 최대유리변동을 자동 확인합니다.</p></article>
+                </div>
+              </div>
+            </section>
+            <p class="calculation-note"><strong>사용 원칙:</strong> 우선순위 점수는 손실 확률이 아니며 이 판정은 통계적 기대값이 아닙니다. 적색 신호가 나와도 모델만으로 자동 전량청산하지 않습니다. 추가 진입을 먼저 금지하고, 원래 정한 손절·축소 조건을 즉시 재평가합니다. 패턴 번호도 확정 분류나 손실 확률이 아닙니다. 진행 시세가 없을 때는 최근 96시간 안의 완료 NQ 세션을 참고값으로 사용할 수 있으며, 주문은 전송하지 않습니다.</p>
           </div>
         </div>
       </div>
-    </section>
-
-    <section class="panel" aria-labelledby="riskTitle">
-      <div class="section-heading">
-        <div><p class="eyebrow">AUTO PATTERN REVIEW</p><h2 id="riskTitle">패턴 안전 알림</h2></div>
-        <span class="future-badge">포지션 3입력 · 차트 자동 계산</span>
-      </div>
-      <div id="patternEmpty" class="empty-state pattern-empty">포지션을 입력하면 최신 5분봉 차트에서 EMA50·EMA200·RSI14·ATR 백분위를 자동 계산해 네 가지 과거 군집 중 현재 경향을 보여줍니다.</div>
-      <div id="patternResults" class="pattern-results" hidden>
-        <div class="pattern-hero">
-          <span>현재 거래 경향</span>
-          <strong id="patternHeadline">판정 대기</strong>
-          <p id="patternSummary"></p>
-          <div id="patternEvidence" class="pattern-evidence"></div>
-        </div>
-        <div id="patternIndicators" class="pattern-indicators"></div>
-        <div class="risk-results">
-          <article id="p6Result" class="risk-card"><span>고변동·약세 복합 경고</span><strong>판단 보류</strong><p>완료 5분봉 지표를 기다립니다.</p></article>
-          <article id="killResult" class="risk-card"><span>시장 레짐 주의점</span><strong>판단 보류</strong><p>EMA·RSI·ATR 상태를 자동 확인합니다.</p></article>
-          <article id="p7Result" class="risk-card"><span>10분 무반응 경고</span><strong>판단 보류</strong><p>진입 이후 차트의 최대유리변동을 자동 확인합니다.</p></article>
-        </div>
-      </div>
-      <p class="calculation-note">패턴 번호는 797개 완결 거래의 GMM 4군집을 현재까지 관측 가능한 보유시간·방향성 ATR 변동·경로 MFE/MAE·변동성에 대조한 경향입니다. 수량·추가 진입·미래 청산 결과를 모르므로 확정 분류나 손실 확률이 아닙니다.</p>
     </section>
 
     <section class="method-card">
@@ -273,7 +285,7 @@
         <li>MNQ=F는 실제 월물이 아닌 MNQ 연속선물 프록시이며 약 10분 지연될 수 있습니다. 검증된 진행 MNQ가 없으면 최근 96시간 안의 동기화된 NQ 완료 세션을 포지션 위험 참고에만 사용하고, 그 밖의 손절·실전 계산은 계속 잠급니다.</li>
         <li>CME 세션은 America/Chicago 17:00~익일 16:00을 서머타임 포함해 재구성하며, 5분 ATR은 가장 최신의 끊기지 않은 완료봉만 사용한 Wilder ATR(14)입니다.</li>
         <li>자동 패턴 지표는 Yahoo 또는 로컬 NQ의 최근 30일 완료 5분봉으로 EMA50·EMA200·RSI14와 20세션 ATR% 백분위를 계산합니다.</li>
-        <li>5단계 손실 위험 알림은 완결 거래 복기에서 정한 경험 규칙입니다. 현재가의 진입 대비 방향성 변동을 자동 5분 ATR로 나누며, 미래 손실 확률이나 최적 청산가를 예측하지 않습니다.</li>
+        <li>대손실 회피 체크리스트는 797개 완결 거래와 시간순 미래구간 검증에서 확인한 현재 방향손익, 보유시간, MAE, 계약 확대 신호를 사용합니다. 60분 경과·평가손익 −$500 이하는 실험용 적색 게이트입니다. 최고 위험등급의 손실률은 40.0%, 손실금액 비중은 59.3%였지만 자동 전량청산 정책은 순손익을 개선하지 못했으므로 경고·추가진입 금지·수동 재평가에만 사용합니다.</li>
         <li>MNQ 계약 승수는 $2/point, 최소호가는 0.25 point ($0.50/계약)입니다. <a href="https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html" target="_blank" rel="noopener noreferrer">CME 공식 명세 ↗</a></li>
       </ul>
       <p>이 도구는 자기 매매 규칙을 점검하는 보조수단이며 주문을 실행하거나 수익·손실 한도를 보장하지 않습니다.</p>

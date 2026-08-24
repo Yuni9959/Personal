@@ -1,6 +1,8 @@
 import {
+  TAIL_LOSS_AVOIDANCE_EVIDENCE,
   WEEKLY_VOLATILITY_REFERENCE as REFERENCE,
   assessPositionLossRisk,
+  assessTailLossAvoidance,
   calculatePositionPathFeatures,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
@@ -69,7 +71,8 @@ const els = {
   manualCurrent: $("#manualCurrent"), manualAtr: $("#manualAtr"), manualConfirm: $("#manualConfirm"),
   useAutoAtrBtn: $("#useAutoAtrBtn"),
   positionForm: $("#positionForm"), positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
-  enteredAt: $("#enteredAt"),
+  enteredAt: $("#enteredAt"), currentQuantity: $("#currentQuantity"),
+  maxQuantity: $("#maxQuantity"), addCount: $("#addCount"),
   positionEmpty: $("#positionEmpty"), positionResults: $("#positionResults"),
   positionSummary: $("#positionSummary"), positionMarketNote: $("#positionMarketNote"),
   positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
@@ -110,7 +113,7 @@ const state = {
   expiryTimer: null,
   transientNotice: ""
 };
-const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 위험 진행 5단계를 점검합니다.";
+const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 대손실 회피 체크리스트를 점검합니다.";
 const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const kstFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
@@ -797,7 +800,10 @@ function positionInput() {
   return {
     direction: els.positionDirection.value,
     entry: els.entryPrice.value,
-    enteredAt: els.enteredAt.value
+    enteredAt: els.enteredAt.value,
+    currentQuantity: els.currentQuantity.value,
+    maxQuantity: els.maxQuantity.value,
+    addCount: els.addCount.value
   };
 }
 
@@ -820,41 +826,47 @@ function positionMarketContext() {
 }
 
 function renderPositionLossRisk(input, marketContext) {
-  const result = assessPositionLossRisk({
+  return assessPositionLossRisk({
     ...input,
     current: marketContext.current,
     atr5m14: marketContext.atr5m14
   });
+}
+
+function renderTailLossChecklist(result) {
   const verdicts = {
-    critical: ["손실 위험 패턴 · 청산 권고", "추가 진입을 중단하고 청산 또는 즉시 축소를 우선 검토하세요."],
-    danger: ["위험 확대 패턴 · 축소·청산 검토", "추가 진입을 중단하고 노출 축소 또는 청산을 검토하세요."],
-    caution: ["손실 지속 점검", "1시간 이상 손실 상태입니다. 최초 손절 기준과 청산 계획을 다시 확인하세요."],
-    watch: ["불리한 방향 진행 · 관찰", "현재가는 진입가보다 불리한 방향입니다. 시간·ATR 위험 단계 진입 여부를 계속 확인하세요."],
-    safe: ["현재 5개 조건 미해당", "현재 입력에서는 5개 위험 조건이 발동하지 않았습니다. 위험이 없다는 뜻은 아닙니다."]
+    critical: "적색 · 즉시 축소·청산 재평가",
+    danger: "위험 · 추가 진입 금지",
+    caution: "경계 · 추가 진입 중단",
+    watch: "주의 · 손실 확대 감시",
+    safe: "현재 체크리스트 미해당"
   };
   const needsInput = !result.complete && result.triggeredRuleIds.length === 0;
-  const [headline, summary] = needsInput
-    ? ["판정 보류 · 입력 필요", "진입 시각 등 빠진 값을 입력해야 5개 조건을 모두 판정할 수 있습니다."]
-    : verdicts[result.severity];
+  const headline = needsInput ? "판정 보류 · 정밀입력 필요" : verdicts[result.severity];
+  const issueText = result.inputIssues.length ? ` ${result.inputIssues.join(" ")}` : "";
+  const summary = `${result.action}${result.complete ? "" : " 미확인 항목은 안전으로 계산하지 않습니다."}${issueText}`;
   const statusLabels = {
     triggered: ["해당", "triggered"], clear: ["미해당", "clear"],
     pending: ["시간 미도달", "pending"], incomplete: ["입력 필요", "incomplete"]
   };
-  const holdingText = result.holdingMinutes === null ?
-    (result.timingIssue === "future" ? "진입 시각 오류" : "진입 시각 필요") :
-    result.holdingMinutes < 60 ? `${Math.floor(result.holdingMinutes)}분` : `${(result.holdingMinutes / 60).toFixed(1)}시간`;
   els.positionRiskPanel.className = `position-risk-panel ${needsInput ? "incomplete" : result.severity}`;
   els.positionRiskHeadline.textContent = headline;
-  els.positionRiskSummary.textContent = result.complete ? summary : `${summary} 미완성 입력은 안전으로 판정하지 않습니다.`;
+  els.positionRiskSummary.textContent = summary;
+  const currentGross = result.currentGrossUsd === null ? "—" :
+    `${result.currentGrossUsd < 0 ? "−" : "+"}$${numberFormat.format(Math.abs(result.currentGrossUsd))}`;
+  const stopGate = result.experimentalStopGate === null ? "입력 필요" :
+    result.experimentalStopGate ? "해당 · 적색" : "미해당";
   els.positionRiskMetrics.innerHTML = `
-    <span>보유 <strong>${holdingText}</strong></span>
-    <span>방향성 변동 <strong>${result.signedMoveAtr === null ? "—" : `${result.signedMoveAtr.toFixed(2)} ATR`}</strong></span>
-    <span>가격 변동 <strong>${result.signedMovePoints === null ? "—" : formatNumber(result.signedMovePoints, " pt")}</strong></span>`;
+    <span>우선순위 점수 <strong>${result.riskPoints} / ${result.maxRiskPoints}</strong></span>
+    <span>검증 항목 <strong>${result.knownCount} / ${result.totalCount}</strong></span>
+    <span>현재 평가손익 <strong>${currentGross}</strong></span>
+    <span>60분·−$500 실험 게이트 <strong>${stopGate}</strong></span>
+    <span>−1.84 ATR 관찰선 <strong>${result.lossMedianPrice === null ? "—" : formatNumber(result.lossMedianPrice)}</strong></span>
+    <span>4시간 위험선 <strong>${result.fourHourRiskPrice === null ? "—" : formatNumber(result.fourHourRiskPrice)}</strong></span>`;
   els.positionRiskChecklist.innerHTML = result.rules.map((rule, index) => {
     const [statusLabel, statusClass] = statusLabels[rule.status];
     return `<li class="${statusClass}"><span class="risk-rule-number">${index + 1}</span><div><strong>${rule.label}</strong><small>${rule.threshold}</small></div><b>${statusLabel}</b></li>`;
   }).join("");
-  return result;
 }
 
 function renderPosition() {
@@ -919,6 +931,9 @@ function restorePosition() {
   els.positionDirection.value = ["long", "short"].includes(saved.direction) ? saved.direction : "none";
   els.entryPrice.value = saved.entry ?? "";
   els.enteredAt.value = saved.enteredAt ?? "";
+  els.currentQuantity.value = saved.currentQuantity ?? "";
+  els.maxQuantity.value = saved.maxQuantity ?? "";
+  els.addCount.value = saved.addCount ?? "";
 }
 
 function setRiskCard(element, tone, title, description) {
@@ -940,9 +955,9 @@ function renderRisk() {
     els.patternResults.hidden = true;
     return;
   }
-  if (!marketContext || !indicators || indicators.timeframe !== "5m") {
+  if (!marketContext) {
     els.patternEmpty.hidden = false;
-    els.patternEmpty.textContent = "자동 지표를 계산할 검증된 5분봉 차트가 없습니다. 오늘 시세를 새로고침하거나 로컬 나스닥 데이터를 동기화하세요.";
+    els.patternEmpty.textContent = "현재가와 자동 ATR을 검증하지 못해 대손실 체크리스트를 판정할 수 없습니다.";
     els.patternResults.hidden = true;
     return;
   }
@@ -953,6 +968,22 @@ function renderRisk() {
     atr5m14: marketContext.atr5m14
   });
   const path = calculatePositionPathFeatures(chartSnapshot?.chart5m, input, marketContext.atr5m14);
+  const tailLoss = assessTailLossAvoidance({
+    ...input,
+    holdingMinutes: positionRisk.holdingMinutes,
+    signedMoveAtr: positionRisk.signedMoveAtr,
+    signedMovePoints: positionRisk.signedMovePoints,
+    atr5m14: marketContext.atr5m14,
+    maeAtr: path?.maeAtr,
+    pathComplete: path?.completeFromEntry === true
+  });
+  renderTailLossChecklist(tailLoss);
+  if (!indicators || indicators.timeframe !== "5m") {
+    els.patternEmpty.hidden = false;
+    els.patternEmpty.textContent = "체크리스트는 판정했지만 EMA·RSI·패턴 경향을 계산할 완료 5분봉 차트가 부족합니다.";
+    els.patternResults.hidden = true;
+    return;
+  }
   const result = classifyPatternRisk({
     ema1h: indicators.emaRegime,
     rsi1h: indicators.rsi14,
@@ -980,7 +1011,8 @@ function renderRisk() {
   els.patternEvidence.innerHTML = [
     ...tendency.evidence,
     `판정 신뢰도 ${tendency.confidence}`,
-    `과거 군집 비중 ${tendency.historicalSharePercent.toFixed(1)}%`
+    `과거 군집 비중 ${tendency.historicalSharePercent.toFixed(1)}%`,
+    `최고 위험등급 손실률 ${TAIL_LOSS_AVOIDANCE_EVIDENCE.highestRiskBandLossRatePercent.toFixed(0)}%`
   ].map(value => `<span>${value}</span>`).join("");
   els.patternIndicators.innerHTML = `
     <article><span>5분 EMA50 / EMA200</span><strong>${formatNumber(indicators.ema50)} / ${formatNumber(indicators.ema200)}</strong><small>${indicators.emaRegime === "bearish" ? "약세 배열" : "강세 배열"}</small></article>

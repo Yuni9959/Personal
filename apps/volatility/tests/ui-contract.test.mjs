@@ -52,7 +52,8 @@ test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않
   assert.match(html, /목표가가 아닌/);
   assert.match(html, /통계적 기대값이 아닙니다/);
   assert.match(html, /양봉·음봉은 종가 확정 전에 알 수 없어/);
-  assert.match(html, /포지션 3입력 · 차트 자동 계산/);
+  assert.match(html, /대손실 회피 체크리스트 · 8항목/);
+  assert.match(html, /같은 포지션 입력 사용/);
   assert.match(html, /네 가지 과거 군집 중 현재 경향/);
   assert.match(html, /확정 분류나 손실 확률이 아닙니다/);
   assert.match(app, /classifyLiveTradePattern/);
@@ -143,20 +144,29 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
-  for (const id of ["positionDirection", "entryPrice", "enteredAt"]) assert.match(html, new RegExp(`id="${id}"`));
-  for (const id of ["positionAtr", "quantity", "maxQuantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
+  for (const id of ["positionDirection", "entryPrice", "enteredAt", "currentQuantity", "maxQuantity", "addCount"]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  for (const id of ["positionAtr", "quantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   for (const id of ["ema1h", "rsi1h", "atrPercentile", "noFavorableExcursion", "stopHesitation"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   for (const id of ["patternResults", "patternHeadline", "patternIndicators"]) assert.match(html, new RegExp(`id="${id}"`));
   assert.match(html, /id="positionRiskPanel"[^>]+aria-live="polite"/);
-  assert.match(html, /자동 위험 진행 5단계/);
-  assert.match(html, /방향·체결가격·체결시간만 입력하세요/);
+  assert.match(html, /id="positionRiskPanel"[\s\S]*id="riskTitle"/);
+  assert.doesNotMatch(html, /<section class="panel" aria-labelledby="riskTitle">/);
+  assert.match(html, /대손실 회피 체크리스트 · 8항목/);
+  assert.match(html, /계약 정보를 더하면 대손실 판정이 완성됩니다/);
   assert.match(app, /assessPositionLossRisk/);
+  assert.match(app, /assessTailLossAvoidance/);
+  assert.match(app, /function renderTailLossChecklist/);
   assert.match(app, /function positionMarketContext\(\)/);
   assert.match(app, /market\.atr5m14/);
   assert.match(app, /assessment\?\.displayable !== true/);
-  assert.match(app, /판정 보류 · 입력 필요/);
-  assert.match(app, /미완성 입력은 안전으로 판정하지 않습니다/);
+  assert.match(app, /판정 보류 · 정밀입력 필요/);
+  assert.match(app, /미확인 항목은 안전으로 계산하지 않습니다/);
   assert.match(styles, /\.position-risk-checklist/);
+  assert.match(styles, /\.precision-inputs/);
+  assert.match(styles, /\.tail-evidence-summary/);
+  assert.match(styles, /\.integrated-pattern-review/);
   assert.doesNotMatch(html, /자동 시세 새로고침|실시간 시세|LIVE DEFAULT/);
   assert.match(app, /REQUEST_COOLDOWN_MS/);
   assert.doesNotMatch(app, /hasUsableQuote/);
@@ -208,7 +218,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.10\.0-volatility-automation\.1/);
+  assert.match(sw, /v3\.11\.0-volatility-tail-loss-avoidance\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

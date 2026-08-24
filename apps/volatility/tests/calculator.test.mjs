@@ -3,8 +3,10 @@ import test from "node:test";
 import {
   MNQ_CONTRACT,
   POSITION_LOSS_RISK_RULES,
+  TAIL_LOSS_AVOIDANCE_EVIDENCE,
   WEEKLY_VOLATILITY_REFERENCE,
   assessPositionLossRisk,
+  assessTailLossAvoidance,
   buildFiveMinuteChartFeatures,
   calculatePositionPathFeatures,
   calculatePositionScenario,
@@ -238,6 +240,110 @@ test("진입 시각 누락·미래값은 시간 규칙을 안전으로 오판하
   const future = assessPositionLossRisk({ ...base, enteredAt: "2026-08-24T12:01:00Z" }, new Date("2026-08-24T12:00:00Z"));
   assert.equal(future.timingIssue, "future");
   assert.equal(future.rules[4].status, "incomplete");
+});
+
+test("대손실 회피 근거는 797건 분석과 시간순 검증 수치를 고정한다", () => {
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.completedEpisodes, 797);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.lossEpisodes, 60);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.lossEpisodePercent, 7.528);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.grossProfitErosionPercent, 78.321);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.outOfSampleEpisodeRocAuc, 0.778);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.highestRiskBandLossRatePercent, 40);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.highestRiskBandLossDollarSharePercent, 59.325);
+  assert.equal(TAIL_LOSS_AVOIDANCE_EVIDENCE.automaticFullExitValidated, false);
+});
+
+test("대손실 위험 조합은 8개 체크리스트를 모두 검증하고 적색 단계로 올린다", () => {
+  const result = assessTailLossAvoidance({
+    direction: "long",
+    entry: 30000,
+    atr5m14: 20,
+    holdingMinutes: 240,
+    signedMoveAtr: -2.25,
+    signedMovePoints: -45,
+    maeAtr: -4,
+    pathComplete: true,
+    currentQuantity: 6,
+    maxQuantity: 6,
+    addCount: 3
+  });
+  assert.equal(result.complete, true);
+  assert.equal(result.severity, "critical");
+  assert.equal(result.triggeredCount, 8);
+  assert.equal(result.riskPoints, result.maxRiskPoints);
+  assert.equal(result.lossMedianPrice, 29963.25);
+  assert.equal(result.fourHourRiskPrice, 29955);
+  assert.equal(result.currentGrossUsd, -540);
+  assert.equal(result.experimentalStopGate, true);
+  assert.equal(result.automaticFullExitValidated, false);
+  assert.match(result.action, /자동 전량청산하지는 마세요/);
+});
+
+test("−1.84 ATR·120분 경계와 계약 확대 기준을 경계값 그대로 판정한다", () => {
+  const result = assessTailLossAvoidance({
+    direction: "short",
+    entry: 30000,
+    atr5m14: 20,
+    holdingMinutes: 120,
+    signedMoveAtr: -1.84,
+    signedMovePoints: -36.8,
+    maeAtr: -3.09,
+    pathComplete: true,
+    currentQuantity: 3,
+    maxQuantity: 5,
+    addCount: 2
+  });
+  assert.equal(result.rules.find(rule => rule.id === "loss-median-move").status, "triggered");
+  assert.equal(result.rules.find(rule => rule.id === "two-hour-loss").status, "triggered");
+  assert.equal(result.rules.find(rule => rule.id === "deep-path-mae").status, "triggered");
+  assert.equal(result.rules.find(rule => rule.id === "current-size-three").status, "triggered");
+  assert.equal(result.rules.find(rule => rule.id === "max-size-six").status, "clear");
+  assert.equal(result.rules.find(rule => rule.id === "three-adds").status, "clear");
+  assert.equal(result.lossMedianPrice, 30036.75);
+});
+
+test("정밀 계약 입력 누락이나 최대 계약 역전은 안전 판정으로 처리하지 않는다", () => {
+  const missing = assessTailLossAvoidance({
+    direction: "long", entry: 30000, atr5m14: 20,
+    holdingMinutes: 30, signedMoveAtr: 0.5, signedMovePoints: 10
+  });
+  assert.equal(missing.severity, "safe");
+  assert.equal(missing.complete, false);
+  assert.equal(missing.experimentalStopGate, null);
+  assert.equal(missing.rules.find(rule => rule.id === "current-size-three").status, "incomplete");
+  assert.equal(missing.rules.find(rule => rule.id === "deep-path-mae").status, "incomplete");
+
+  const reversed = assessTailLossAvoidance({
+    direction: "long", entry: 30000, atr5m14: 20,
+    holdingMinutes: 30, signedMoveAtr: 0.5, signedMovePoints: 10,
+    maeAtr: -0.5, pathComplete: true,
+    currentQuantity: 4, maxQuantity: 3, addCount: 0
+  });
+  assert.equal(reversed.complete, false);
+  assert.match(reversed.inputIssues.join(" "), /최대 계약 수/);
+  assert.equal(reversed.rules.find(rule => rule.id === "max-size-six").status, "incomplete");
+});
+
+test("60분·−$500 실험 게이트는 경계값에서 적색 재평가를 알리되 자동청산을 확정하지 않는다", () => {
+  const exactGate = assessTailLossAvoidance({
+    direction: "long", entry: 30000, atr5m14: 100,
+    holdingMinutes: 60, signedMoveAtr: -0.5, signedMovePoints: -50,
+    maeAtr: -0.75, pathComplete: true,
+    currentQuantity: 5, maxQuantity: 5, addCount: 0
+  });
+  assert.equal(exactGate.experimentalStopGate, true);
+  assert.equal(exactGate.severity, "critical");
+  assert.equal(exactGate.automaticFullExitValidated, false);
+  assert.match(exactGate.action, /재평가/);
+
+  const beforeGate = assessTailLossAvoidance({
+    direction: "long", entry: 30000, atr5m14: 100,
+    holdingMinutes: 59.99, signedMoveAtr: -0.5, signedMovePoints: -50,
+    maeAtr: -0.75, pathComplete: true,
+    currentQuantity: 5, maxQuantity: 5, addCount: 0
+  });
+  assert.equal(beforeGate.experimentalStopGate, false);
+  assert.notEqual(beforeGate.severity, "critical");
 });
 
 test("안전측 가격선의 포지션 손익은 기대수익이 아닌 부호 있는 임계선 시나리오다", () => {

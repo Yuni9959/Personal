@@ -1158,6 +1158,9 @@ async function run() {
       };
       set("#entryPrice", current + 91);
       set("#enteredAt", new Date(Date.now() - 12 * 60 * 60000).toISOString().slice(0, 16));
+      set("#currentQuantity", 6);
+      set("#maxQuantity", 6);
+      set("#addCount", 3);
       return {
         headline: document.querySelector("#positionRiskHeadline").textContent,
         statuses: [...document.querySelectorAll("#positionRiskChecklist li")]
@@ -1167,11 +1170,13 @@ async function run() {
         savedKeys: Object.keys(JSON.parse(localStorage.getItem("personal-tap-volatility-position-v1"))).sort()
       };
     })()`);
-    assert.match(positionLossRisk.headline, /손실 위험 패턴 · 청산 권고/);
-    assert.deepEqual(positionLossRisk.statuses, ["해당", "해당", "해당", "해당", "시간 미도달"]);
+    assert.match(positionLossRisk.headline, /적색 · 즉시 축소·청산 재평가/);
+    assert.equal(positionLossRisk.statuses.length, 8);
+    assert.ok(positionLossRisk.statuses.filter(status => status === "해당").length >= 7);
     assert.match(positionLossRisk.text, /−2\.25 ATR/);
+    assert.match(positionLossRisk.text, /자동 전량청산하지는 마세요/);
     assert.equal(positionLossRisk.autoAtr, "40.35 pt");
-    assert.deepEqual(positionLossRisk.savedKeys, ["direction", "enteredAt", "entry"]);
+    assert.deepEqual(positionLossRisk.savedKeys, ["addCount", "currentQuantity", "direction", "enteredAt", "entry", "maxQuantity"]);
     const automaticAtrAfter = await evaluate(client, `(() => {
       const values = {
         manualOpen: 30000,
@@ -2577,7 +2582,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "Volatility 최신 원격 우선·첫 관측 주간 환산표·3입력·자동 차트 지표·4패턴 경향·5단계 위험, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 최신 원격 우선·첫 관측 주간 환산표·대손실 8항목·실험 손절 게이트·자동 차트 지표·4패턴 통합, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

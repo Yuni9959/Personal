@@ -232,6 +232,14 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .column-heading small { margin-top: 3px; color: var(--muted); font-size: 10px; line-height: 1.45; }
 #positionForm { margin-top: 14px; }
 #positionForm .input-grid { grid-template-columns: 1fr; gap: 10px; }
+.precision-inputs { margin-top: 12px; border: 1px solid var(--line); border-radius: 13px; background: rgba(1,12,17,.28); }
+.precision-inputs summary { padding: 11px 12px; color: var(--text); cursor: pointer; font-size: 10px; font-weight: 850; }
+.precision-inputs summary small { margin-left: 5px; color: var(--muted); font-size: 8px; font-weight: 700; }
+.precision-inputs[open] summary { border-bottom: 1px solid var(--line); }
+.precision-inputs > .input-grid { padding: 11px; }
+.tail-evidence-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; margin-top: 12px; }
+.tail-evidence-summary span { min-width: 0; padding: 8px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); font-size: 8px; line-height: 1.4; text-align: center; }
+.tail-evidence-summary b { display: block; color: var(--red); font-size: 12px; }
 .empty-state { margin-top: 14px; padding: 22px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; }
 .position-results { margin-top: 14px; }
 .position-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
@@ -270,6 +278,10 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .position-risk-checklist li.triggered b { color: var(--red); }
 .position-risk-checklist li.clear b { color: var(--mint); }
 .position-risk-checklist li.pending b { color: var(--amber); }
+.integrated-pattern-review { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+.integrated-subheading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.integrated-subheading .eyebrow { margin-bottom: 2px; }
+.integrated-subheading h3 { margin: 0; font-size: 15px; }
 
 .pattern-empty { margin-top: 18px; }
 .pattern-results { display: grid; gap: 12px; margin-top: 18px; }
@@ -364,6 +376,11 @@ footer a { color: var(--mint); text-decoration: none; }
   #positionForm { margin-top: 10px; }
   #positionForm .input-grid { grid-template-columns: 1fr; gap: 8px; }
   #positionForm input, #positionForm select { min-height: 40px; padding-inline: 8px; font-size: 11px; }
+  .precision-inputs summary { padding: 8px; font-size: 8px; }
+  .precision-inputs > .input-grid { padding: 8px; }
+  .tail-evidence-summary { gap: 4px; margin-top: 8px; }
+  .tail-evidence-summary span { padding: 6px 3px; font-size: 6.5px; }
+  .tail-evidence-summary b { font-size: 10px; }
   .column-heading strong { font-size: 11px; }
   .column-heading small { font-size: 8px; }
   .empty-state, .position-results { margin-top: 10px; }
@@ -386,6 +403,9 @@ footer a { color: var(--mint); text-decoration: none; }
   .risk-rule-number { width: 20px; height: 20px; font-size: 8px; }
   .position-risk-checklist strong { font-size: 8px; }
   .position-risk-checklist small, .position-risk-checklist b { font-size: 7px; }
+  .integrated-pattern-review { margin-top: 11px; padding-top: 11px; }
+  .integrated-subheading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .integrated-subheading h3 { font-size: 12px; }
   .pattern-hero { padding: 11px; border-radius: 12px; }
   .pattern-hero > strong { font-size: 15px; }
   .pattern-hero > p { font-size: 9px; }

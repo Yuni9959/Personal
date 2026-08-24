@@ -15,6 +15,29 @@ export const POSITION_LOSS_RISK_RULES = Object.freeze({
   twentyFourHourMinutes: 1440
 });
 
+export const TAIL_LOSS_AVOIDANCE_EVIDENCE = Object.freeze({
+  completedEpisodes: 797,
+  lossEpisodes: 60,
+  lossEpisodePercent: 7.528,
+  grossProfitErosionPercent: 78.321,
+  outOfSampleEpisodeRocAuc: 0.778,
+  highestRiskBandLossRatePercent: 40,
+  highestRiskBandLossDollarSharePercent: 59.325,
+  lossMedianCurrentMoveAtr: -1.84,
+  nonLossMedianCurrentMoveAtr: -0.17,
+  lossMedianHoldingMinutes: 120,
+  nonLossMedianHoldingMinutes: 30,
+  lossMedianMaeAtr: -3.09,
+  nonLossMedianMaeAtr: -1.10,
+  lossMedianCurrentQuantity: 3,
+  nonLossMedianCurrentQuantity: 2,
+  riskClusterMedianMaxQuantity: 6,
+  riskClusterMedianAddCount: 3,
+  positionInsuranceCap: 5,
+  automaticFullExitValidated: false,
+  sourceCutoffDate: "2026-08-13"
+});
+
 export { WEEKLY_VOLATILITY_REFERENCE };
 
 function finiteNumber(value) {
@@ -441,6 +464,168 @@ export function assessPositionLossRisk(position, now = new Date()) {
     signedMovePoints,
     signedMoveAtr,
     complete: rules.every(rule => rule.status !== "incomplete")
+  };
+}
+
+function checklistStatus(complete, triggered) {
+  if (!complete) return "incomplete";
+  return triggered ? "triggered" : "clear";
+}
+
+function timedChecklistStatus(holdingMinutes, thresholdMinutes, complete, triggered) {
+  if (holdingMinutes === null) return "incomplete";
+  if (holdingMinutes < thresholdMinutes) return "pending";
+  return checklistStatus(complete, triggered);
+}
+
+export function assessTailLossAvoidance(input) {
+  const holdingMinutes = finiteNumber(input?.holdingMinutes);
+  const signedMoveAtr = finiteNumber(input?.signedMoveAtr);
+  const signedMovePoints = finiteNumber(input?.signedMovePoints);
+  const entry = finiteNumber(input?.entry);
+  const atr = finiteNumber(input?.atr5m14);
+  const maeAtr = finiteNumber(input?.maeAtr);
+  const currentQuantity = finiteNumber(input?.currentQuantity);
+  const maxQuantity = finiteNumber(input?.maxQuantity);
+  const addCount = finiteNumber(input?.addCount);
+  const direction = input?.direction;
+  const pathComplete = input?.pathComplete === true;
+  const quantityValid = currentQuantity !== null && Number.isInteger(currentQuantity) && currentQuantity >= 1;
+  const maxQuantityValid = maxQuantity !== null && Number.isInteger(maxQuantity) && maxQuantity >= 1;
+  const addCountValid = addCount !== null && Number.isInteger(addCount) && addCount >= 0;
+  const quantityRelationshipValid = !quantityValid || !maxQuantityValid || maxQuantity >= currentQuantity;
+  const priceComplete = ["long", "short"].includes(direction) && entry !== null && entry > 0 &&
+    atr !== null && atr > 0 && signedMoveAtr !== null;
+  const inputIssues = [];
+  if (quantityValid && maxQuantityValid && !quantityRelationshipValid) {
+    inputIssues.push("최대 계약 수는 현재 계약 수보다 작을 수 없습니다.");
+  }
+
+  const criticalEscalation = holdingMinutes !== null && signedMoveAtr !== null && (
+    (holdingMinutes >= POSITION_LOSS_RISK_RULES.fourHourMinutes &&
+      signedMoveAtr <= POSITION_LOSS_RISK_RULES.fourHourAdverseAtr) ||
+    (holdingMinutes >= POSITION_LOSS_RISK_RULES.twelveHourMinutes &&
+      signedMoveAtr <= POSITION_LOSS_RISK_RULES.twelveHourAdverseAtr) ||
+    holdingMinutes >= POSITION_LOSS_RISK_RULES.twentyFourHourMinutes
+  );
+  const rules = [
+    {
+      id: "current-adverse-move",
+      label: "현재가가 진입가보다 불리한 방향",
+      threshold: "초기 경고 · 불리한 변동이 시작되면 추가 진입 근거부터 재검토",
+      weight: 1,
+      status: checklistStatus(signedMoveAtr !== null, signedMoveAtr !== null && signedMoveAtr < 0)
+    },
+    {
+      id: "loss-median-move",
+      label: "현재 변동 −1.84 ATR 이하",
+      threshold: "손실 거래 중앙값 −1.84 ATR · 비손실 −0.17 ATR",
+      weight: 2,
+      status: checklistStatus(
+        signedMoveAtr !== null,
+        signedMoveAtr !== null && signedMoveAtr <= TAIL_LOSS_AVOIDANCE_EVIDENCE.lossMedianCurrentMoveAtr
+      )
+    },
+    {
+      id: "two-hour-loss",
+      label: "2시간 이상 보유 + 현재 손실",
+      threshold: "손실 거래 경과시간 중앙값 120분 · 비손실 30분",
+      weight: 1,
+      status: timedChecklistStatus(
+        holdingMinutes,
+        TAIL_LOSS_AVOIDANCE_EVIDENCE.lossMedianHoldingMinutes,
+        signedMoveAtr !== null,
+        signedMoveAtr !== null && signedMoveAtr < 0
+      )
+    },
+    {
+      id: "deep-path-mae",
+      label: "경로 MAE −3.09 ATR 이하",
+      threshold: "손실 거래 MAE 중앙값 −3.09 ATR · 비손실 −1.10 ATR",
+      weight: 2,
+      status: checklistStatus(
+        pathComplete && maeAtr !== null,
+        pathComplete && maeAtr !== null && maeAtr <= TAIL_LOSS_AVOIDANCE_EVIDENCE.lossMedianMaeAtr
+      )
+    },
+    {
+      id: "current-size-three",
+      label: "현재 3계약 이상",
+      threshold: "손실 스냅샷 현재 계약 중앙값 3 · 비손실 2",
+      weight: 1,
+      status: checklistStatus(quantityValid, quantityValid && currentQuantity >= 3)
+    },
+    {
+      id: "max-size-six",
+      label: "거래 중 최대 6계약 이상",
+      threshold: "위험 군집 중앙값 6 · 5계약 상한은 낙폭 보험 후보",
+      weight: 2,
+      status: checklistStatus(
+        maxQuantityValid && quantityRelationshipValid,
+        maxQuantityValid && quantityRelationshipValid && maxQuantity >= 6
+      )
+    },
+    {
+      id: "three-adds",
+      label: "추가 진입 3회 이상",
+      threshold: "장기 버티기·대형화 위험 군집의 추가 진입 중앙값 3회",
+      weight: 2,
+      status: checklistStatus(addCountValid, addCountValid && addCount >= 3)
+    },
+    {
+      id: "time-loss-escalation",
+      label: "4시간·−2.25 ATR / 12시간·−1.5 ATR / 24시간",
+      threshold: "하나라도 해당하면 적색 단계 · 자동청산이 아닌 즉시 수동 재평가",
+      weight: 3,
+      status: holdingMinutes === null ? "incomplete" :
+        holdingMinutes < POSITION_LOSS_RISK_RULES.fourHourMinutes ? "pending" :
+          checklistStatus(signedMoveAtr !== null, criticalEscalation)
+    }
+  ];
+  const triggeredRules = rules.filter(rule => rule.status === "triggered");
+  const knownRules = rules.filter(rule => !["incomplete"].includes(rule.status));
+  const riskPoints = triggeredRules.reduce((sum, rule) => sum + rule.weight, 0);
+  const complete = rules.every(rule => rule.status !== "incomplete") && inputIssues.length === 0;
+  const sign = direction === "long" ? 1 : direction === "short" ? -1 : null;
+  const lossMedianPrice = priceComplete && sign !== null
+    ? roundToTick(entry + sign * TAIL_LOSS_AVOIDANCE_EVIDENCE.lossMedianCurrentMoveAtr * atr)
+    : null;
+  const fourHourRiskPrice = priceComplete && sign !== null
+    ? roundToTick(entry + sign * POSITION_LOSS_RISK_RULES.fourHourAdverseAtr * atr)
+    : null;
+  const currentGrossUsd = quantityValid && signedMovePoints !== null
+    ? signedMovePoints * currentQuantity * MNQ_CONTRACT.pointValueUsd
+    : null;
+  const experimentalStopGate = holdingMinutes === null || currentGrossUsd === null ? null :
+    holdingMinutes >= 60 && currentGrossUsd <= -500;
+  const severity = criticalEscalation || experimentalStopGate === true || riskPoints >= 9 ? "critical" :
+    riskPoints >= 6 ? "danger" : riskPoints >= 3 ? "caution" :
+      riskPoints >= 1 ? "watch" : "safe";
+  const actions = {
+    critical: "추가 진입을 금지하고 현재 손절 계획에 따라 즉시 축소·청산을 재평가하세요. 모델만으로 자동 전량청산하지는 마세요.",
+    danger: "추가 진입을 중단하고 계약 수 축소와 손절 실행 조건을 우선 확인하세요.",
+    caution: "새 추가 진입을 보류하고 −1.84 ATR 관찰선과 시간 위험 단계를 확인하세요.",
+    watch: "손실 확대 여부를 관찰하고 추가 진입 전 체크리스트를 다시 확인하세요.",
+    safe: "현재 확인 가능한 조건은 미해당입니다. 입력 누락이 있으면 안전 판정으로 사용하지 마세요."
+  };
+
+  return {
+    severity,
+    complete,
+    rules,
+    triggeredRuleIds: triggeredRules.map(rule => rule.id),
+    triggeredCount: triggeredRules.length,
+    knownCount: knownRules.length,
+    totalCount: rules.length,
+    riskPoints,
+    maxRiskPoints: rules.reduce((sum, rule) => sum + rule.weight, 0),
+    inputIssues,
+    action: actions[severity],
+    currentGrossUsd,
+    lossMedianPrice,
+    fourHourRiskPrice,
+    experimentalStopGate,
+    automaticFullExitValidated: TAIL_LOSS_AVOIDANCE_EVIDENCE.automaticFullExitValidated
   };
 }
 
