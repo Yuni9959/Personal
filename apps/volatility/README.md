@@ -88,6 +88,24 @@ Volatility는 화면을 열어 두는 동안 시세를 추적하지 않는다. �
 npm run sync:volatility-data
 ```
 
+평상시에는 `C:\Users\tmddb\Desktop\quant\run_update.bat`의 예약 실행이 시세
+수집 성공 뒤 위 동기화, 전체 릴리스 검사, 생성 파일만의 Git 커밋과 `main`
+푸시까지 자동 수행합니다. 저장소에 다른 추적 파일 수정이 있거나 검증·push가
+실패하면 안전하게 중단하고 `quant\log.txt`에 원인을 남깁니다. 수동으로 같은
+배포 파이프라인을 실행할 때는 다음 명령을 사용합니다.
+
+```powershell
+npm run publish:volatility-data
+```
+
+자동 커밋 대상으로 허용되는 파일은 다음 둘뿐입니다.
+
+- `apps/volatility/data/local-nasdaq-snapshot.json`
+- `apps/volatility/js/weekly-reference.generated.js`
+
+키움 거래내역·현재 포지션·개인 분석 산출물은 이 배포 파이프라인이 읽거나
+Git에 추가하지 않습니다.
+
 이 명령은 5분봉 완료 세션 스냅샷을 만든 뒤 `nasdaq_daily.csv`와 실행 당일의
 한국 날짜를 읽어 이번 주 월요일~일요일 기준을 자동 계산한다. 직전 5년만
 적합에 사용하고 마지막 52주는 정책 선택에서 제외한 OOS로 다시 평가하며,

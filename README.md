@@ -19,9 +19,10 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 `대학 입학정보` |
 | Volatility 시세·기준 | 버튼은 주말에도 Yahoo를 먼저 확인하고 가장 최근 원천시각을 유지; 공식 시가가 없으면 첫 유효 5분봉을 명시된 기준가로 사용해 상단 주간 환산표를 표시 |
 | Volatility 포지션 경고 | 3입력만으로 5단계 위험과 함께 자동 EMA50/200·RSI·ATR 백분위·MFE/MAE 및 과거 4군집 중 현재 패턴 경향·주의점을 표시 |
-| 자동 검증 | `npm run test:release` 성공 — Node 213/213 및 Chromium·오프라인·320/390px 검증 통과 |
+| 자동 검증 | `npm run test:release` 성공 — Node 215/215 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.9.1-volatility-reference-lines.1` — 세션 시작 결손 때도 첫 관측 기준가로 주간 환산표 표시 |
+| PWA 캐시 | `v3.10.0-volatility-automation.1` — 자동 배포된 로컬 스냅샷·주간 기준을 network-first로 갱신 |
+| Volatility 데이터 자동화 | `quant` 예약 수집 성공 → 로컬 스냅샷·주간 기준 생성 → 전체 검사 → 허용된 생성 파일만 commit/push |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
@@ -354,9 +355,9 @@ Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
    쌓인 뒤 문제 난이도와 제한시간을 재평가합니다.
 4. **선택적 기기 간 동기화 설계**: 현재 JSON 내보내기 계약을 유지하면서
    Supabase 등 원격 동기화의 범위와 개인정보 정책을 먼저 정합니다.
-5. **Volatility 요청형 조회·자동 주간 동기화 실사용 검증**: `quant/data` 갱신 뒤
-   `npm run sync:volatility-data`가 5분봉 스냅샷과 당주 분석 계약을 함께 생성하는
-   운영 루틴을 확인하고, 페이지 진입·버튼
+5. **Volatility 요청형 조회·자동 주간 동기화 실사용 검증**: 예약된 `quant/data`
+   갱신 뒤 스냅샷·당주 분석 계약 생성, 전체 검사, 생성 파일만의 commit/push가
+   이어지는 운영 로그를 확인하고, 페이지 진입·버튼
    단발 조회의 성공률, Jina·Yahoo 429/timeout/포맷 실패율과 원천시각 지연을 기록하고,
    1봉 결손 뒤 최신 연속봉 ATR 재계산이 의도대로 동작하는지 영웅문 모바일의
    실제 MNQ 월물 O/H/L·ATR·가격선과 나란히 대조합니다. 정식 공급원을

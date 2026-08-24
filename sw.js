@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.9.1-volatility-reference-lines.1`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.10.0-volatility-automation.1`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -85,7 +85,11 @@ self.addEventListener("fetch", event => {
   // network-only so a stale quote cannot be replayed by the PWA cache.
   if (/\/api(?:\/|$)/.test(url.pathname)) return;
 
-  if (url.pathname.endsWith("/apps/volatility/data/local-nasdaq-snapshot.json")) {
+  const VOLATILITY_REFRESHABLE_PATHS = [
+    "/apps/volatility/data/local-nasdaq-snapshot.json",
+    "/apps/volatility/js/weekly-reference.generated.js"
+  ];
+  if (VOLATILITY_REFRESHABLE_PATHS.some(pathname => url.pathname.endsWith(pathname))) {
     event.respondWith((async () => {
       try {
         const response = await fetch(new Request(request, { cache: "no-store" }));
