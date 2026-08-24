@@ -11,7 +11,8 @@ test("Volatility refresh deploy is fail-closed and only stages generated market 
   const script = read("apps/volatility/tools/refresh-and-deploy.ps1");
   assert.match(script, /npm run sync:volatility-data/);
   assert.match(script, /npm run test:release/);
-  assert.match(script, /git -C \$repo add -- \$allowedFiles/);
+  assert.match(script, /@\("-C", \$repo, "add", "--"\) \+ \$allowedFiles/);
+  assert.match(script, /Invoke-Checked -Program "git" -Arguments \$gitAddArguments/);
   assert.match(script, /push origin main/);
   assert.match(script, /unrelated tracked changes/);
   assert.match(script, /PersonalTapVolatilityRefresh/);

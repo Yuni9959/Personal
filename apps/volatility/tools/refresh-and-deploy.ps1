@@ -91,7 +91,8 @@ try {
         Invoke-Checked npm run test:release
     }
 
-    Invoke-Checked git -C $repo add -- $allowedFiles
+    $gitAddArguments = @("-C", $repo, "add", "--") + $allowedFiles
+    Invoke-Checked -Program "git" -Arguments $gitAddArguments
     & git -C $repo diff --cached --quiet
     if ($LASTEXITCODE -eq 0) {
         Write-Host "[OK] No publishable Volatility data change remains."
