@@ -84,7 +84,7 @@ function yahooSourceUrl(fetchedAt = FETCHED_AT) {
   const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
   const url = new URL("https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F");
   url.searchParams.set("interval", "5m");
-  url.searchParams.set("period1", String(period2 - 5 * 24 * 60 * 60));
+  url.searchParams.set("period1", String(period2 - 30 * 24 * 60 * 60));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("includePrePost", "true");
   url.searchParams.set("events", "div,splits");
@@ -161,7 +161,7 @@ test("Chicago 세션 경계를 서머타임 포함 UTC로 변환한다", () => {
 
 test("검증된 현재 CME 세션만으로 O/H/L/current와 완료봉 ATR을 만든다", () => {
   const result = parseYahooChart(payload(), "MNQ=F", FETCHED_AT);
-  assert.equal(result.provider.range, "5d-period-window");
+  assert.equal(result.provider.range, "30d-period-window");
   assert.equal(result.session.start, "2026-08-12T22:00:00.000Z");
   assert.equal(result.session.barCount, 20);
   assert.equal(result.market.open, 30002);
@@ -243,14 +243,25 @@ test("현재 세션의 완전-null 중간 bucket 하나는 cadence를 보존하�
   assert.match(result.limitations.at(-1), /연속 완료봉으로 5분 ATR을 다시 계산/);
 });
 
-test("partial-null과 첫·마지막·두 개의 완전-null bucket은 차단한다", async t => {
+test("partial-null·마지막·복수 중간 null은 차단하고 시작부 2개까지만 제한 허용한다", async t => {
   await t.test("partial-null", () => {
     const source = payload();
     source.chart.result[0].indicators.quote[0].low[3] = null;
     assert.throws(() => parseYahooChart(source, "MNQ=F", FETCHED_AT), /부분 누락/);
   });
+  for (const indexes of [[2], [2, 3]]) {
+    const source = payload();
+    const quote = source.chart.result[0].indicators.quote[0];
+    for (const index of indexes) {
+      for (const field of ["open", "high", "low", "close"]) quote[field][index] = null;
+    }
+    syncRegularMarketMeta(source);
+    const parsed = parseYahooChart(source, "MNQ=F", FETCHED_AT);
+    assert.equal(parsed.provider.leadingMissingBucketCount, indexes.length);
+    assert.equal(parsed.provider.barQuality, "leading-null-buckets");
+  }
   for (const [name, indexes, expected] of [
-    ["first", [2], /첫 5분봉 OHLC가 완전히 누락/],
+    ["three leading", [2, 3, 4], /시작부의 유효한 5분봉/],
     ["last", [21], /마지막 5분봉 OHLC가 완전히 누락/],
     ["two", [3, 4], /1개를 초과/]
   ]) {
@@ -380,7 +391,7 @@ test("MNQ 성공 시 한 번만 조회하고 인증정보·캐시 없이 요청�
   assert.match(calls[0].url, /^https:\/\/r\.jina\.ai\/https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/MNQ=F\?/);
   const requested = new URL(calls[0].url.replace("https://r.jina.ai/", ""));
   assert.equal(requested.searchParams.get("period2"), String(FETCHED_AT.getTime() / 1000));
-  assert.equal(Number(requested.searchParams.get("period2")) - Number(requested.searchParams.get("period1")), 432000);
+  assert.equal(Number(requested.searchParams.get("period2")) - Number(requested.searchParams.get("period1")), 2592000);
   assert.deepEqual(calls[0].options.headers, { Accept: "application/json" });
   assert.equal(calls[0].options.cache, "no-store");
   assert.equal(calls[0].options.credentials, "omit");

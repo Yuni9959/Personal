@@ -2,7 +2,10 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { calculateWilderAtrFromBars } from "../js/calculator.js";
+import {
+  buildFiveMinuteChartFeatures,
+  calculateWilderAtrFromBars
+} from "../js/calculator.js";
 import { cmeEquitySessionFor } from "../js/market-provider.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -97,6 +100,9 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
   const current = selected.at(-1).close;
   const atrBars = latestContiguousBars(selected);
   const atr = calculateWilderAtrFromBars(atrBars);
+  const historyBars = bars.filter(bar => bar.at.getTime() <= latest.at.getTime())
+    .map(bar => ({ at: bar.at.toISOString(), high: bar.high, low: bar.low, close: bar.close }));
+  const chartFeatures = buildFiveMinuteChartFeatures(historyBars);
   return {
     schemaVersion: 1,
     mode: "local-archive",
@@ -141,6 +147,8 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
       atr5m14: atr === null ? null : Number(atr.toFixed(6)),
       atrLastCompletedBarAt: atr === null ? null : latest.at.toISOString()
     },
+    indicators: chartFeatures.indicators,
+    chart5m: chartFeatures.chart5m,
     limitations: [
       "사용자가 별도 수집한 NQ=F 연속선물 5분봉의 최근 완료 세션 참고값입니다.",
       "최신 연속 완료 5분봉으로 Wilder ATR(14)을 자동 계산했습니다.",

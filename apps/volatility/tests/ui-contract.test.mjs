@@ -52,15 +52,13 @@ test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않
   assert.match(html, /목표가가 아닌/);
   assert.match(html, /통계적 기대값이 아닙니다/);
   assert.match(html, /양봉·음봉은 종가 확정 전에 알 수 없어/);
-  assert.match(html, /P6 AND · SHADOW 경고/);
-  assert.match(html, /기존 OR 규칙 · 비활성 비교용/);
-  assert.match(html, /P7 · 입력 기반 미검증 알림/);
-  assert.match(html, /검증 표본이 각 한 건/);
-  assert.match(html, /실증에서 과잉차단/);
-  assert.match(app, /P6 shadow 경고 후보/);
-  assert.match(app, /기존 OR 규칙 감지 · 비활성/);
-  assert.match(app, /P7 입력 기반 안전 알림 · 미검증/);
-  assert.doesNotMatch(app, /P6 금지 · 진입 차단|OR 강제차단 발동/);
+  assert.match(html, /포지션 3입력 · 차트 자동 계산/);
+  assert.match(html, /네 가지 과거 군집 중 현재 경향/);
+  assert.match(html, /확정 분류나 손실 확률이 아닙니다/);
+  assert.match(app, /classifyLiveTradePattern/);
+  assert.match(app, /calculatePositionPathFeatures/);
+  assert.match(app, /고변동·약세 복합 경고/);
+  assert.match(app, /10분 무반응 경고/);
 });
 
 test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분리한다", () => {
@@ -117,7 +115,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /오늘 시세 새로고침/);
   assert.match(html, /class="topbar-actions"/);
   assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만 값을 확인합니다/);
-  assert.match(html, /CME 주말 휴장에는 사용자가 동기화한 로컬 NQ 완료 세션을 먼저 읽고/);
+  assert.match(html, /버튼을 누르면 휴장 여부와 관계없이 Yahoo 최신 MNQ를 먼저 조회하고/);
   assert.match(html, /일반 반복 확인은 최대 10초만 막고/);
   assert.match(html, /공급자 429 제한은 최소 60초 이상 따로 지킵니다/);
   assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
@@ -137,8 +135,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(styles, /\.position-layout\s*\{[^}]*grid-template-columns:\s*minmax\(330px,.85fr\) minmax\(0,1.15fr\)/s);
   assert.match(styles, /\.risk-results\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/s);
   assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.position-layout \{ grid-template-columns: minmax\(0,.88fr\) minmax\(0,1.12fr\);/);
-  assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.risk-layout \{ grid-template-columns: minmax\(0,.9fr\) minmax\(0,1.1fr\);/);
-  assert.doesNotMatch(styles, /@media \(max-width: 340px\)[\s\S]*?\.position-layout, \.risk-layout \{ grid-template-columns: 1fr; \}/);
+  assert.match(styles, /\.pattern-indicators\s*\{[^}]*grid-template-columns:\s*repeat\(4,minmax\(0,1fr\)\)/s);
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /connect-src 'self' https:\/\/r\.jina\.ai/);
   assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
@@ -146,6 +143,8 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
   for (const id of ["positionDirection", "entryPrice", "enteredAt"]) assert.match(html, new RegExp(`id="${id}"`));
   for (const id of ["positionAtr", "quantity", "maxQuantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
+  for (const id of ["ema1h", "rsi1h", "atrPercentile", "noFavorableExcursion", "stopHesitation"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
+  for (const id of ["patternResults", "patternHeadline", "patternIndicators"]) assert.match(html, new RegExp(`id="${id}"`));
   assert.match(html, /id="positionRiskPanel"[^>]+aria-live="polite"/);
   assert.match(html, /자동 위험 진행 5단계/);
   assert.match(html, /방향·체결가격·체결시간만 입력하세요/);
@@ -163,7 +162,8 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
   assert.match(app, /fetchYahooSnapshot\(fetch, requestedAt, \{ timeoutMs: REQUEST_DEADLINE_MS \}\)/);
-  assert.match(app, /shouldPreferLocalArchive\(requestedAt\)/);
+  assert.match(app, /trigger !== "button" && shouldPreferLocalArchive\(requestedAt\)/);
+  assert.match(app, /selectBestSnapshotCandidate/);
   assert.match(app, /fetchLocalNasdaqSnapshot\(fetch\)/);
   assert.match(app, /forceLockReason: reason/);
   assert.doesNotMatch(app, /clearManualQuoteInputs|populateManual/);
@@ -206,7 +206,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.8\.0-volatility-three-input-risk\.1/);
+  assert.match(sw, /v3\.9\.0-volatility-live-patterns\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

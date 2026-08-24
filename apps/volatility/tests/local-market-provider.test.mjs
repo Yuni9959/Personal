@@ -22,6 +22,9 @@ test("동기화된 로컬 NQ 완료 세션 스냅샷을 검증한다", () => {
   assert.ok(result.provider.atrSourceBarCount >= 14);
   assert.ok(result.market.atr5m14 > 0);
   assert.equal(result.market.atrLastCompletedBarAt, result.market.latestBarAt);
+  assert.equal(result.indicators.timeframe, "5m");
+  assert.ok(result.indicators.historyBarCount > 5520);
+  assert.ok(result.chart5m.length >= 1000);
   assert.doesNotMatch(JSON.stringify(result), /C:\\\\Users\\\\tmddb/);
 });
 
@@ -31,6 +34,9 @@ test("로컬 NQ 출처·세션·가격 위조를 거부한다", () => {
     value => { value.provider.sourceSha256 = "bad"; },
     value => { value.market.atr5m14 = null; },
     value => { value.provider.atrSourceBarCount = 13; },
+    value => { value.indicators.ema50 = null; },
+    value => { value.indicators.sourceBarAt = "2026-08-20T00:00:00Z"; },
+    value => { value.chart5m = []; },
     value => { value.session.terminalCoverageVerified = false; },
     value => { value.market.high = value.market.open - 1; }
   ]) {

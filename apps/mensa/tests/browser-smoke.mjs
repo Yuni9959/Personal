@@ -26,6 +26,7 @@ const VOLATILITY_SESSION_START = weekDate(3, "22:00:00.000Z");
 const VOLATILITY_FIXTURE_NOW = weekDate(4, "06:30:00.000Z");
 const VOLATILITY_FIXTURE_LOCAL_ENTRY = weekDate(4, "15:00").slice(0, 16);
 const VOLATILITY_COMPLETED_NOW = weekDate(5, "03:00:00.000Z");
+const VOLATILITY_INDICATOR_HISTORY_BARS = 300;
 const volatilityReferenceMarket = {
   open: 30000,
   high: 30000,
@@ -65,18 +66,22 @@ const mimeTypes = {
 };
 
 function delayedMnqFixture() {
-  const start = Date.parse(VOLATILITY_SESSION_START) / 1000;
+  const sessionStart = Date.parse(VOLATILITY_SESSION_START) / 1000;
+  const start = sessionStart - VOLATILITY_INDICATOR_HISTORY_BARS * 300;
   const end = Date.parse(VOLATILITY_FIXTURE_NOW) / 1000 - 10 * 60;
   const timestamp = [];
   for (let value = start; value <= end; value += 300) timestamp.push(value);
-  const open = timestamp.map((_, index) => 30000 + (index % 16) * 0.25);
+  const open = timestamp.map((_, index) => {
+    const relative = index - VOLATILITY_INDICATOR_HISTORY_BARS;
+    return 30000 + (((relative % 16) + 16) % 16) * 0.25;
+  });
   const close = open.map((value, index) => value + (index % 2 === 0 ? 0.25 : -0.25));
   const high = open.map((value, index) => Math.max(value, close[index]) + 1);
   const low = open.map((value, index) => Math.min(value, close[index]) - 1);
   const marketHigh = Math.max(...high);
   const marketLow = Math.min(...low);
   const marketCurrent = close.at(-1);
-  const missingIndex = 72;
+  const missingIndex = VOLATILITY_INDICATOR_HISTORY_BARS + 72;
   for (const values of [open, high, low, close]) values[missingIndex] = null;
   return {
     chart: {
@@ -108,7 +113,7 @@ function delayedMnqFixture() {
 
 function activeMnqFixture() {
   const source = delayedMnqFixture();
-  const missingIndex = 72;
+  const missingIndex = VOLATILITY_INDICATOR_HISTORY_BARS + 72;
   const quote = source.chart.result[0].indicators.quote[0];
   const open = 30000 + (missingIndex % 16) * 0.25;
   const close = open + 0.25;
@@ -153,7 +158,7 @@ function delayedMnqSourceUrl(fetchedAt = new Date(VOLATILITY_FIXTURE_NOW)) {
   const period2 = Math.floor(fetchedAt.getTime() / 60000) * 60;
   const url = new URL("https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F");
   url.searchParams.set("interval", "5m");
-  url.searchParams.set("period1", String(period2 - 5 * 24 * 60 * 60));
+  url.searchParams.set("period1", String(period2 - 30 * 24 * 60 * 60));
   url.searchParams.set("period2", String(period2));
   url.searchParams.set("includePrePost", "true");
   url.searchParams.set("events", "div,splits");
@@ -1054,26 +1059,19 @@ async function run() {
       set("#positionDirection", "long");
       set("#entryPrice", current - 100);
       set("#enteredAt", new Date(Date.now() - 11 * 60000).toISOString().slice(0, 16));
-      set("#ema1h", "bearish");
-      set("#rsi1h", 44);
-      set("#atrPercentile", 80);
-      const favorable = document.querySelector("#noFavorableExcursion");
-      favorable.checked = true;
-      favorable.dispatchEvent(new Event("input", { bubbles: true }));
-      const hesitation = document.querySelector("#stopHesitation");
-      hesitation.checked = true;
-      hesitation.dispatchEvent(new Event("input", { bubbles: true }));
       return {
         positionVisible: !document.querySelector("#positionResults").hidden,
-        p6: document.querySelector("#p6Result strong").textContent,
-        kill: document.querySelector("#killResult strong").textContent,
-        p7: document.querySelector("#p7Result strong").textContent
+        patternVisible: !document.querySelector("#patternResults").hidden,
+        pattern: document.querySelector("#patternHeadline").textContent,
+        indicatorCount: document.querySelectorAll("#patternIndicators article").length,
+        p6: document.querySelector("#p6Result strong").textContent
       };
     })()`);
     assert.equal(volatilityResult.positionVisible, true);
-    assert.match(volatilityResult.p6, /P6 shadow 경고 후보/);
-    assert.match(volatilityResult.kill, /기존 OR 규칙 감지 · 비활성/);
-    assert.match(volatilityResult.p7, /P7 입력 기반 안전 알림 · 미검증/);
+    assert.equal(volatilityResult.patternVisible, true);
+    assert.match(volatilityResult.pattern, /패턴 [1-4]/);
+    assert.equal(volatilityResult.indicatorCount, 4);
+    assert.doesNotMatch(volatilityResult.p6, /판단 보류|자동 지표 부족/);
     const positionLossRisk = await evaluate(client, `(() => {
       const current = Number(document.querySelector("#currentPrice").textContent.replaceAll(",", ""));
       const set = (selector, value) => {
@@ -1124,7 +1122,7 @@ async function run() {
           element.tagName + ":" + element.textContent.trim().slice(0, 32)),
       positionColumns: getComputedStyle(document.querySelector(".position-layout"))
         .gridTemplateColumns.trim().split(/\\s+/).length,
-      riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+      indicatorColumns: getComputedStyle(document.querySelector(".pattern-indicators"))
         .gridTemplateColumns.trim().split(/\\s+/).length,
       riskResultColumns: getComputedStyle(document.querySelector(".risk-results"))
         .gridTemplateColumns.trim().split(/\\s+/).length
@@ -1133,7 +1131,7 @@ async function run() {
       fitsViewport: true,
       overflowing: [],
       positionColumns: 2,
-      riskColumns: 2,
+      indicatorColumns: 2,
       riskResultColumns: 3
     });
     await captureOptionalScreenshot(client, "volatility-desktop");
@@ -1169,7 +1167,7 @@ async function run() {
         warningFits: warning.scrollWidth <= warning.clientWidth,
         positionColumns: getComputedStyle(document.querySelector(".position-layout"))
           .gridTemplateColumns.trim().split(/\\s+/).length,
-        riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+        indicatorColumns: getComputedStyle(document.querySelector(".pattern-indicators"))
           .gridTemplateColumns.trim().split(/\\s+/).length,
         allPriceLinesVisible: priceIds.every(id =>
           !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
@@ -1185,7 +1183,7 @@ async function run() {
       warningSingleLine: true,
       warningFits: true,
       positionColumns: 2,
-      riskColumns: 2,
+      indicatorColumns: 2,
       allPriceLinesVisible: true
     });
     await client.send("Emulation.setDeviceMetricsOverride", {
@@ -1208,10 +1206,8 @@ async function run() {
       ];
       const warning = document.querySelector(".reference-warning");
       const compactInputs = [...document.querySelectorAll(
-        "#positionForm input:not([type=checkbox]), #positionForm select, " +
-        "#riskForm input:not([type=checkbox]), #riskForm select"
+        "#positionForm input:not([type=checkbox]), #positionForm select"
       )];
-      const compactChecks = [...document.querySelectorAll("#riskForm input[type=checkbox]")];
       return {
         text: button.textContent.trim(),
         visible: rect.width > 0 && rect.height >= 40,
@@ -1226,17 +1222,12 @@ async function run() {
         warningFits: warning.scrollWidth <= warning.clientWidth,
         positionColumns: getComputedStyle(document.querySelector(".position-layout"))
           .gridTemplateColumns.trim().split(/\\s+/).length,
-        riskColumns: getComputedStyle(document.querySelector(".risk-layout"))
+        indicatorColumns: getComputedStyle(document.querySelector(".pattern-indicators"))
           .gridTemplateColumns.trim().split(/\\s+/).length,
         inputTargetsUsable: compactInputs.every(element => {
           const inputRect = element.getBoundingClientRect();
           return inputRect.height >= 40 && inputRect.width >= 44 &&
             inputRect.left >= 0 && inputRect.right <= window.innerWidth;
-        }),
-        checkTargetsUsable: compactChecks.every(element => {
-          const labelRect = element.closest("label").getBoundingClientRect();
-          return labelRect.height >= 40 && labelRect.width >= 44 &&
-            labelRect.left >= 0 && labelRect.right <= window.innerWidth;
         }),
         allReferencePriceLinesVisible: priceIds.every(id =>
           !["", "—"].includes(document.querySelector("#" + id).textContent.trim())
@@ -1255,9 +1246,8 @@ async function run() {
       warningSingleLine: true,
       warningFits: true,
       positionColumns: 2,
-      riskColumns: 2,
+      indicatorColumns: 2,
       inputTargetsUsable: true,
-      checkTargetsUsable: true,
       allReferencePriceLinesVisible: true
     });
     await captureOptionalScreenshot(client, "volatility-mobile-320");
@@ -1332,7 +1322,7 @@ async function run() {
     assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
     assert.equal(lockedFallback.manualConfirmed, false);
     assert.match(lockedFallback.notice, /O\/H\/L\/마지막 관측가/);
-    assert.match(lockedFallback.notice, /계산에는 사용하지 않습니다/);
+    assert.match(lockedFallback.notice, /자동 ATR 위험 판정은 참고값으로 열고/);
     assert.equal(lockedFallback.status, "이전 시세 참고");
     assert.doesNotMatch(lockedFallback.notice, /최근 완료 세션/);
     assert.equal(lockedFallback.refreshText, "오늘 시세 새로고침");
@@ -2510,7 +2500,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "Volatility 3입력·자동 ATR·5단계 위험·청산 권고, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 최신 원격 우선·3입력·자동 차트 지표·4패턴 경향·5단계 위험, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

@@ -302,6 +302,22 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
     });
   }
 
+  const leadingMissingBucketCount = Number(snapshot?.provider?.leadingMissingBucketCount || 0);
+  if (leadingMissingBucketCount > 0 &&
+      snapshot?.provider?.regularMarketOpenMetadataAvailable !== true &&
+      ageMinutes <= MAX_SOURCE_AGE_MINUTES) {
+    return decision({
+      displayable: true,
+      referenceOnly: true,
+      key: "reference",
+      marketState: "active-partial-open",
+      ageMinutes: Math.max(0, ageMinutes),
+      referenceValid: true,
+      sessionEndedAt: providerSession.end.toISOString(),
+      reason: `진행 중인 MNQ의 최신값이지만 세션 시작 ${leadingMissingBucketCount}개 봉과 공식 시가가 없어 시가 기반 계산은 잠급니다. 현재가·자동 차트 지표·포지션 위험 판정만 참고하세요.`
+    });
+  }
+
   if (ageMinutes > MAX_SOURCE_AGE_MINUTES) {
     return decision({
       key: "stale",
@@ -323,4 +339,19 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
     referenceValid: true,
     sessionEndedAt: providerSession.end.toISOString()
   });
+}
+
+export function selectBestSnapshotCandidate(candidates, now = new Date(), reference = WEEKLY_VOLATILITY_REFERENCE) {
+  if (!Array.isArray(candidates)) throw new TypeError("시세 후보 배열이 필요합니다.");
+  return candidates.map((candidate, index) => ({
+    ...candidate,
+    index,
+    assessment: assessSnapshot(candidate?.snapshot, now, reference),
+    sourceTime: new Date(candidate?.snapshot?.market?.latestBarAt || "").getTime()
+  })).filter(candidate => candidate.assessment.displayable && Number.isFinite(candidate.sourceTime))
+    .sort((left, right) =>
+      right.sourceTime - left.sourceTime ||
+      Number(right.assessment.usable) - Number(left.assessment.usable) ||
+      left.index - right.index
+    )[0] || null;
 }

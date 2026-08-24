@@ -243,24 +243,25 @@
 
     <section class="panel" aria-labelledby="riskTitle">
       <div class="section-heading">
-        <div><p class="eyebrow">P1–P7 GATEWAY</p><h2 id="riskTitle">패턴 안전 알림</h2></div>
-        <span class="future-badge">P1–P5 자동분류는 후속 확장</span>
+        <div><p class="eyebrow">AUTO PATTERN REVIEW</p><h2 id="riskTitle">패턴 안전 알림</h2></div>
+        <span class="future-badge">포지션 3입력 · 차트 자동 계산</span>
       </div>
-      <div class="risk-layout">
-        <form id="riskForm" class="risk-form">
-          <label><span>1h EMA50 / EMA200</span><select id="ema1h"><option value="unknown">미확인</option><option value="bullish">EMA50 ≥ EMA200</option><option value="bearish">EMA50 &lt; EMA200</option></select></label>
-          <label><span>1h RSI</span><input id="rsi1h" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="예: 48" /></label>
-          <label><span>ATR% 백분위</span><input id="atrPercentile" type="number" inputmode="decimal" min="0" max="100" step="0.1" placeholder="예: 76" /></label>
-          <label class="check-row"><input id="noFavorableExcursion" type="checkbox" /><span>10분 동안 유의미한 유리 변동 없음</span></label>
-          <label class="check-row"><input id="stopHesitation" type="checkbox" /><span>손절선 재설정·이동 시도</span></label>
-        </form>
+      <div id="patternEmpty" class="empty-state pattern-empty">포지션을 입력하면 최신 5분봉 차트에서 EMA50·EMA200·RSI14·ATR 백분위를 자동 계산해 네 가지 과거 군집 중 현재 경향을 보여줍니다.</div>
+      <div id="patternResults" class="pattern-results" hidden>
+        <div class="pattern-hero">
+          <span>현재 거래 경향</span>
+          <strong id="patternHeadline">판정 대기</strong>
+          <p id="patternSummary"></p>
+          <div id="patternEvidence" class="pattern-evidence"></div>
+        </div>
+        <div id="patternIndicators" class="pattern-indicators"></div>
         <div class="risk-results">
-          <article id="p6Result" class="risk-card"><span>P6 AND · SHADOW 경고</span><strong>판단 보류</strong><p>고변동성과 약세 레짐이 모두 필요합니다.</p></article>
-          <article id="killResult" class="risk-card"><span>기존 OR 규칙 · 비활성 비교용</span><strong>판단 보류</strong><p>실증에서 과잉차단이어서 hard kill로 사용하지 않습니다.</p></article>
-          <article id="p7Result" class="risk-card"><span>P7 · 입력 기반 미검증 알림</span><strong>판단 보류</strong><p>진입 후 10분·무반응·손절 주저를 모두 확인합니다.</p></article>
+          <article id="p6Result" class="risk-card"><span>고변동·약세 복합 경고</span><strong>판단 보류</strong><p>완료 5분봉 지표를 기다립니다.</p></article>
+          <article id="killResult" class="risk-card"><span>시장 레짐 주의점</span><strong>판단 보류</strong><p>EMA·RSI·ATR 상태를 자동 확인합니다.</p></article>
+          <article id="p7Result" class="risk-card"><span>10분 무반응 경고</span><strong>판단 보류</strong><p>진입 이후 차트의 최대유리변동을 자동 확인합니다.</p></article>
         </div>
       </div>
-      <p class="calculation-note">P6 AND는 검증 표본이 각 한 건에 불과해 자동 차단이 아닌 shadow 경고 후보로만 사용합니다. 기존 OR Kill Switch는 실증에서 과잉차단이어서 비활성 비교용으로만 보여줍니다. P7도 직접 관리 로그가 부족한 사용자 입력 기반 미검증 안전 알림입니다.</p>
+      <p class="calculation-note">패턴 번호는 797개 완결 거래의 GMM 4군집을 현재까지 관측 가능한 보유시간·방향성 ATR 변동·경로 MFE/MAE·변동성에 대조한 경향입니다. 수량·추가 진입·미래 청산 결과를 모르므로 확정 분류나 손실 확률이 아닙니다.</p>
     </section>
 
     <section class="method-card">
@@ -268,9 +269,10 @@
       <ul>
         <li>평균은 NQ 연속선물 프록시의 지난 5년 방향별 2σ 내 (H−L)/O 평균으로 계산한 설명용 일중 범위 예산입니다.</li>
         <li>장중 기본선은 종가 방향을 모르는 모든 거래일의 (H−O)/O·(O−L)/O를 사용합니다. 양봉·음봉 조건부 선은 종가 방향이 확정된 뒤 같은 방향 표본만 나눈 복기용입니다. 평균 범위와도 계산식·의미가 다릅니다.</li>
-        <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 값을 확인합니다. CME 주말 휴장에는 사용자가 동기화한 로컬 NQ 완료 세션을 먼저 읽고, 그 밖에는 Yahoo 지연 MNQ 시세를 한 번 요청한 뒤 실패할 때 로컬 NQ를 참고값으로 사용합니다. 일반 반복 확인은 최대 10초만 막고, 공급자 429 제한은 최소 60초 이상 따로 지킵니다. 백그라운드·주기 갱신은 하지 않습니다.</li>
+        <li>페이지 최초 진입과 <strong>오늘 시세 새로고침</strong> 버튼을 누른 때에만 값을 확인합니다. 최초 주말 진입은 로컬 NQ를 빠르게 표시하지만 버튼을 누르면 휴장 여부와 관계없이 Yahoo 최신 MNQ를 먼저 조회하고, 실패하거나 더 오래된 값이면 현재 표시값 또는 로컬 NQ 중 최신 관측을 유지합니다. 일반 반복 확인은 최대 10초만 막고, 공급자 429 제한은 최소 60초 이상 따로 지킵니다. 백그라운드·주기 갱신은 하지 않습니다.</li>
         <li>MNQ=F는 실제 월물이 아닌 MNQ 연속선물 프록시이며 약 10분 지연될 수 있습니다. 검증된 진행 MNQ가 없으면 최근 96시간 안의 동기화된 NQ 완료 세션을 포지션 위험 참고에만 사용하고, 그 밖의 손절·실전 계산은 계속 잠급니다.</li>
         <li>CME 세션은 America/Chicago 17:00~익일 16:00을 서머타임 포함해 재구성하며, 5분 ATR은 가장 최신의 끊기지 않은 완료봉만 사용한 Wilder ATR(14)입니다.</li>
+        <li>자동 패턴 지표는 Yahoo 또는 로컬 NQ의 최근 30일 완료 5분봉으로 EMA50·EMA200·RSI14와 20세션 ATR% 백분위를 계산합니다.</li>
         <li>5단계 손실 위험 알림은 완결 거래 복기에서 정한 경험 규칙입니다. 현재가의 진입 대비 방향성 변동을 자동 5분 ATR로 나누며, 미래 손실 확률이나 최적 청산가를 예측하지 않습니다.</li>
         <li>MNQ 계약 승수는 $2/point, 최소호가는 0.25 point ($0.50/계약)입니다. <a href="https://www.cmegroup.com/markets/equities/nasdaq/micro-e-mini-nasdaq-100.contractSpecs.html" target="_blank" rel="noopener noreferrer">CME 공식 명세 ↗</a></li>
       </ul>

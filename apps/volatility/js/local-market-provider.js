@@ -60,6 +60,18 @@ export function validateLocalNasdaqSnapshot(snapshot) {
       !Number.isInteger(provider.atrSourceBarCount) || provider.atrSourceBarCount < 14) {
     throw invalidLocalSnapshot("로컬 나스닥의 자동 5분 ATR 출처를 검증할 수 없습니다.");
   }
+  const indicators = snapshot.indicators || {};
+  const indicatorAt = validDate(indicators.sourceBarAt);
+  if (indicators.timeframe !== "5m" || !indicatorAt || indicatorAt.getTime() !== sourceAt.getTime() ||
+      !Number.isInteger(indicators.historyBarCount) || indicators.historyBarCount < 276 ||
+      !["bullish", "bearish"].includes(indicators.emaRegime) ||
+      ![indicators.ema50, indicators.ema200, indicators.rsi14, indicators.atrPercentile20d]
+        .every(value => typeof value === "number" && Number.isFinite(value)) ||
+      Number(indicators.rsi14) < 0 || Number(indicators.rsi14) > 100 ||
+      Number(indicators.atrPercentile20d) < 0 || Number(indicators.atrPercentile20d) > 100 ||
+      !Array.isArray(snapshot.chart5m) || snapshot.chart5m.length < 14) {
+    throw invalidLocalSnapshot("로컬 나스닥의 자동 차트 지표 출처를 검증할 수 없습니다.");
+  }
   return snapshot;
 }
 

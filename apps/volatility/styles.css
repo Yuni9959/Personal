@@ -271,8 +271,18 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .position-risk-checklist li.clear b { color: var(--mint); }
 .position-risk-checklist li.pending b { color: var(--amber); }
 
-.risk-layout { display: grid; grid-template-columns: 310px minmax(0,1fr); gap: 18px; margin-top: 20px; }
-.risk-form { display: grid; gap: 12px; align-content: start; }
+.pattern-empty { margin-top: 18px; }
+.pattern-results { display: grid; gap: 12px; margin-top: 18px; }
+.pattern-hero { padding: 18px; border: 1px solid rgba(112,183,255,.25); border-radius: 16px; background: var(--blue-soft); }
+.pattern-hero > span { color: var(--muted); font-size: 10px; font-weight: 800; }
+.pattern-hero > strong { display: block; margin-top: 5px; color: var(--blue); font-size: 21px; }
+.pattern-hero > p { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+.pattern-evidence { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.pattern-evidence span { padding: 6px 8px; border: 1px solid var(--line); border-radius: 999px; color: var(--text); font-size: 9px; }
+.pattern-indicators { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+.pattern-indicators article { padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-soft); }
+.pattern-indicators span, .pattern-indicators small { display: block; color: var(--muted); font-size: 9px; }
+.pattern-indicators strong { display: block; margin: 5px 0 3px; color: var(--text); font-size: 13px; }
 .check-row { display: flex; align-items: flex-start; gap: 9px; padding: 11px; border: 1px solid var(--line); border-radius: 11px; background: rgba(1,12,17,.4); }
 .check-row input { width: 17px; min-height: 17px; margin: 1px 0 0; }
 .check-row span { margin: 0; line-height: 1.5; }
@@ -304,7 +314,7 @@ footer a { color: var(--mint); text-decoration: none; }
   .quote-meta { grid-template-columns: repeat(2,1fr); }
   .input-grid, .input-grid.five { grid-template-columns: repeat(2,1fr); }
   .position-layout { grid-template-columns: minmax(250px,.82fr) minmax(0,1.18fr); }
-  .risk-layout { grid-template-columns: minmax(230px,.78fr) minmax(0,1.22fr); }
+  .pattern-indicators { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
 
 @media (max-width: 620px) {
@@ -353,7 +363,7 @@ footer a { color: var(--mint); text-decoration: none; }
   .position-input-pane, .position-output-pane { padding: 10px; border-radius: 14px; }
   #positionForm { margin-top: 10px; }
   #positionForm .input-grid { grid-template-columns: 1fr; gap: 8px; }
-  #positionForm input, #positionForm select, .risk-form input, .risk-form select { min-height: 40px; padding-inline: 8px; font-size: 11px; }
+  #positionForm input, #positionForm select { min-height: 40px; padding-inline: 8px; font-size: 11px; }
   .column-heading strong { font-size: 11px; }
   .column-heading small { font-size: 8px; }
   .empty-state, .position-results { margin-top: 10px; }
@@ -376,11 +386,14 @@ footer a { color: var(--mint); text-decoration: none; }
   .risk-rule-number { width: 20px; height: 20px; font-size: 8px; }
   .position-risk-checklist strong { font-size: 8px; }
   .position-risk-checklist small, .position-risk-checklist b { font-size: 7px; }
-  .risk-layout { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); gap: 8px; }
-  .risk-form { gap: 8px; }
+  .pattern-hero { padding: 11px; border-radius: 12px; }
+  .pattern-hero > strong { font-size: 15px; }
+  .pattern-hero > p { font-size: 9px; }
+  .pattern-indicators { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+  .pattern-indicators article { padding: 8px; }
+  .pattern-indicators strong { font-size: 10px; }
+  .pattern-indicators span, .pattern-indicators small { font-size: 7px; }
   .risk-results { grid-template-columns: 1fr; }
-  .risk-form .check-row { gap: 6px; padding: 8px; }
-  .risk-form .check-row span { font-size: 9px; }
   .risk-card { padding: 11px; border-radius: 12px; }
   .risk-card > span { font-size: 8px; }
   .risk-card strong { font-size: 14px; }

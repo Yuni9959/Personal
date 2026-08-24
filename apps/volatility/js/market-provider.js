@@ -1,4 +1,7 @@
-import { calculateWilderAtrFromBars } from "./calculator.js";
+import {
+  buildFiveMinuteChartFeatures,
+  calculateWilderAtrFromBars
+} from "./calculator.js";
 
 const CHICAGO_TIME_ZONE = "America/Chicago";
 const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"]);
@@ -8,10 +11,9 @@ const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
 const BAR_SECONDS = 5 * 60;
-// Five calendar days keeps the most recent completed CME session available
-// across ordinary weekends and three-day holiday weekends. The response is
-// still bounded independently before either JSON layer is parsed.
-const SOURCE_LOOKBACK_SECONDS = 5 * 24 * 60 * 60;
+// Thirty calendar days supplies roughly twenty futures sessions so EMA50/200,
+// RSI14 and the causal 20-session ATR percentile can be calculated locally.
+const SOURCE_LOOKBACK_SECONDS = 30 * 24 * 60 * 60;
 const DEFAULT_TIMEOUT_MS = 15000;
 const MAX_TIMEOUT_MS = 15000;
 export const MAX_JSON_RESPONSE_BYTES = 512 * 1024;
@@ -489,7 +491,10 @@ function validateCurrentSession(timestamps, quote) {
   if (rawEntries[0].bucket !== startSeconds || rawEntries[0].timestamp !== startSeconds) {
     throw new Error("현재 CME 세션의 첫 5분봉이 없어 자동 계산을 중단합니다.");
   }
-  if (rawEntries[0].missing) throw new Error("현재 CME 세션의 첫 5분봉 OHLC가 완전히 누락되었습니다.");
+  const leadingMissingBucketCount = rawEntries.findIndex(entry => !entry.missing);
+  if (leadingMissingBucketCount < 0 || leadingMissingBucketCount > 2) {
+    throw new Error("현재 CME 세션 시작부의 유효한 5분봉을 확인할 수 없습니다.");
+  }
   if (rawEntries.at(-1).missing) throw new Error("현재 CME 세션의 마지막 5분봉 OHLC가 완전히 누락되었습니다.");
 
   const bucketEntries = [];
@@ -505,14 +510,17 @@ function validateCurrentSession(timestamps, quote) {
     }
     if (!aligned) syntheticSeen = true;
     if (entry.missing) {
-      if (!aligned || index === 0 || isLast) {
+      const isAllowedLeadingGap = index < leadingMissingBucketCount;
+      if (!aligned || (!isAllowedLeadingGap && (index === 0 || isLast))) {
         throw new Error("완전 누락 5분봉은 현재 세션의 정렬된 중간 bucket에서만 허용됩니다.");
       }
-      missingInteriorBucketCount += 1;
-      if (missingInteriorBucketCount > 1) {
-        throw new Error("현재 CME 세션의 완전 누락 5분봉이 1개를 초과했습니다.");
+      if (!isAllowedLeadingGap) {
+        missingInteriorBucketCount += 1;
+        if (missingInteriorBucketCount > 1) {
+          throw new Error("현재 CME 세션의 완전 누락 5분봉이 1개를 초과했습니다.");
+        }
+        missingInteriorBucketAt = entry.at.toISOString();
       }
-      missingInteriorBucketAt = entry.at.toISOString();
     }
 
     const previous = bucketEntries.at(-1);
@@ -547,8 +555,24 @@ function validateCurrentSession(timestamps, quote) {
     expectedBucketCount: bucketEntries.length,
     syntheticSeen,
     missingInteriorBucketCount,
-    missingInteriorBucketAt
+    missingInteriorBucketAt,
+    leadingMissingBucketCount,
+    leadingMissingBucketAt: leadingMissingBucketCount > 0 ? rawEntries[0].at.toISOString() : null
   };
+}
+
+function completedHistoryBars(timestamps, quote, fetchedAt, latestCurrentBar) {
+  const byBucket = new Map();
+  timestamps.forEach((timestamp, index) => {
+    const entry = sessionEntryFromQuote(quote, index, timestamp);
+    if (entry.missing || entry.timestamp !== entry.bucket ||
+        (entry.bucket + BAR_SECONDS) * 1000 > fetchedAt.getTime() ||
+        entry.bucket > latestCurrentBar.bucket) return;
+    byBucket.set(entry.bucket, {
+      at: entry.at.toISOString(), high: entry.high, low: entry.low, close: entry.close
+    });
+  });
+  return [...byBucket.values()].sort((left, right) => left.at.localeCompare(right.at));
 }
 
 function latestContiguousCompletedBars(bars) {
@@ -660,7 +684,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
     expectedBucketCount,
     syntheticSeen,
     missingInteriorBucketCount,
-    missingInteriorBucketAt
+    missingInteriorBucketAt,
+    leadingMissingBucketCount,
+    leadingMissingBucketAt
   } = validateCurrentSession(timestamps, quote);
   const currentBar = bucketBars.at(-1);
   const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars);
@@ -679,6 +705,8 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
   // Wilder series at the newest uninterrupted run and require a full 14 bars.
   const atrBars = latestContiguousCompletedBars(completedBars);
   const atr = calculateWilderAtrFromBars(atrBars);
+  const historyBars = completedHistoryBars(timestamps, quote, fetchedAt, currentBar);
+  const chartFeatures = buildFiveMinuteChartFeatures(historyBars);
 
   return {
     schemaVersion: 1,
@@ -688,7 +716,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       requestedSymbol,
       returnedSymbol,
       interval: "5m",
-      range: "5d-period-window",
+      range: "30d-period-window",
       delayed: true,
       delayMinutes: delayMetadata.delayMinutes,
       delayMetadataVerified: delayMetadata.delayMetadataVerified,
@@ -703,9 +731,13 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       tier,
       fallback: false,
       unofficial: true,
-      barQuality: missingInteriorBucketCount > 0 ? "one-interior-null-bucket" : "complete",
+      barQuality: leadingMissingBucketCount > 0
+        ? "leading-null-buckets"
+        : missingInteriorBucketCount > 0 ? "one-interior-null-bucket" : "complete",
       missingInteriorBucketCount,
       missingInteriorBucketAt,
+      leadingMissingBucketCount,
+      leadingMissingBucketAt,
       atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
       regularMarketOpenMetadataAvailable: regularMarketVerification.openMetadataAvailable,
@@ -735,11 +767,16 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       atr5m14: atr === null ? null : Number(atr.toFixed(6)),
       atrLastCompletedBarAt: atr === null ? null : atrBars.at(-1)?.at.toISOString() || null
     },
+    indicators: chartFeatures.indicators,
+    chart5m: chartFeatures.chart5m,
     limitations: [
       "MNQ=F는 실제 월물이 아닌 연속선물 프록시입니다.",
       `Yahoo의 CME 선물 시세는 약 ${CME_DELAY_MINUTES}분 지연이며 무결점 시세가 아닙니다.`,
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
       "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다.",
+      ...(leadingMissingBucketCount > 0
+        ? [`세션 시작 ${leadingMissingBucketCount}개 5분봉이 완전-null이어서 첫 유효 시가는 참고만 하고 현재가·자동 지표는 Yahoo H/L/current/time 교차검증 뒤 사용합니다.`]
+        : []),
       ...(missingInteriorBucketCount > 0
         ? [atr === null
             ? "현재 세션 중간 5분봉 1개 이후 연속 완료봉이 14개보다 적어 5분 ATR을 중지했습니다."

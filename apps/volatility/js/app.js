@@ -1,8 +1,10 @@
 import {
   WEEKLY_VOLATILITY_REFERENCE as REFERENCE,
   assessPositionLossRisk,
+  calculatePositionPathFeatures,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
+  classifyLiveTradePattern,
   classifyPatternRisk,
   validateMarketBar
 } from "./calculator.js";
@@ -23,6 +25,7 @@ import {
   MAX_SOURCE_AGE_MINUTES,
   assessSnapshot,
   isNqFallback,
+  selectBestSnapshotCandidate,
   sourceAgeMinutes
 } from "./snapshot-policy.js";
 
@@ -31,7 +34,6 @@ const LAST_REQUEST_KEY = "personal-tap-volatility-last-request-v1";
 const RATE_LIMIT_UNTIL_KEY = "personal-tap-volatility-rate-limit-until-v1";
 const LEGACY_MANUAL_KEY = "personal-tap-volatility-manual-v1";
 const POSITION_KEY = "personal-tap-volatility-position-v1";
-const RISK_KEY = "personal-tap-volatility-risk-v1";
 
 const $ = selector => document.querySelector(selector);
 const els = {
@@ -73,9 +75,10 @@ const els = {
   positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
   positionRiskSummary: $("#positionRiskSummary"), positionRiskMetrics: $("#positionRiskMetrics"),
   positionRiskChecklist: $("#positionRiskChecklist"),
-  riskForm: $("#riskForm"), ema1h: $("#ema1h"), rsi1h: $("#rsi1h"),
-  atrPercentile: $("#atrPercentile"), noFavorableExcursion: $("#noFavorableExcursion"),
-  stopHesitation: $("#stopHesitation"), p6Result: $("#p6Result"), killResult: $("#killResult"), p7Result: $("#p7Result")
+  patternEmpty: $("#patternEmpty"), patternResults: $("#patternResults"),
+  patternHeadline: $("#patternHeadline"), patternSummary: $("#patternSummary"),
+  patternEvidence: $("#patternEvidence"), patternIndicators: $("#patternIndicators"),
+  p6Result: $("#p6Result"), killResult: $("#killResult"), p7Result: $("#p7Result")
 };
 
 const scenarioEls = {
@@ -95,6 +98,7 @@ const scenarioEls = {
 
 const state = {
   snapshot: null,
+  chartSnapshot: null,
   assessment: null,
   scenarios: null,
   operational: null,
@@ -170,9 +174,11 @@ function delayDescription(snapshot, assessment) {
   if (assessment.ageMinutes === null) return "시각 확인 불가 · 계산 중지";
   const age = `${Math.max(0, Math.round(assessment.ageMinutes))}분 전 가격`;
   if (assessment.referenceOnly) {
-    const referenceLabel = ["completed-session", "local-completed-session"].includes(assessment.marketState)
-      ? "최근 완료 세션 참고"
-      : "이전 검증 시세 참고";
+    const referenceLabel = assessment.marketState === "active-partial-open"
+      ? "최신 Yahoo 시세 참고"
+      : ["completed-session", "local-completed-session"].includes(assessment.marketState)
+        ? "최근 완료 세션 참고"
+        : "이전 검증 시세 참고";
     return `${age} · ${referenceLabel} · 실전 계산 잠금`;
   }
   const delayLabel = snapshot?.provider?.delayMetadataVerified === false
@@ -195,7 +201,10 @@ function barQualityNotice(snapshot, assessment) {
   const provider = snapshot?.provider || {};
   const missingCount = Number(provider.missingInteriorBucketCount || 0);
   if (assessment.displayable && snapshot?.mode === "local-archive" && missingCount === 1) {
-    return "로컬 보관 5분봉 1개가 누락되어 ATR은 제공하지 않습니다.";
+    return "로컬 보관 5분봉 1개 결손 이후 연속 완료봉으로 ATR과 차트 지표를 다시 계산했습니다.";
+  }
+  if (assessment.displayable && provider.barQuality === "leading-null-buckets") {
+    return `세션 시작 ${Number(provider.leadingMissingBucketCount || 0)}개 봉이 없어 시가는 참고값이며, 최신 현재가·EMA·RSI·ATR은 완료봉으로 자동 계산했습니다.`;
   }
   if (!assessment.displayable || snapshot?.mode === "manual" ||
       provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
@@ -212,9 +221,9 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
   if (isActiveManual) setCompactDataStatus("manual", "수동 입력");
   else if (assessment.usable) setCompactDataStatus("delayed", "시세 사용 가능");
   else if (assessment.referenceOnly) {
-    setCompactDataStatus("aging", assessment.marketState === "completed-session"
-      ? "최근 세션 참고"
-      : "이전 시세 참고");
+    setCompactDataStatus("aging", assessment.marketState === "active-partial-open"
+      ? "최신 시세 참고"
+      : assessment.marketState === "completed-session" ? "최근 세션 참고" : "이전 시세 참고");
   }
   else if (assessment.key === "stale") setCompactDataStatus("stale", "시세 만료");
   else setCompactDataStatus("error", "시세 없음");
@@ -223,9 +232,11 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     els.dataNotice.textContent = "수동 입력값으로 계산 중입니다. 주문 전 실제 월물 시세와 다시 대조하세요.";
   } else if (assessment.referenceOnly) {
     els.dataNotice.classList.add("warning");
-    const sourceLabel = ["completed-session", "local-completed-session"].includes(assessment.marketState)
-      ? "최근 완료 세션"
-      : "이전에 검증한 세션";
+    const sourceLabel = assessment.marketState === "active-partial-open"
+      ? "최신 Yahoo 관측"
+      : ["completed-session", "local-completed-session"].includes(assessment.marketState)
+        ? "최근 완료 세션"
+        : "이전에 검증한 세션";
     const referenceDetail = assessment.referenceLineCalculationAllowed
       ? "이번 주 기준 환산선도 함께 표시하지만"
       : "주간 기준 환산선은 잠그고";
@@ -422,12 +433,13 @@ function renderMarket() {
   renderReferencePrices(referenceVisible ? market : null);
   const completedSessionPreview = assessment.referenceOnly &&
     ["completed-session", "local-completed-session"].includes(assessment.marketState);
+  const latestPartialPreview = assessment.marketState === "active-partial-open";
   els.marketTitle.textContent = assessment.referenceOnly
-    ? (completedSessionPreview ? "최근 완료 세션" : "이전 참고 시세")
+    ? (latestPartialPreview ? "오늘의 최신 시세" : completedSessionPreview ? "최근 완료 세션" : "이전 참고 시세")
     : "오늘의 시세";
   const displayedSymbol = state.snapshot.mode === "local-archive" ? "NQ" : "MNQ";
   els.quoteGrid.setAttribute("aria-label", assessment.referenceOnly
-    ? (completedSessionPreview ? `${displayedSymbol} 최근 완료 세션 참고 시세` : `${displayedSymbol} 이전 참고 시세`)
+    ? (latestPartialPreview ? `${displayedSymbol} 오늘 최신 참고 시세` : completedSessionPreview ? `${displayedSymbol} 최근 완료 세션 참고 시세` : `${displayedSymbol} 이전 참고 시세`)
     : `${displayedSymbol} 오늘 시세`);
   els.currentPriceLabel.textContent = assessment.referenceOnly ? "마지막 관측가" : "현재가";
   els.openPrice.textContent = displayable ? formatNumber(market.open) : "—";
@@ -488,6 +500,9 @@ function renderMarket() {
 
 function applySnapshot(snapshot, { cache = true, forceLockReason = "" } = {}) {
   state.snapshot = validateSnapshot(snapshot);
+  if (snapshot.mode !== "manual" && snapshot.indicators?.timeframe === "5m") {
+    state.chartSnapshot = snapshot;
+  }
   state.forceLockReason = forceLockReason;
   const assessment = assessSnapshot(snapshot);
   state.assessment = forceLockReason
@@ -627,7 +642,10 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   setCompactDataStatus("loading", "조회 중");
   state.transientNotice = "";
   const requestedAt = new Date();
-  const preferLocalArchive = shouldPreferLocalArchive(requestedAt);
+  // Initial weekend load may use the bundled archive immediately. An explicit
+  // button press always tries Yahoo first, even during a closure, so a newly
+  // reopened session or a later completed bar is never hidden by the archive.
+  const preferLocalArchive = trigger !== "button" && shouldPreferLocalArchive(requestedAt);
   const cooldownRemaining = cooldownRemainingMs();
   // A provider-directed backoff must not block the same-origin local archive
   // during the regular weekend closure because no relay request is sent then.
@@ -659,6 +677,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   try {
     let result = null;
     let localFailure = null;
+    let remoteFailure = null;
     if (preferLocalArchive) {
       try {
         const localSnapshot = validateSnapshot(await fetchLocalNasdaqSnapshot(fetch));
@@ -672,23 +691,34 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       }
     }
     if (!result) {
+      let remoteSnapshot = null;
+      let localSnapshot = null;
       try {
-        result = {
-          snapshot: await fetchYahooSnapshot(fetch, requestedAt, { timeoutMs: REQUEST_DEADLINE_MS }),
-          source: "remote",
-          remoteFailure: null
-        };
-      } catch (remoteFailure) {
+        remoteSnapshot = validateSnapshot(
+          await fetchYahooSnapshot(fetch, requestedAt, { timeoutMs: REQUEST_DEADLINE_MS })
+        );
+      } catch (error) {
+        remoteFailure = error;
+      }
+      const remoteAssessment = remoteSnapshot ? assessSnapshot(remoteSnapshot, requestedAt) : null;
+      // A current usable MNQ quote wins immediately. Reference-only or failed
+      // remote results are compared with the user's archive and current view by
+      // source-bar time so refresh can never replace a newer observation with
+      // an older one.
+      if (!remoteAssessment?.usable) {
         try {
-          result = {
-            snapshot: await fetchLocalNasdaqSnapshot(fetch),
-            source: "local",
-            remoteFailure
-          };
-        } catch {
-          throw remoteFailure || localFailure;
+          localSnapshot = validateSnapshot(await fetchLocalNasdaqSnapshot(fetch));
+        } catch (error) {
+          localFailure = error;
         }
       }
+      const best = selectBestSnapshotCandidate([
+        ...(remoteSnapshot ? [{ snapshot: remoteSnapshot, source: "remote" }] : []),
+        ...(localSnapshot ? [{ snapshot: localSnapshot, source: "local" }] : []),
+        ...(state.snapshot ? [{ snapshot: state.snapshot, source: "current" }] : [])
+      ], requestedAt);
+      if (!best) throw remoteFailure || localFailure || new Error("표시 가능한 최근 시세가 없습니다.");
+      result = { snapshot: best.snapshot, source: best.source, remoteFailure };
     }
     const snapshot = validateSnapshot(result.snapshot);
     const assessment = assessSnapshot(snapshot);
@@ -702,13 +732,21 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       state.transientNotice = trigger === "load"
         ? "이 화면을 열어 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
         : "버튼 요청으로 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
-    } else {
+    } else if (result.source === "local") {
       const remoteDetail = result.remoteFailure
         ? ` ${requestFailureReason(result.remoteFailure)}`
         : "";
       state.transientNotice = `주말·휴장용으로 동기화된 로컬 NQ 최근 완료 세션을 불러왔습니다.${remoteDetail}`;
+    } else {
+      const remoteDetail = result.remoteFailure ? ` ${requestFailureReason(result.remoteFailure)}` : "";
+      state.transientNotice = `새 조회보다 기존 관측값이 더 최근이어서 그대로 유지했습니다.${remoteDetail}`;
     }
-    applySnapshot(snapshot, { cache: assessment.displayable });
+    applySnapshot(snapshot, {
+      cache: assessment.displayable && result.source !== "current",
+      forceLockReason: result.source === "current" && result.remoteFailure
+        ? "새 Yahoo 조회가 실패해 기존 관측값을 표시합니다."
+        : ""
+    });
   } catch (error) {
     const failureReason = requestFailureReason(error);
     // Manual input may remain usable after a network failure, but its 25-minute
@@ -873,17 +911,6 @@ function restorePosition() {
   els.enteredAt.value = saved.enteredAt ?? "";
 }
 
-function riskInput() {
-  return {
-    ema1h: els.ema1h.value,
-    rsi1h: els.rsi1h.value,
-    atrPercentile: els.atrPercentile.value,
-    enteredAt: els.enteredAt.value,
-    noFavorableExcursion: els.noFavorableExcursion.checked,
-    stopHesitation: els.stopHesitation.checked
-  };
-}
-
 function setRiskCard(element, tone, title, description) {
   element.className = `risk-card ${tone}`;
   element.querySelector("strong").textContent = title;
@@ -891,43 +918,89 @@ function setRiskCard(element, tone, title, description) {
 }
 
 function renderRisk() {
-  const input = riskInput();
-  writeJson(RISK_KEY, {
-    ema1h: input.ema1h, rsi1h: input.rsi1h, atrPercentile: input.atrPercentile,
-    noFavorableExcursion: input.noFavorableExcursion, stopHesitation: input.stopHesitation
+  const input = positionInput();
+  const marketContext = positionMarketContext();
+  const chartSnapshot = state.snapshot?.indicators?.timeframe === "5m"
+    ? state.snapshot
+    : state.chartSnapshot;
+  const indicators = chartSnapshot?.indicators;
+  if (input.direction === "none" || !input.entry || !input.enteredAt) {
+    els.patternEmpty.hidden = false;
+    els.patternEmpty.textContent = "방향·체결가격·체결시간을 입력하면 차트 지표와 현재 거래 패턴 경향을 자동 계산합니다.";
+    els.patternResults.hidden = true;
+    return;
+  }
+  if (!marketContext || !indicators || indicators.timeframe !== "5m") {
+    els.patternEmpty.hidden = false;
+    els.patternEmpty.textContent = "자동 지표를 계산할 검증된 5분봉 차트가 없습니다. 오늘 시세를 새로고침하거나 로컬 나스닥 데이터를 동기화하세요.";
+    els.patternResults.hidden = true;
+    return;
+  }
+
+  const positionRisk = assessPositionLossRisk({
+    ...input,
+    current: marketContext.current,
+    atr5m14: marketContext.atr5m14
   });
-  const result = classifyPatternRisk(input);
+  const path = calculatePositionPathFeatures(chartSnapshot?.chart5m, input, marketContext.atr5m14);
+  const result = classifyPatternRisk({
+    ema1h: indicators.emaRegime,
+    rsi1h: indicators.rsi14,
+    atrPercentile: indicators.atrPercentile20d,
+    enteredAt: input.enteredAt,
+    mfeAtr: path?.mfeAtr
+  });
+  const tendency = classifyLiveTradePattern({
+    holdingMinutes: positionRisk.holdingMinutes,
+    signedMoveAtr: positionRisk.signedMoveAtr,
+    atrPercentile: indicators.atrPercentile20d,
+    mfeAtr: path?.mfeAtr,
+    maeAtr: path?.maeAtr,
+    pathComplete: path?.completeFromEntry === true
+  });
+  if (!tendency) {
+    els.patternEmpty.hidden = false;
+    els.patternEmpty.textContent = "입력값의 시간·가격을 확인할 수 없어 패턴 경향 계산을 보류했습니다.";
+    els.patternResults.hidden = true;
+    return;
+  }
+
+  els.patternHeadline.textContent = `패턴 ${tendency.number} · ${tendency.name}`;
+  els.patternSummary.textContent = tendency.caution;
+  els.patternEvidence.innerHTML = [
+    ...tendency.evidence,
+    `판정 신뢰도 ${tendency.confidence}`,
+    `과거 군집 비중 ${tendency.historicalSharePercent.toFixed(1)}%`
+  ].map(value => `<span>${value}</span>`).join("");
+  els.patternIndicators.innerHTML = `
+    <article><span>5분 EMA50 / EMA200</span><strong>${formatNumber(indicators.ema50)} / ${formatNumber(indicators.ema200)}</strong><small>${indicators.emaRegime === "bearish" ? "약세 배열" : "강세 배열"}</small></article>
+    <article><span>5분 RSI14</span><strong>${Number(indicators.rsi14).toFixed(1)}</strong><small>${Number(indicators.rsi14) < 45 ? "약세 주의" : Number(indicators.rsi14) > 55 ? "강세 구간" : "중립 구간"}</small></article>
+    <article><span>ATR% 20세션 백분위</span><strong>${Number(indicators.atrPercentile20d).toFixed(1)}</strong><small>n=${Number(indicators.atrPercentileSampleCount).toLocaleString("ko-KR")}</small></article>
+    <article><span>진입 후 MFE / MAE</span><strong>${path ? `${path.mfeAtr.toFixed(2)} / ${path.maeAtr.toFixed(2)} ATR` : "차트 대기"}</strong><small>${path?.completeFromEntry ? `${path.barCount}개 완료봉` : "경로 일부 또는 미관측"}</small></article>`;
+  els.patternEmpty.hidden = true;
+  els.patternResults.hidden = false;
 
   if (!result.p6Complete) {
-    setRiskCard(els.p6Result, "caution", "판단 보류", "ATR% 백분위와 1h EMA/RSI 정보가 필요합니다.");
+    setRiskCard(els.p6Result, "caution", "자동 지표 부족", "EMA·RSI·ATR 백분위의 완료봉 표본이 부족합니다.");
   } else if (result.p6Forbidden) {
-    setRiskCard(els.p6Result, "caution", "P6 shadow 경고 후보", "High Vol(≥75백분위) AND Bearish Regime이 모두 탐지됐지만 검증 표본이 각 1건이라 자동 차단하지 않습니다.");
+    setRiskCard(els.p6Result, "danger", "고변동·약세 복합 경고", "ATR 백분위 75 이상과 EMA/RSI 약세가 동시에 관측됐습니다. 추격·추가 진입을 피하고 청산 기준을 확인하세요.");
   } else {
-    setRiskCard(els.p6Result, "safe", "P6 본 규칙 미해당", "AND 조건은 완성되지 않았습니다. P1–P5 적합성까지 의미하지는 않습니다.");
+    setRiskCard(els.p6Result, "safe", "복합 경고 미해당", "고변동성과 약세 레짐이 동시에 나타나지 않았습니다.");
   }
   if (!result.killComplete) {
-    setRiskCard(els.killResult, "caution", "판단 보류 · 비활성", "비교용 OR 규칙의 감지 여부를 보려면 나머지 환경 정보가 필요합니다. hard kill로는 사용하지 않습니다.");
+    setRiskCard(els.killResult, "caution", "시장 레짐 계산 대기", "완료 5분봉 지표가 더 필요합니다.");
   } else if (result.globalKillSwitch) {
-    setRiskCard(els.killResult, "caution", "기존 OR 규칙 감지 · 비활성", "EMA 약세, RSI<45, High Vol 중 하나 이상이지만 실증상 과잉차단이어서 hard kill로 사용하지 않습니다.");
+    setRiskCard(els.killResult, "caution", "시장 환경 주의", "EMA 약세, RSI<45, 고변동 중 하나 이상입니다. 단독 조건만으로 청산하지 말고 포지션 위험 단계와 함께 보세요.");
   } else {
-    setRiskCard(els.killResult, "safe", "기존 OR 규칙 미감지 · 비활성", "입력된 세 조건 중 감지 조건이 없습니다. 이 규칙은 어느 경우에도 hard kill로 사용하지 않습니다.");
+    setRiskCard(els.killResult, "safe", "시장 환경 중립", "EMA·RSI·ATR 기준의 주의 조건이 현재는 감지되지 않았습니다.");
   }
   if (!result.p7Complete) {
-    setRiskCard(els.p7Result, "caution", "진입 시각 필요 · 미검증", "포지션의 진입 시각을 입력하면 사용자 입력으로 10분 안전 알림을 점검합니다.");
+    setRiskCard(els.p7Result, "caution", "진입 후 경로 대기", "체결시간 이후 완료 5분봉이 생기면 최대유리변동을 자동 점검합니다.");
   } else if (result.p7Forbidden) {
-    setRiskCard(els.p7Result, "caution", "P7 입력 기반 안전 알림 · 미검증", `${Math.floor(result.holdingMinutes)}분 보유·무반응·손절 주저가 모두 입력됐습니다. 직접 관리 로그가 부족하므로 자동 판정이 아니며, 미리 정한 청산 규칙을 다시 확인하세요.`);
+    setRiskCard(els.p7Result, "caution", "10분 무반응 경고", `${Math.floor(result.holdingMinutes)}분 동안 최대유리변동이 0.25 ATR 미만입니다. 진입 근거와 최초 청산 기준을 다시 확인하세요.`);
   } else {
-    setRiskCard(els.p7Result, "safe", "P7 미검증 알림 조건 미완성", `${Math.floor(result.holdingMinutes)}분 보유. 10분·무반응·손절 주저가 모두 필요합니다.`);
+    setRiskCard(els.p7Result, "safe", "유리 변동 관측", `${Math.floor(result.holdingMinutes)}분 보유 중 최대유리변동이 ${path.mfeAtr.toFixed(2)} ATR입니다.`);
   }
-}
-
-function restoreRisk() {
-  const saved = readJson(RISK_KEY, {});
-  els.ema1h.value = ["bullish", "bearish"].includes(saved.ema1h) ? saved.ema1h : "unknown";
-  els.rsi1h.value = saved.rsi1h ?? "";
-  els.atrPercentile.value = saved.atrPercentile ?? "";
-  els.noFavorableExcursion.checked = Boolean(saved.noFavorableExcursion);
-  els.stopHesitation.checked = Boolean(saved.stopHesitation);
 }
 
 function setManualPanelExpanded(expanded, { returnFocus = false } = {}) {
@@ -981,7 +1054,6 @@ els.useAutoAtrBtn.addEventListener("click", () => {
 });
 els.refreshBtn.addEventListener("click", () => refreshMarket({ trigger: "button" }));
 els.positionForm.addEventListener("input", renderPosition);
-els.riskForm.addEventListener("input", renderRisk);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && state.snapshot) renderMarket();
 });
@@ -1015,7 +1087,6 @@ if (todayKst > REFERENCE.effectiveThrough) {
   els.referencePeriod.style.color = "var(--amber)";
 }
 restorePosition();
-restoreRisk();
 try { localStorage.removeItem(LEGACY_MANUAL_KEY); }
 catch { /* Legacy manual values are intentionally not restored. */ }
 setManualPanelExpanded(false);

@@ -3,7 +3,8 @@ import test from "node:test";
 import {
   MAX_REFERENCE_SOURCE_AGE_MINUTES,
   assessSnapshot,
-  referenceExpiryReason
+  referenceExpiryReason,
+  selectBestSnapshotCandidate
 } from "../js/snapshot-policy.js";
 
 const now = new Date("2026-08-14T06:30:00.000Z");
@@ -68,6 +69,36 @@ test("진행 세션의 25분 경계만 거래 계산을 허용한다", () => {
   assert.equal(stale.displayable, false);
   assert.equal(stale.referenceOnly, false);
   assert.equal(stale.marketState, "active-stale");
+});
+
+test("세션 시작 null 봉과 공식 시가가 없는 최신 Yahoo 값은 가격·지표 참고만 연다", () => {
+  const partial = snapshot({ ageMinutes: 10 });
+  Object.assign(partial.provider, {
+    leadingMissingBucketCount: 2,
+    regularMarketOpenMetadataAvailable: false
+  });
+  const result = assessSnapshot(partial, now, reference);
+  assert.equal(result.usable, false);
+  assert.equal(result.displayable, true);
+  assert.equal(result.referenceOnly, true);
+  assert.equal(result.referenceLineCalculationAllowed, false);
+  assert.equal(result.marketState, "active-partial-open");
+  assert.match(result.reason, /현재가·자동 차트 지표/);
+});
+
+test("원격·로컬·현재 후보 중 실제 원천 봉 시각이 가장 최신인 표시값을 고른다", () => {
+  const olderUsable = snapshot({ ageMinutes: 20 });
+  const newerPartial = snapshot({ ageMinutes: 10 });
+  Object.assign(newerPartial.provider, {
+    leadingMissingBucketCount: 2,
+    regularMarketOpenMetadataAvailable: false
+  });
+  const selected = selectBestSnapshotCandidate([
+    { source: "remote", snapshot: newerPartial },
+    { source: "current", snapshot: olderUsable }
+  ], now, reference);
+  assert.equal(selected.source, "remote");
+  assert.equal(selected.assessment.marketState, "active-partial-open");
 });
 
 test("토요일에는 종료 5분 이내까지 관측된 최근 완료 세션만 참고값으로 연다", () => {

@@ -5,10 +5,13 @@ import {
   POSITION_LOSS_RISK_RULES,
   WEEKLY_VOLATILITY_REFERENCE,
   assessPositionLossRisk,
+  buildFiveMinuteChartFeatures,
+  calculatePositionPathFeatures,
   calculatePositionScenario,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
   calculateWilderAtrFromBars,
+  classifyLiveTradePattern,
   classifyPatternRisk,
   classifySnapshotStatus,
   roundToTick,
@@ -119,6 +122,28 @@ test("최신 연속 완료 5분봉으로 Wilder ATR(14)을 자동 계산한다",
   assert.equal(calculateWilderAtrFromBars(bars), 3);
   assert.equal(calculateWilderAtrFromBars(bars.slice(0, 13)), null);
   assert.throws(() => calculateWilderAtrFromBars([{ high: 102, low: 101, close: 100 }]), /올바르지 않습니다/);
+});
+
+test("완료 5분봉에서 EMA50·EMA200·RSI14·ATR 백분위와 포지션 경로를 자동 계산한다", () => {
+  const bars = Array.from({ length: 400 }, (_, index) => ({
+    at: new Date(Date.parse("2026-08-20T00:00:00Z") + index * 300000).toISOString(),
+    high: 30002 + index * 0.25,
+    low: 29998 + index * 0.25,
+    close: 30000 + index * 0.25
+  }));
+  const result = buildFiveMinuteChartFeatures(bars, { chartWindowBars: 100 });
+  assert.equal(result.indicators.timeframe, "5m");
+  assert.equal(result.indicators.emaRegime, "bullish");
+  assert.ok(result.indicators.ema50 > result.indicators.ema200);
+  assert.ok(result.indicators.rsi14 >= 99);
+  assert.ok(result.indicators.atrPercentile20d >= 0);
+  assert.equal(result.chart5m.length, 100);
+  const path = calculatePositionPathFeatures(result.chart5m, {
+    direction: "long", entry: bars[320].close, enteredAt: bars[320].at
+  }, 4);
+  assert.ok(path.mfeAtr > 0);
+  assert.ok(path.maeAtr <= 0);
+  assert.equal(path.completeFromEntry, true);
 });
 
 test("포지션 상한 가정과 1 ATR 손절을 MNQ $2/point로 계산한다", () => {
@@ -261,9 +286,19 @@ test("저변동성은 P6 AND를 미해당으로 확정하지만 OR 규칙은 나
   assert.equal(result.killComplete, false);
 });
 
-test("P7은 10분 초과·무반응·손절 주저가 모두 있을 때만 경고한다", () => {
+test("P7은 10분 초과 뒤 차트상 최대유리변동이 0.25 ATR 미만이면 자동 경고한다", () => {
   const now = new Date("2026-08-13T12:20:00Z");
-  const base = { enteredAt: "2026-08-13T12:09:00Z", noFavorableExcursion: true, stopHesitation: true };
+  const base = { enteredAt: "2026-08-13T12:09:00Z", mfeAtr: 0.2 };
   assert.equal(classifyPatternRisk(base, now).p7Forbidden, true);
-  assert.equal(classifyPatternRisk({ ...base, stopHesitation: false }, now).p7Forbidden, false);
+  assert.equal(classifyPatternRisk({ ...base, mfeAtr: 0.3 }, now).p7Forbidden, false);
+  assert.equal(classifyPatternRisk({ enteredAt: base.enteredAt }, now).p7Complete, false);
+});
+
+test("현재 관측값으로 네 가지 완결 거래 군집의 경향을 번호로 분류한다", () => {
+  assert.equal(classifyLiveTradePattern({ holdingMinutes: 15, signedMoveAtr: 0.5, atrPercentile: 50 }).number, 1);
+  assert.equal(classifyLiveTradePattern({ holdingMinutes: 15, signedMoveAtr: 0.5, atrPercentile: 80 }).number, 2);
+  const risk = classifyLiveTradePattern({ holdingMinutes: 730, signedMoveAtr: -1, atrPercentile: 50 });
+  assert.equal(risk.number, 3);
+  assert.equal(risk.isRiskPattern, true);
+  assert.equal(classifyLiveTradePattern({ holdingMinutes: 150, signedMoveAtr: 1.5, atrPercentile: 50 }).number, 4);
 });

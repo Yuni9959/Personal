@@ -95,6 +95,128 @@ export function calculateWilderAtrFromBars(bars, period = 14) {
   return atr;
 }
 
+function emaSeries(values, span) {
+  const alpha = 2 / (span + 1);
+  let current = values[0];
+  return values.map((value, index) => {
+    if (index > 0) current = alpha * value + (1 - alpha) * current;
+    return index + 1 >= span ? current : null;
+  });
+}
+
+function wilderAtrSeries(bars, period = 14) {
+  const trueRanges = bars.map((bar, index) => {
+    const previousClose = bars[index - 1]?.close;
+    return previousClose === undefined
+      ? bar.high - bar.low
+      : Math.max(bar.high - bar.low, Math.abs(bar.high - previousClose), Math.abs(bar.low - previousClose));
+  });
+  const result = Array(bars.length).fill(null);
+  if (trueRanges.length < period) return result;
+  let atr = trueRanges.slice(0, period).reduce((sum, value) => sum + value, 0) / period;
+  result[period - 1] = atr;
+  for (let index = period; index < trueRanges.length; index += 1) {
+    atr = ((atr * (period - 1)) + trueRanges[index]) / period;
+    result[index] = atr;
+  }
+  return result;
+}
+
+function wilderRsi(closes, period = 14) {
+  if (closes.length <= period) return null;
+  const changes = closes.slice(1).map((value, index) => value - closes[index]);
+  let gain = changes.slice(0, period).reduce((sum, value) => sum + Math.max(value, 0), 0) / period;
+  let loss = changes.slice(0, period).reduce((sum, value) => sum + Math.max(-value, 0), 0) / period;
+  for (const change of changes.slice(period)) {
+    gain = ((gain * (period - 1)) + Math.max(change, 0)) / period;
+    loss = ((loss * (period - 1)) + Math.max(-change, 0)) / period;
+  }
+  if (loss === 0) return gain === 0 ? 50 : 100;
+  return 100 - 100 / (1 + gain / loss);
+}
+
+function normalizedChartBars(bars) {
+  if (!Array.isArray(bars)) throw new TypeError("5분봉 배열이 필요합니다.");
+  return bars.map(bar => {
+    const at = new Date(bar?.at || "");
+    const high = finiteNumber(bar?.high);
+    const low = finiteNumber(bar?.low);
+    const close = finiteNumber(bar?.close);
+    if (!Number.isFinite(at.getTime()) || high === null || low === null || close === null ||
+        high <= 0 || low <= 0 || close <= 0 || high < close || low > close || high < low) {
+      throw new Error("자동 지표 계산용 5분봉이 올바르지 않습니다.");
+    }
+    return { at: at.toISOString(), high, low, close };
+  });
+}
+
+export function buildFiveMinuteChartFeatures(bars, { chartWindowBars = 1380 } = {}) {
+  const normalized = normalizedChartBars(bars);
+  if (!Number.isInteger(chartWindowBars) || chartWindowBars < 1) {
+    throw new TypeError("차트 보존 봉 수는 1 이상의 정수여야 합니다.");
+  }
+  if (normalized.length < 276) return { indicators: null, chart5m: [] };
+  const closes = normalized.map(bar => bar.close);
+  const atrSeries = wilderAtrSeries(normalized);
+  const ema50 = emaSeries(closes, 50).at(-1);
+  const ema200 = emaSeries(closes, 200).at(-1);
+  const rsi14 = wilderRsi(closes);
+  const atrPercentSeries = atrSeries.map((atr, index) => atr === null ? null : atr / closes[index] * 100);
+  const currentAtrPercent = atrPercentSeries.at(-1);
+  const percentileWindow = atrPercentSeries.filter(value => value !== null).slice(-(276 * 20));
+  const atrPercentile20d = currentAtrPercent === null || percentileWindow.length < 276
+    ? null
+    : percentileWindow.filter(value => value <= currentAtrPercent).length / percentileWindow.length * 100;
+  const round = value => value === null ? null : Number(value.toFixed(6));
+  const chartStart = Math.max(0, normalized.length - chartWindowBars);
+  const chart5m = normalized.slice(chartStart).map((bar, offset) => ({
+    ...bar,
+    atr14: round(atrSeries[chartStart + offset])
+  }));
+  return {
+    indicators: {
+      timeframe: "5m",
+      sourceBarAt: normalized.at(-1).at,
+      historyBarCount: normalized.length,
+      ema50: round(ema50),
+      ema200: round(ema200),
+      emaRegime: ema50 >= ema200 ? "bullish" : "bearish",
+      rsi14: round(rsi14),
+      atrPercentile20d: round(atrPercentile20d),
+      atrPercentileSampleCount: percentileWindow.length
+    },
+    chart5m
+  };
+}
+
+export function calculatePositionPathFeatures(chartBars, position, fallbackAtr = null) {
+  if (!Array.isArray(chartBars) || !["long", "short"].includes(position?.direction)) return null;
+  const entry = finiteNumber(position?.entry);
+  const enteredAt = new Date(position?.enteredAt || "");
+  if (entry === null || entry <= 0 || !Number.isFinite(enteredAt.getTime())) return null;
+  const path = chartBars.filter(bar => new Date(bar?.at || "").getTime() >= enteredAt.getTime());
+  if (!path.length) return null;
+  const normalized = normalizedChartBars(path);
+  const direction = position.direction === "long" ? 1 : -1;
+  const favorable = normalized.map(bar => direction > 0 ? bar.high - entry : entry - bar.low);
+  const adverse = normalized.map(bar => direction > 0 ? bar.low - entry : entry - bar.high);
+  const entryAtr = finiteNumber(path[0]?.atr14) ?? finiteNumber(fallbackAtr);
+  if (entryAtr === null || entryAtr <= 0) return null;
+  const atrValues = path.map(bar => finiteNumber(bar?.atr14)).filter(value => value !== null && value > 0);
+  const rangePoints = Math.max(...normalized.map(bar => bar.high)) - Math.min(...normalized.map(bar => bar.low));
+  return {
+    barCount: normalized.length,
+    startsAt: normalized[0].at,
+    completeFromEntry: new Date(normalized[0].at).getTime() - enteredAt.getTime() <= 5 * 60000,
+    mfeAtr: Math.max(...favorable) / entryAtr,
+    maeAtr: Math.min(...adverse) / entryAtr,
+    rangeAtr: rangePoints / entryAtr,
+    volatilityExpansionRatio: atrValues.length
+      ? atrValues.reduce((sum, value) => sum + value, 0) / atrValues.length / entryAtr
+      : null
+  };
+}
+
 export function calculateVolatilityScenario(bar, percent) {
   const validation = validateMarketBar(bar);
   const numericPercent = finiteNumber(percent);
@@ -351,6 +473,59 @@ export function classifySnapshotStatus(snapshot, now = new Date()) {
   return { key: "stale", label: "오래된 데이터", ageMinutes };
 }
 
+export const LIVE_TRADE_PATTERN_PROFILES = Object.freeze([
+  Object.freeze({ number: 1, cluster: 0, name: "짧고 단순한 안정형", historicalSharePercent: 30.2 }),
+  Object.freeze({ number: 2, cluster: 1, name: "고변동 단기 대응형", historicalSharePercent: 25.2 }),
+  Object.freeze({ number: 3, cluster: 2, name: "장기 버티기·대형화 위험형", historicalSharePercent: 15.1 }),
+  Object.freeze({ number: 4, cluster: 3, name: "중기 추세 포착형", historicalSharePercent: 29.5 })
+]);
+
+export function classifyLiveTradePattern(input) {
+  const holdingMinutes = finiteNumber(input?.holdingMinutes);
+  const signedMoveAtr = finiteNumber(input?.signedMoveAtr);
+  const atrPercentile = finiteNumber(input?.atrPercentile);
+  const maeAtr = finiteNumber(input?.maeAtr);
+  const mfeAtr = finiteNumber(input?.mfeAtr);
+  if (holdingMinutes === null || holdingMinutes < 0 || signedMoveAtr === null) return null;
+
+  let cluster;
+  const evidence = [];
+  if (holdingMinutes >= 720 || signedMoveAtr <= -2.25 || (maeAtr !== null && maeAtr <= -4)) {
+    cluster = 2;
+    if (holdingMinutes >= 720) evidence.push("12시간 이상 보유");
+    if (signedMoveAtr <= -2.25) evidence.push(`현재 ${signedMoveAtr.toFixed(2)} ATR 손실`);
+    if (maeAtr !== null && maeAtr <= -4) evidence.push(`경로 최대불리변동 ${maeAtr.toFixed(2)} ATR`);
+  } else if (holdingMinutes <= 60 && atrPercentile !== null && atrPercentile >= 75) {
+    cluster = 1;
+    evidence.push("60분 이내 단기 보유", `ATR 백분위 ${atrPercentile.toFixed(1)}`);
+  } else if (holdingMinutes <= 60) {
+    cluster = 0;
+    evidence.push("60분 이내 단기 보유", "고변동 기준 미해당");
+  } else if (holdingMinutes >= 240 && signedMoveAtr < 0) {
+    cluster = 2;
+    evidence.push("4시간 이상 보유", "현재 불리한 방향");
+  } else {
+    cluster = 3;
+    evidence.push("60분 초과 중기 보유");
+    if (signedMoveAtr > 0) evidence.push(`현재 +${signedMoveAtr.toFixed(2)} ATR`);
+    if (mfeAtr !== null && mfeAtr >= 1.5) evidence.push(`최대유리변동 +${mfeAtr.toFixed(2)} ATR`);
+  }
+  const profile = LIVE_TRADE_PATTERN_PROFILES.find(item => item.cluster === cluster);
+  const cautions = {
+    0: "짧은 보유가 길어지거나 추가 진입으로 바뀌면 이 경향은 즉시 약해집니다.",
+    1: "고변동 구간에서는 추격 진입·슬리피지·손절폭 확대를 특히 경계하세요.",
+    2: "과거 평균 손익이 음수였던 위험 군집입니다. 추가 진입을 멈추고 축소·청산 기준을 우선 확인하세요.",
+    3: "유리한 변동을 반납하거나 보유가 12시간을 넘으면 위험형으로 전이될 수 있습니다."
+  };
+  return {
+    ...profile,
+    evidence,
+    caution: cautions[cluster],
+    confidence: input?.pathComplete && atrPercentile !== null ? "중간" : "낮음",
+    isRiskPattern: cluster === 2
+  };
+}
+
 export function classifyPatternRisk(input, now = new Date()) {
   const atrPercentile = finiteNumber(input?.atrPercentile);
   const rsi1h = finiteNumber(input?.rsi1h);
@@ -367,8 +542,9 @@ export function classifyPatternRisk(input, now = new Date()) {
   const holdingMinutes = Number.isFinite(enteredAt.getTime())
     ? Math.max(0, (now.getTime() - enteredAt.getTime()) / 60000)
     : null;
+  const mfeAtr = finiteNumber(input?.mfeAtr);
   const p7Forbidden = holdingMinutes !== null && holdingMinutes > 10 &&
-    Boolean(input?.noFavorableExcursion) && Boolean(input?.stopHesitation);
+    mfeAtr !== null && mfeAtr < 0.25;
 
   return {
     highVol,
@@ -381,6 +557,6 @@ export function classifyPatternRisk(input, now = new Date()) {
     p7Forbidden,
     p6Complete: highVolKnown && (!highVol || bearishRegime || bearishKnownFalse),
     killComplete: globalKillSwitch || (highVolKnown && bearishKnownFalse),
-    p7Complete: holdingMinutes !== null
+    p7Complete: holdingMinutes !== null && mfeAtr !== null
   };
 }
