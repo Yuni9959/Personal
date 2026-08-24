@@ -259,6 +259,8 @@ test("partial-null·마지막·복수 중간 null은 차단하고 시작부 2개
     const parsed = parseYahooChart(source, "MNQ=F", FETCHED_AT);
     assert.equal(parsed.provider.leadingMissingBucketCount, indexes.length);
     assert.equal(parsed.provider.barQuality, "leading-null-buckets");
+    assert.equal(parsed.provider.firstObservedBarAt,
+      new Date(source.chart.result[0].timestamp[2 + indexes.length] * 1000).toISOString());
   }
   for (const [name, indexes, expected] of [
     ["three leading", [2, 3, 4], /시작부의 유효한 5분봉/],

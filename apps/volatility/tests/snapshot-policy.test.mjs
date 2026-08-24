@@ -71,9 +71,10 @@ test("진행 세션의 25분 경계만 거래 계산을 허용한다", () => {
   assert.equal(stale.marketState, "active-stale");
 });
 
-test("세션 시작 null 봉과 공식 시가가 없는 최신 Yahoo 값은 가격·지표 참고만 연다", () => {
+test("세션 시작 null 봉과 공식 시가가 없는 최신 Yahoo 값은 첫 관측 기준표와 지표 참고만 연다", () => {
   const partial = snapshot({ ageMinutes: 10 });
   Object.assign(partial.provider, {
+    barQuality: "leading-null-buckets",
     leadingMissingBucketCount: 2,
     regularMarketOpenMetadataAvailable: false
   });
@@ -81,15 +82,22 @@ test("세션 시작 null 봉과 공식 시가가 없는 최신 Yahoo 값은 가�
   assert.equal(result.usable, false);
   assert.equal(result.displayable, true);
   assert.equal(result.referenceOnly, true);
-  assert.equal(result.referenceLineCalculationAllowed, false);
+  assert.equal(result.referenceLineCalculationAllowed, true);
   assert.equal(result.marketState, "active-partial-open");
-  assert.match(result.reason, /현재가·자동 차트 지표/);
+  assert.match(result.reason, /첫 유효 5분봉 시가는 위 주간 기준표/);
+
+  const inconsistent = structuredClone(partial);
+  inconsistent.provider.firstObservedBarAt = inconsistent.session.start;
+  const rejected = assessSnapshot(inconsistent, now, reference);
+  assert.equal(rejected.displayable, false);
+  assert.match(rejected.reason, /첫 관측 기준시각의 일관성/);
 });
 
 test("원격·로컬·현재 후보 중 실제 원천 봉 시각이 가장 최신인 표시값을 고른다", () => {
   const olderUsable = snapshot({ ageMinutes: 20 });
   const newerPartial = snapshot({ ageMinutes: 10 });
   Object.assign(newerPartial.provider, {
+    barQuality: "leading-null-buckets",
     leadingMissingBucketCount: 2,
     regularMarketOpenMetadataAvailable: false
   });

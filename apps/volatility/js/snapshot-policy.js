@@ -303,18 +303,34 @@ export function assessSnapshot(snapshot, now = new Date(), reference = WEEKLY_VO
   }
 
   const leadingMissingBucketCount = Number(snapshot?.provider?.leadingMissingBucketCount || 0);
+  const hasLeadingNullBuckets = snapshot?.provider?.barQuality === "leading-null-buckets";
+  if (hasLeadingNullBuckets) {
+    const firstObservedAt = new Date(snapshot?.provider?.firstObservedBarAt || "");
+    const expectedFirstObservedAt = providerSession.start.getTime() + leadingMissingBucketCount * 5 * 60000;
+    if (![1, 2].includes(leadingMissingBucketCount) ||
+        (Number.isFinite(firstObservedAt.getTime()) && firstObservedAt.getTime() !== expectedFirstObservedAt)) {
+      return decision({
+        ageMinutes,
+        referenceValid: true,
+        sessionEndedAt: providerSession.end.toISOString(),
+        reason: "세션 시작 결손과 첫 관측 기준시각의 일관성을 검증할 수 없습니다."
+      });
+    }
+  }
   if (leadingMissingBucketCount > 0 &&
+      hasLeadingNullBuckets &&
       snapshot?.provider?.regularMarketOpenMetadataAvailable !== true &&
       ageMinutes <= MAX_SOURCE_AGE_MINUTES) {
     return decision({
       displayable: true,
       referenceOnly: true,
+      referenceLineCalculationAllowed: true,
       key: "reference",
       marketState: "active-partial-open",
       ageMinutes: Math.max(0, ageMinutes),
       referenceValid: true,
       sessionEndedAt: providerSession.end.toISOString(),
-      reason: `진행 중인 MNQ의 최신값이지만 세션 시작 ${leadingMissingBucketCount}개 봉과 공식 시가가 없어 시가 기반 계산은 잠급니다. 현재가·자동 차트 지표·포지션 위험 판정만 참고하세요.`
+      reason: `진행 중인 MNQ의 최신값이지만 세션 시작 ${leadingMissingBucketCount}개 봉과 공식 시가가 없습니다. 첫 유효 5분봉 시가는 위 주간 기준표의 읽기 전용 환산에만 사용하고, 실전 시가 기반 계산은 잠급니다. 현재가·자동 차트 지표·포지션 위험 판정만 참고하세요.`
     });
   }
 

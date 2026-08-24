@@ -81,7 +81,7 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(html, /id="bearLivePrice"/);
   assert.match(html, /id="bullConditionalPrice"/);
   assert.match(html, /id="bearConditionalPrice"/);
-  assert.match(html, /시가 환산 참고선 · 범위 예산 · 목표가 아님/);
+  assert.match(html, /기준가 환산 참고선 · 범위 예산 · 목표가 아님/);
   assert.match(html, /마감 후 복기용/);
   assert.match(html, /OOS=가격선 도달률≠매매 성공률 · 조건부=마감 후 복기/);
   assert.match(html, /class="reference-warning" aria-label="OOS는 과거 가격선 도달률이며 매매 성공률이 아닙니다/);
@@ -93,6 +93,8 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(app, /assessment\.referenceLineCalculationAllowed === true/);
   assert.match(app, /calculateSafeReachScenario\(market, row\.direction, row\.percent\(\)\)/);
   assert.match(app, /els\.referenceOpenLabel\.textContent = "최근 기준 시가"/);
+  assert.match(app, /els\.referenceOpenLabel\.textContent = "첫 관측 기준가"/);
+  assert.match(app, /공식 시가 아님/);
   assert.match(app, /formatCompactDate\(snapshot\.market\?\.latestBarAt\).*기준/);
   assert.match(styles, /\.reference-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
   assert.match(styles, /\.reference-warning\s*\{[^}]*white-space:\s*nowrap/s);
@@ -206,7 +208,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.9\.0-volatility-live-patterns\.1/);
+  assert.match(sw, /v3\.9\.1-volatility-reference-lines\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

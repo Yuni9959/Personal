@@ -124,6 +124,20 @@ function activeMnqFixture() {
   return source;
 }
 
+function leadingNullMnqFixture() {
+  const source = activeMnqFixture();
+  const quote = source.chart.result[0].indicators.quote[0];
+  for (const index of [VOLATILITY_INDICATOR_HISTORY_BARS, VOLATILITY_INDICATOR_HISTORY_BARS + 1]) {
+    for (const field of ["open", "high", "low", "close"]) quote[field][index] = null;
+  }
+  const numeric = values => values.filter(value => typeof value === "number" && Number.isFinite(value));
+  const meta = source.chart.result[0].meta;
+  meta.regularMarketDayHigh = Math.max(...numeric(quote.high.slice(VOLATILITY_INDICATOR_HISTORY_BARS)));
+  meta.regularMarketDayLow = Math.min(...numeric(quote.low.slice(VOLATILITY_INDICATOR_HISTORY_BARS)));
+  meta.regularMarketPrice = quote.close.at(-1);
+  return source;
+}
+
 function completedMnqFixture() {
   const start = Date.parse(VOLATILITY_SESSION_START) / 1000;
   const timestamp = Array.from({ length: 23 * 12 }, (_, index) => start + index * 300);
@@ -816,6 +830,69 @@ async function run() {
     assert.match(delayedQuoteGate.notice, /5분봉 1개 결손/);
     assert.match(delayedQuoteGate.notice, /시가는 첫 세션봉 기준/);
     assert.match(delayedQuoteGate.reachDisclaimer, /가격선 도달률이지 매매 성공률이 아닙니다/);
+
+    const leadingTargetUrl = delayedMnqSourceUrl();
+    const leadingFixtureBody = Buffer.from(JSON.stringify({
+      code: 200,
+      status: 200,
+      data: {
+        title: "",
+        description: "",
+        url: leadingTargetUrl,
+        content: JSON.stringify(leadingNullMnqFixture())
+      }
+    })).toString("base64");
+    await evaluate(client, `(() => {
+      localStorage.setItem(
+        "personal-tap-volatility-last-request-v1",
+        JSON.stringify(Date.now() - 10_001)
+      );
+      localStorage.removeItem("personal-tap-volatility-snapshot-v1");
+      return true;
+    })()`);
+    let leadingRequestCount = 0;
+    const removeLeadingFixture = client.on("Fetch.requestPaused", params => {
+      leadingRequestCount += 1;
+      client.send("Fetch.fulfillRequest", {
+        requestId: params.requestId,
+        responseCode: 200,
+        responseHeaders: [
+          { name: "Content-Type", value: "application/json; charset=utf-8" },
+          { name: "Access-Control-Allow-Origin", value: "*" },
+          { name: "Cache-Control", value: "no-store" }
+        ],
+        body: leadingFixtureBody
+      }).catch(error => browserErrors.push(`Leading-null fixture: ${error.message}`));
+    });
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+    });
+    await navigate(client, `${baseUrl}/apps/volatility/?leading-null-reference-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await client.send("Fetch.disable");
+    removeLeadingFixture();
+    const leadingReference = await evaluate(client, `(() => ({
+      status: document.querySelector("#dataStatus").textContent,
+      referenceOpenLabel: document.querySelector("#referenceOpenLabel").textContent,
+      referenceOpen: document.querySelector("#referenceOpenPrice").textContent,
+      referenceOpenContext: document.querySelector("#referenceOpenContext").textContent,
+      referencePrices: [
+        "bullMeanPrice", "bearMeanPrice", "bullLivePrice",
+        "bearLivePrice", "bullConditionalPrice", "bearConditionalPrice"
+      ].map(id => document.querySelector("#" + id).textContent),
+      calculationsHidden: document.querySelector("#automaticCalculations").hidden,
+      locked: !document.querySelector("#calculationLock").hidden,
+      notice: document.querySelector("#dataNotice").textContent
+    }))()`);
+    assert.equal(leadingRequestCount, 1);
+    assert.equal(leadingReference.status, "최신 시세 참고");
+    assert.equal(leadingReference.referenceOpenLabel, "첫 관측 기준가");
+    assert.notEqual(leadingReference.referenceOpen, "—");
+    assert.match(leadingReference.referenceOpenContext, /공식 시가 아님$/);
+    assert.equal(leadingReference.referencePrices.every(value => value !== "—"), true);
+    assert.equal(leadingReference.calculationsHidden, true);
+    assert.equal(leadingReference.locked, true);
+    assert.match(leadingReference.notice, /주간 기준표의 읽기 전용 환산/);
 
     const activeTargetUrl = delayedMnqSourceUrl();
     const activeFixtureBody = Buffer.from(JSON.stringify({
@@ -2500,7 +2577,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "Volatility 최신 원격 우선·3입력·자동 차트 지표·4패턴 경향·5단계 위험, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 최신 원격 우선·첫 관측 주간 환산표·3입력·자동 차트 지표·4패턴 경향·5단계 위험, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {

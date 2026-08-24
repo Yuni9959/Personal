@@ -738,6 +738,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       missingInteriorBucketAt,
       leadingMissingBucketCount,
       leadingMissingBucketAt,
+      firstObservedBarAt: bucketBars[0].at.toISOString(),
       atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
       regularMarketOpenMetadataAvailable: regularMarketVerification.openMetadataAvailable,

@@ -204,7 +204,7 @@ function barQualityNotice(snapshot, assessment) {
     return "로컬 보관 5분봉 1개 결손 이후 연속 완료봉으로 ATR과 차트 지표를 다시 계산했습니다.";
   }
   if (assessment.displayable && provider.barQuality === "leading-null-buckets") {
-    return `세션 시작 ${Number(provider.leadingMissingBucketCount || 0)}개 봉이 없어 시가는 참고값이며, 최신 현재가·EMA·RSI·ATR은 완료봉으로 자동 계산했습니다.`;
+    return `세션 시작 ${Number(provider.leadingMissingBucketCount || 0)}개 봉이 없어 첫 관측 기준가는 주간 표 환산에만 사용하며, 최신 현재가·EMA·RSI·ATR은 완료봉으로 자동 계산했습니다.`;
   }
   if (!assessment.displayable || snapshot?.mode === "manual" ||
       provider.barQuality !== "one-interior-null-bucket" || missingCount !== 1) return "";
@@ -293,6 +293,16 @@ function renderReferenceContext(snapshot = null, assessment = null) {
   if (!snapshot || !assessment?.displayable) {
     els.referenceOpenLabel.textContent = "오늘 시가";
     els.referenceOpenContext.textContent = "검증된 시세 대기";
+    return;
+  }
+  if (assessment.marketState === "active-partial-open") {
+    const explicitAt = new Date(snapshot.provider?.firstObservedBarAt || "");
+    const sessionStart = new Date(snapshot.session?.start || "");
+    const inferredAt = new Date(sessionStart.getTime() +
+      Number(snapshot.provider?.leadingMissingBucketCount || 0) * 5 * 60000);
+    const firstObservedAt = Number.isFinite(explicitAt.getTime()) ? explicitAt : inferredAt;
+    els.referenceOpenLabel.textContent = "첫 관측 기준가";
+    els.referenceOpenContext.textContent = `${formatCompactDate(firstObservedAt)} · 공식 시가 아님`;
     return;
   }
   if (assessment.referenceOnly) {
