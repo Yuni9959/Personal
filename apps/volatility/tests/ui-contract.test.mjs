@@ -93,10 +93,12 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.match(app, /renderReferencePrices\(referenceVisible \? market : null\)/);
   assert.match(app, /assessment\.referenceLineCalculationAllowed === true/);
   assert.match(app, /calculateSafeReachScenario\(market, row\.direction, row\.percent\(\)\)/);
-  assert.match(app, /els\.referenceOpenLabel\.textContent = "최근 기준 시가"/);
+  assert.match(app, /"최근 기준 시가"/);
+  assert.match(app, /"최근 첫 관측 기준가"/);
   assert.match(app, /els\.referenceOpenLabel\.textContent = "첫 관측 기준가"/);
   assert.match(app, /공식 시가 아님/);
-  assert.match(app, /formatCompactDate\(snapshot\.market\?\.latestBarAt\).*기준/);
+  assert.match(app, /snapshot\.provider\?\.firstObservedBarAt/);
+  assert.doesNotMatch(app, /formatCompactDate\(snapshot\.market\?\.latestBarAt\).*기준/);
   assert.match(styles, /\.reference-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/s);
   assert.match(styles, /\.reference-warning\s*\{[^}]*white-space:\s*nowrap/s);
   assert.match(styles, /@media \(max-width: 900px\)[\s\S]*?\.reference-card \{ order: -1; \}/);
@@ -218,7 +220,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.11\.0-volatility-tail-loss-avoidance\.1/);
+  assert.match(sw, /v3\.11\.1-volatility-reference-time\.1/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
     "./apps/volatility/js/app.js", "./apps/volatility/js/calculator.js",

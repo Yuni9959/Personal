@@ -36,7 +36,7 @@ function latestContiguousBars(bars) {
   return bars.slice(start);
 }
 
-function parseCsv(source) {
+export function parseCsv(source) {
   const lines = source.replace(/^\uFEFF/, "").trim().split(/\r?\n/);
   const header = lines.shift()?.split(",") || [];
   const expected = ["Datetime", "Open", "High", "Low", "Close", "Volume"];
@@ -67,8 +67,7 @@ function parseCsv(source) {
   return bars;
 }
 
-function sessionSnapshot(bars, sourcePath, sourceBytes) {
-  const generatedAt = new Date();
+export function sessionSnapshot(bars, sourcePath, sourceBytes, generatedAt = new Date()) {
   const candidates = new Map();
   for (let index = bars.length - 1; index >= 0; index -= 1) {
     const candidate = cmeEquitySessionFor(bars[index].at);
@@ -77,18 +76,26 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
     }
     if (candidates.size >= 10) break;
   }
-  const session = [...candidates.values()]
+  const completed = [...candidates.values()]
     .sort((left, right) => right.end - left.end)
-    .find(candidate => candidate.end <= generatedAt &&
-      bars.some(bar => bar.at.getTime() === candidate.start.getTime()) &&
-      bars.some(bar => bar.at.getTime() >= candidate.end.getTime() - BAR_MS && bar.at < candidate.end));
-  if (!session) fail("첫 봉부터 종료 전 마지막 5분까지 수집된 최근 완료 CME 세션이 없습니다.");
-  const selected = bars.filter(bar => bar.at >= session.start && bar.at < session.end);
+    .map(session => {
+      const selected = bars.filter(bar => bar.at >= session.start && bar.at < session.end);
+      if (!selected.length || session.end > generatedAt) return null;
+      const leadingMissingBucketCount = (selected[0].at.getTime() - session.start.getTime()) / BAR_MS;
+      const terminalCovered = selected.at(-1).at.getTime() >= session.end.getTime() - BAR_MS;
+      if (!Number.isInteger(leadingMissingBucketCount) || leadingMissingBucketCount < 0 ||
+          leadingMissingBucketCount > 2 || !terminalCovered) return null;
+      return { session, selected, leadingMissingBucketCount };
+    })
+    .find(Boolean);
+  if (!completed) fail("첫 관측이 시작 2봉 안이고 종료 전 마지막 5분까지 수집된 최근 완료 CME 세션이 없습니다.");
+  const { session, selected, leadingMissingBucketCount } = completed;
+  const firstObserved = selected[0];
   const latest = selected.at(-1);
 
   const observed = new Set(selected.map(bar => bar.at.getTime()));
   const missing = [];
-  for (let at = session.start.getTime(); at < session.end.getTime(); at += BAR_MS) {
+  for (let at = firstObserved.at.getTime(); at < session.end.getTime(); at += BAR_MS) {
     if (!observed.has(at)) missing.push(new Date(at).toISOString());
   }
   if (missing.length > 1) {
@@ -119,7 +126,12 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
       sourceSha256: crypto.createHash("sha256").update(sourceBytes).digest("hex"),
       sourceEventAt: latest.at.toISOString(),
       sourceRowCount: bars.length,
-      barQuality: missing.length ? "one-interior-missing-bucket" : "complete",
+      barQuality: leadingMissingBucketCount > 0
+        ? `leading-${leadingMissingBucketCount}${missing.length ? "-plus-one-interior" : ""}-missing-buckets`
+        : missing.length ? "one-interior-missing-bucket" : "complete",
+      leadingMissingBucketCount,
+      leadingMissingBucketAt: leadingMissingBucketCount > 0 ? session.start.toISOString() : null,
+      firstObservedBarAt: firstObserved.at.toISOString(),
       missingInteriorBucketCount: missing.length,
       missingInteriorBucketAt: missing[0] || null,
       atrSourceBarCount: atrBars.length
@@ -133,6 +145,7 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
       status: "completed",
       isCompletedAtFetch: true,
       terminalCoverageVerified: true,
+      firstObservedAt: firstObserved.at.toISOString(),
       lastObservedAt: latest.at.toISOString(),
       barCount: selected.length,
       expectedBarCount: Math.round((session.end - session.start) / BAR_MS),
@@ -151,6 +164,9 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
     chart5m: chartFeatures.chart5m,
     limitations: [
       "사용자가 별도 수집한 NQ=F 연속선물 5분봉의 최근 완료 세션 참고값입니다.",
+      ...(leadingMissingBucketCount > 0
+        ? [`세션 시작 ${leadingMissingBucketCount}개 5분봉이 없어 ${firstObserved.at.toISOString()} 첫 관측 시가를 공식 시가가 아닌 기준가로 사용했습니다.`]
+        : []),
       "최신 연속 완료 5분봉으로 Wilder ATR(14)을 자동 계산했습니다.",
       "MNQ 실제 월물이 아니므로 최근 관측가 기반 포지션 위험 참고 외의 손절·실전 계산에는 사용하지 않습니다.",
       "정적 동기화 시점 이후 값은 포함하지 않으며 주문 전 증권사 실제 월물과 대조해야 합니다."
@@ -158,14 +174,19 @@ function sessionSnapshot(bars, sourcePath, sourceBytes) {
   };
 }
 
-const sourcePath = path.resolve(option("--source", defaultSource));
-const outputPath = path.resolve(option("--output", defaultOutput));
-if (!fs.existsSync(sourcePath)) fail(`로컬 나스닥 파일을 찾을 수 없습니다: ${sourcePath}`);
-const sourceBytes = fs.readFileSync(sourcePath);
-const snapshot = sessionSnapshot(parseCsv(sourceBytes.toString("utf8")), sourcePath, sourceBytes);
-fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-fs.writeFileSync(outputPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
-console.log(`[OK] ${path.relative(process.cwd(), outputPath)}`);
-console.log(`  source: ${sourcePath}`);
-console.log(`  session: ${snapshot.session.label}`);
-console.log(`  latest: ${snapshot.market.latestBarAt}`);
+function main() {
+  const sourcePath = path.resolve(option("--source", defaultSource));
+  const outputPath = path.resolve(option("--output", defaultOutput));
+  if (!fs.existsSync(sourcePath)) fail(`로컬 나스닥 파일을 찾을 수 없습니다: ${sourcePath}`);
+  const sourceBytes = fs.readFileSync(sourcePath);
+  const snapshot = sessionSnapshot(parseCsv(sourceBytes.toString("utf8")), sourcePath, sourceBytes);
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+  fs.writeFileSync(outputPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+  console.log(`[OK] ${path.relative(process.cwd(), outputPath)}`);
+  console.log(`  source: ${sourcePath}`);
+  console.log(`  session: ${snapshot.session.label}`);
+  console.log(`  first observed: ${snapshot.provider.firstObservedBarAt}`);
+  console.log(`  latest: ${snapshot.market.latestBarAt}`);
+}
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

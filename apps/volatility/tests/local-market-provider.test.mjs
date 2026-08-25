@@ -19,6 +19,8 @@ test("동기화된 로컬 NQ 완료 세션 스냅샷을 검증한다", () => {
   assert.equal(result.provider.tier, "nq-local-archive-reference");
   assert.equal(result.provider.sourceFile, "nasdaq_5m.csv");
   assert.equal(result.session.terminalCoverageVerified, true);
+  assert.ok([0, 1, 2].includes(result.provider.leadingMissingBucketCount));
+  assert.equal(result.provider.firstObservedBarAt, result.session.firstObservedAt);
   assert.ok(result.provider.atrSourceBarCount >= 14);
   assert.ok(result.market.atr5m14 > 0);
   assert.equal(result.market.atrLastCompletedBarAt, result.market.latestBarAt);
@@ -38,6 +40,8 @@ test("로컬 NQ 출처·세션·가격 위조를 거부한다", () => {
     value => { value.indicators.sourceBarAt = "2026-08-20T00:00:00Z"; },
     value => { value.chart5m = []; },
     value => { value.session.terminalCoverageVerified = false; },
+    value => { value.provider.leadingMissingBucketCount = 3; },
+    value => { value.provider.firstObservedBarAt = value.session.start; },
     value => { value.market.high = value.market.open - 1; }
   ]) {
     const candidate = clone(fixture);

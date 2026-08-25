@@ -37,17 +37,26 @@ export function validateLocalNasdaqSnapshot(snapshot) {
   const sourceAt = validDate(snapshot.market?.latestBarAt);
   const start = validDate(snapshot.session?.start);
   const end = validDate(snapshot.session?.end);
+  const leadingMissingBucketCount = Number(provider.leadingMissingBucketCount || 0);
+  const firstObserved = validDate(provider.firstObservedBarAt || snapshot.session?.start);
   const observed = validDate(snapshot.session?.lastObservedAt);
   if (!generatedAt || !sourceAt || !start || !end || !observed ||
+      !firstObserved || !Number.isInteger(leadingMissingBucketCount) ||
+      leadingMissingBucketCount < 0 || leadingMissingBucketCount > 2 ||
       snapshot.session?.timeZone !== "America/Chicago" ||
       snapshot.session?.status !== "completed" ||
       snapshot.session?.terminalCoverageVerified !== true ||
       start.getTime() >= end.getTime() ||
       sourceAt.getTime() !== observed.getTime() ||
+      firstObserved.getTime() !== start.getTime() + leadingMissingBucketCount * 5 * 60_000 ||
       sourceAt.getTime() < start.getTime() || sourceAt.getTime() >= end.getTime() ||
       sourceAt.getTime() < end.getTime() - 5 * 60_000 ||
       generatedAt.getTime() < sourceAt.getTime()) {
     throw invalidLocalSnapshot("로컬 나스닥 스냅샷의 세션 또는 원천시각 검증에 실패했습니다.");
+  }
+  if (Object.hasOwn(snapshot.session || {}, "firstObservedAt") &&
+      validDate(snapshot.session.firstObservedAt)?.getTime() !== firstObserved.getTime()) {
+    throw invalidLocalSnapshot("로컬 나스닥 스냅샷의 첫 관측시각이 서로 일치하지 않습니다.");
   }
 
   const market = validateMarketBar(snapshot.market);

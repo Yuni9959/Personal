@@ -309,8 +309,16 @@ function renderReferenceContext(snapshot = null, assessment = null) {
     return;
   }
   if (assessment.referenceOnly) {
-    els.referenceOpenLabel.textContent = "최근 기준 시가";
-    els.referenceOpenContext.textContent = `${formatCompactDate(snapshot.market?.latestBarAt)} 기준`;
+    const leadingMissingBucketCount = Number(snapshot.provider?.leadingMissingBucketCount || 0);
+    const explicitAt = new Date(snapshot.provider?.firstObservedBarAt || "");
+    const sessionStart = new Date(snapshot.session?.start || "");
+    const inferredAt = new Date(sessionStart.getTime() + leadingMissingBucketCount * 5 * 60000);
+    const referenceOpenAt = Number.isFinite(explicitAt.getTime()) ? explicitAt : inferredAt;
+    els.referenceOpenLabel.textContent = leadingMissingBucketCount > 0
+      ? "최근 첫 관측 기준가" : "최근 기준 시가";
+    els.referenceOpenContext.textContent = leadingMissingBucketCount > 0
+      ? `${formatCompactDate(referenceOpenAt)} · 공식 시가 아님`
+      : `${formatCompactDate(referenceOpenAt)} 기준`;
     return;
   }
   els.referenceOpenLabel.textContent = snapshot.mode === "manual" ? "확인 시가" : "오늘 시가";
