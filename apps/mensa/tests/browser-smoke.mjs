@@ -1578,6 +1578,23 @@ async function run() {
     const errorsBeforeCompletedSession = browserErrors.length;
     await navigate(client, `${baseUrl}/apps/volatility/?completed-session-reference-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    completedSessionRequestCount = 0;
+    await evaluate(client, `(() => {
+      const PreviousDate = Date;
+      const advancedNow = Date.now() + 10_001;
+      class AdvancedDate extends PreviousDate {
+        constructor(...args) { super(...(args.length ? args : [advancedNow])); }
+        static now() { return advancedNow; }
+      }
+      globalThis.Date = AdvancedDate;
+      localStorage.removeItem("personal-tap-volatility-last-request-v1");
+      localStorage.removeItem("personal-tap-volatility-rate-limit-until-v1");
+      document.querySelector("#refreshBtn").click();
+      return true;
+    })()`);
+    await waitForCondition(client, `
+      /버튼 요청/.test(document.querySelector("#dataNotice").textContent)
+    `);
     await client.send("Fetch.disable");
     removeCompletedFixture();
     const completedSessionReference = await evaluate(client, `(() => ({

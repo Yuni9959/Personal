@@ -46,3 +46,39 @@ test("최근 완료 세션의 시작 2봉 결손은 이전 세션으로 후퇴�
   assert.equal(result.market.open, 30000.5);
   assert.equal(result.market.latestBarAt, "2026-08-24T20:55:00.000Z");
 });
+
+test("시작 결손이 없는 정상 완료 세션도 첫 관측시각을 세션 시작으로 검증한다", () => {
+  const recent = sessionBars("2026-08-25T22:00:00.000Z", { price: 30000 });
+  const result = sessionSnapshot(
+    recent,
+    "C:\\fixture\\nasdaq_5m.csv",
+    Buffer.from("complete-session", "utf8"),
+    new Date("2026-08-27T06:00:00.000Z")
+  );
+
+  assert.equal(result.session.start, "2026-08-25T22:00:00.000Z");
+  assert.equal(result.session.firstObservedAt, result.session.start);
+  assert.equal(result.provider.leadingMissingBucketCount, 0);
+  assert.equal(result.provider.firstObservedBarAt, result.session.start);
+  assert.equal(result.provider.missingInteriorBucketCount, 0);
+  assert.equal(result.provider.barQuality, "complete");
+});
+
+test("완료 세션의 중간 1봉 결손은 이후 연속봉으로 ATR을 다시 계산한다", () => {
+  const recent = sessionBars("2026-08-25T22:00:00.000Z", { price: 30000 });
+  recent.splice(100, 1);
+  const result = sessionSnapshot(
+    recent,
+    "C:\\fixture\\nasdaq_5m.csv",
+    Buffer.from("one-interior-gap", "utf8"),
+    new Date("2026-08-27T06:00:00.000Z")
+  );
+
+  assert.equal(result.provider.leadingMissingBucketCount, 0);
+  assert.equal(result.provider.missingInteriorBucketCount, 1);
+  assert.equal(result.provider.missingInteriorBucketAt, "2026-08-26T06:20:00.000Z");
+  assert.equal(result.provider.barQuality, "one-interior-missing-bucket");
+  assert.equal(result.provider.atrSourceBarCount, 175);
+  assert.ok(result.market.atr5m14 > 0);
+  assert.equal(result.market.atrLastCompletedBarAt, result.market.latestBarAt);
+});

@@ -41,7 +41,11 @@ test("로컬 NQ 출처·세션·가격 위조를 거부한다", () => {
     value => { value.chart5m = []; },
     value => { value.session.terminalCoverageVerified = false; },
     value => { value.provider.leadingMissingBucketCount = 3; },
-    value => { value.provider.firstObservedBarAt = value.session.start; },
+    value => {
+      value.provider.firstObservedBarAt = new Date(
+        Date.parse(value.provider.firstObservedBarAt) + 60_000
+      ).toISOString();
+    },
     value => { value.market.high = value.market.open - 1; }
   ]) {
     const candidate = clone(fixture);
