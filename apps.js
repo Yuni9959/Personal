@@ -61,8 +61,8 @@ window.PERSONAL_TAP_APPS = [
   {
     id: "university-admission",
     title: "대학 입학정보",
-    subtitle: "작곡과 입시 가이드",
-    description: "검증된 대학별 작곡과 입학 보고서를 한곳에서 확인합니다.",
+    subtitle: "2027·2026 작곡 입시",
+    description: "검증된 대학·예술고·예술중 작곡 입학 보고서를 한곳에서 확인합니다.",
     href: "https://university-admission-private-preview-yuni14.vercel.app/",
     icon: "🎓",
     badge: "VERCEL",
