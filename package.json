@@ -11,10 +11,12 @@
     "sync:volatility-reference": "node apps/volatility/tools/build-weekly-reference.mjs",
     "sync:volatility-data": "node apps/volatility/tools/sync-local-nasdaq.mjs && npm run sync:volatility-reference",
     "publish:volatility-data": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File apps/volatility/tools/refresh-and-deploy.ps1",
+    "publish:university-release": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/publish-university-release.ps1",
+    "test:admission-sync": "node --test tools/tests/*.test.mjs",
     "test:volatility": "node --test apps/volatility/tests/*.test.mjs",
     "test:browser": "node apps/mensa/tests/browser-smoke.mjs",
     "validate:bank": "node apps/mensa/tests/validate-bank.mjs --profile=content-complete",
-    "test": "node --test apps/mensa/tests/*.test.mjs && npm run test:volatility && npm run build:bank:check && node apps/mensa/tests/validate-bank.mjs --profile=content-complete && node apps/mensa/tools/generate-answer-key.mjs --check",
+    "test": "node --test apps/mensa/tests/*.test.mjs && npm run test:volatility && npm run test:admission-sync && npm run build:bank:check && node apps/mensa/tests/validate-bank.mjs --profile=content-complete && node apps/mensa/tools/generate-answer-key.mjs --check",
     "test:release": "npm run test && npm run test:browser"
   }
 }

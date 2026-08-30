@@ -187,7 +187,15 @@ Service Worker의 정책:
 python -m http.server 8080
 ```
 
-### 4.2 `manifest.webmanifest`와 아이콘
+### 4.2 입시 릴리스 연동
+
+입시 Vercel stable 릴리스는 직접 카드 문구만 수정하지 말고
+`tools/publish-university-release.ps1`을 사용한다. 이 publisher는 `apps.js`와 `sw.js`
+외의 변경을 거부하고, 전체 release test·commit·`origin/main` push·공개 GitHub Pages
+fingerprint 확인까지 수행한다. `sw.js`의 `UNIVERSITY_ADMISSION_RELEASE`가 cache 이름에
+포함되므로 새 입시 릴리스가 PT 업데이트 감지와 직접 연결된다.
+
+### 4.3 `manifest.webmanifest`와 아이콘
 
 - 허브 manifest: [`manifest.webmanifest`](./manifest.webmanifest)
 - 허브 아이콘: `icons/icon-192.png`, `icons/icon-512.png`

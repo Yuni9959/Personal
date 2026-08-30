@@ -1,5 +1,13 @@
 # Personal Tap 작업 지침
 
+## 입시 Vercel 릴리스 연동 규칙
+
+- 입시 서비스의 검증된 Vercel stable 릴리스는 `tools/publish-university-release.ps1`로만 PT에 반영한다.
+- publisher는 `apps.js`, `sw.js`만 수정할 수 있으며, 전체 `npm run test:release` 통과 후 명시적으로 commit하고 `origin/main`에 push한 뒤 공개 GitHub Pages의 release fingerprint까지 확인한다.
+- unrelated working tree 변경이나 허용 범위 밖 unpushed commit이 있으면 자동으로 섞지 않고 fail-closed한다.
+- Vercel 성공 후 PT 동기화가 실패해도 Vercel을 재배포하거나 rollback하지 않는다. 입시 서비스의 `runtime/release_automation/pt_sync_pending.json`을 기준으로 동일 릴리스의 PT 후처리만 재시도한다.
+- 이 연동은 사용자가 상시 승인한 릴리스 완료 조건이다. 자격 증명 또는 Git 충돌처럼 새 판단이 필요한 경우에만 중단해 보고한다.
+
 ## 시작 전
 
 - 이 저장소가 `멘사 준비` 폴더의 유일한 활성 개발본이다.

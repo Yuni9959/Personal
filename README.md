@@ -19,9 +19,9 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 26기관 `대학 입학정보` |
 | Volatility 시세·기준 | 버튼은 주말에도 Yahoo를 먼저 확인하고 가장 최근 원천시각을 유지; 완료 세션 시작 2봉 결손도 제한 허용하고 기준 시가에는 마지막 봉이 아닌 실제 첫 관측시각을 표시 |
 | Volatility 대손실 회피 | 기본 3입력과 선택 계약정보로 8항목 체크리스트·60분/−$500 실험 게이트를 검증하고 자동 지표·4패턴 보조 판정을 한 화면에 표시 |
-| 자동 검증 | `npm run test:release` 성공 — Node 223/223 및 Chromium·오프라인·320/390px 검증 통과 |
+| 자동 검증 | `npm run test:release` 성공 — Node 225/225 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.11.2-university-reports-s30.1` — 대학·예술고·예술중 2027/2026 보고서 카드 갱신 |
+| PWA 캐시 | `v3.11.2-university-reports-s30.1-admission-<fingerprint>` — 입시 Vercel 릴리스와 PT 업데이트 감지 연동 |
 | Volatility 데이터 자동화 | 정상 시작·시작 결손·중간 1봉 결손을 고정 회귀검사하고, `quant` 예약 수집 → 의미 변경 감지 → 전체 검사 → 생성 파일만 commit/push; 실행별 로그 보존 |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
@@ -164,12 +164,36 @@ Web Storage origin을 공유합니다. 따라서 같은 계정의 다른 Pages �
 바뀌는 고유 Vercel 주소가 아니라 프로젝트의 안정 별칭을 사용하므로 후속
 릴리스에도 Personal Tap 링크를 다시 수정할 필요가 없습니다.
 
-대학 입학정보는 PT와 다른 Vercel 출처의 외부 앱입니다. Vercel CLI 배포는 이
-Git 저장소의 commit·push나 PT Service Worker 갱신을 자동으로 만들지 않습니다.
-S30 보고서 배포를 PT에도 표시하기 위해 카드 범위를 26기관의 대학·예술고·예술중
-2027/2026 보고서로 갱신하고 PWA 캐시를 올렸습니다. 대학 입학정보 내용만 바뀐
-경우에는 안정 URL에서 즉시 새 내용이 열리며, PT 업데이트 배너까지 필요하면 PT
-자체 변경과 `main` push가 별도로 있어야 합니다.
+대학 입학정보는 PT와 다른 Vercel 출처의 외부 앱입니다. Vercel CLI 자체는 이
+Git 저장소의 commit·push를 만들지 않으므로, 입시 `release_automation.py`가 stable
+배포 성공 뒤 PT publisher를 별도로 호출합니다. publisher가 release fingerprint를
+Service Worker cache에 결합하고 `main` push·GitHub Pages 공개 검증까지 수행하므로
+새 입시 릴리스는 PT 업데이트 배너와 연결됩니다.
+
+## 입시 Vercel → PT 자동 게시
+
+입시 서비스의 `release_automation.py`는 Vercel stable 배포·익명 검증이 끝난 뒤
+`tools/publish-university-release.ps1`을 호출합니다. 이 도구는 canonical release
+fingerprint와 deployment ID를 `apps.js`와 `sw.js`에 반영하고 다음 순서를 하나의
+완료 조건으로 실행합니다.
+
+1. PT `main`과 `origin/main` 상태 및 변경 파일 allowlist 확인
+2. `npm run test:release` 전체 검증
+3. `apps.js`, `sw.js`만 명시적으로 commit
+4. `origin/main` push
+5. 공개 `https://yuni9959.github.io/Personal/sw.js` fingerprint 확인
+
+Vercel CLI 자체에는 Git commit/push 기능이 없습니다. PT 후처리가 실패하면 이미
+검증된 Vercel 배포는 유지하고, 입시 서비스가 남긴 `pt_sync_pending.json`을 통해
+동일 릴리스의 PT 게시만 재시도합니다. 수동 검증은 다음처럼 실행할 수 있습니다.
+
+```powershell
+npm run publish:university-release -- -ReleaseFingerprint <sha256> -DeploymentId <dpl_id> -ReleasedAt <ISO-8601>
+```
+
+Service Worker cache 이름은 `UNIVERSITY_ADMISSION_RELEASE` fingerprint 일부를 포함하므로
+새 입시 릴리스가 PT에 push되면 설치된 PT가 새 worker를 감지해 업데이트 배너를 표시합니다.
+현재 전체 검증 기준은 Node 225/225와 Chromium·오프라인·320/390px smoke PASS입니다.
 
 ## 앱 하나 더 연결하기
 
@@ -370,9 +394,10 @@ v1 안전 이전, IndexedDB 응시 이벤트, v2 요약 캐시, JSON 로드와 P
 앱은 **새 버전이 준비되었습니다** 배너를 표시하며, 사용자가 업데이트 버튼을
 눌렀을 때만 새 버전을 활성화하고 한 번 새로고침합니다.
 
-외부 Vercel 앱의 배포는 PT Service Worker 범위 밖이므로 이 배너를 직접 만들지
-않습니다. 외부 앱 변경을 PT 카드에도 표시할 때만 카드 문구와 `CACHE_NAME`을
-함께 갱신해 GitHub Pages로 배포합니다.
+외부 Vercel 앱 자체는 PT Service Worker 범위 밖이지만, 입시 release publisher가
+검증된 fingerprint를 `UNIVERSITY_ADMISSION_RELEASE`에 반영하고 GitHub Pages로
+push합니다. 따라서 새 입시 stable 릴리스마다 PT worker가 바뀌고 업데이트 배너가
+표시됩니다.
 
 Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
 `personal-tap-`으로 시작하는 이전 캐시만 정리합니다.
