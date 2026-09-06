@@ -1,5 +1,5 @@
 const CACHE_PREFIX = "personal-tap-";
-const UNIVERSITY_ADMISSION_RELEASE = "88fe6ad37dfbad079c9c767db72b10647c9ff713ad28ba4fd1fe2995a5bc95e5";
+const UNIVERSITY_ADMISSION_RELEASE = "fa12ac1d6494caf8900a6afcc4a027f794399c951c0c636b370172614d7d0b45";
 const CACHE_NAME = `${CACHE_PREFIX}v3.11.2-university-reports-s30.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
 const CORE_ASSETS = [
   "./",
