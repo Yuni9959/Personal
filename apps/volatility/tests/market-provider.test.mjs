@@ -362,17 +362,29 @@ test("Yahoo exchangeDataDelayedBy가 없으면 원천시각 정책에 맡기고,
   }
 });
 
-test("Yahoo regularMarket H/L/current/time과 제공된 open은 관측 세션과 정확히 일치해야 한다", async t => {
+test("Yahoo regularMarket current/time·open은 정확히, H/L은 2틱 안에서 보수적으로 교차검증한다", async t => {
   const withOpen = syncRegularMarketMeta(payload(), { includeOpen: true });
   const verified = parseYahooChart(withOpen, "MNQ=F", FETCHED_AT);
   assert.equal(verified.provider.regularMarketOpenMetadataAvailable, true);
+  assert.equal(verified.provider.regularMarketRangeMetadataExact, true);
+  assert.deepEqual(verified.provider.regularMarketRangeDeltaTicks, { high: 0, low: 0 });
   assert.deepEqual(verified.provider.regularMarketFieldsVerified, ["open", "high", "low", "current", "time"]);
 
+  const tolerated = syncRegularMarketMeta(payload());
+  tolerated.chart.result[0].meta.regularMarketDayHigh += 0.5;
+  tolerated.chart.result[0].meta.regularMarketDayLow += 0.5;
+  const conservative = parseYahooChart(tolerated, "MNQ=F", FETCHED_AT);
+  assert.equal(conservative.provider.regularMarketRangeMetadataExact, false);
+  assert.deepEqual(conservative.provider.regularMarketRangeDeltaTicks, { high: 2, low: 2 });
+  assert.equal(conservative.market.high, tolerated.chart.result[0].meta.regularMarketDayHigh);
+  assert.equal(conservative.market.low, 30000);
+  assert.match(conservative.limitations.join(" "), /더 보수적인 고가·저가/);
+
   for (const [field, mutate, expected] of [
-    ["regularMarketDayHigh", value => value + 0.25, /H\/L\/current\/time/],
-    ["regularMarketDayLow", value => value - 0.25, /H\/L\/current\/time/],
-    ["regularMarketPrice", value => value - 0.25, /H\/L\/current\/time/],
-    ["regularMarketTime", value => value - 1, /H\/L\/current\/time/],
+    ["regularMarketDayHigh", value => value + 0.75, /2틱 허용범위/],
+    ["regularMarketDayLow", value => value - 0.75, /2틱 허용범위/],
+    ["regularMarketPrice", value => value - 0.25, /current\/time/],
+    ["regularMarketTime", value => value - 1, /current\/time/],
     ["regularMarketOpen", value => value + 0.25, /첫 5분봉 시가/]
   ]) {
     await t.test(field, () => {
@@ -394,13 +406,17 @@ test("MNQ 성공 시 한 번만 조회하고 인증정보·캐시 없이 요청�
   const requested = new URL(calls[0].url.replace("https://r.jina.ai/", ""));
   assert.equal(requested.searchParams.get("period2"), String(FETCHED_AT.getTime() / 1000));
   assert.equal(Number(requested.searchParams.get("period2")) - Number(requested.searchParams.get("period1")), 2592000);
-  assert.deepEqual(calls[0].options.headers, { Accept: "application/json" });
+  assert.deepEqual(calls[0].options.headers, {
+    Accept: "application/json",
+    "X-Engine": "direct",
+    "X-No-Cache": "true"
+  });
   assert.equal(calls[0].options.cache, "no-store");
   assert.equal(calls[0].options.credentials, "omit");
   assert.equal(calls[0].options.referrerPolicy, "no-referrer");
   assert.ok(calls[0].options.signal instanceof AbortSignal);
   assert.equal(snapshot.provider.tier, "mnq-continuous-proxy");
-  assert.equal(snapshot.provider.transport, "Jina Reader JSON relay");
+  assert.equal(snapshot.provider.transport, "Jina Reader direct JSON relay (cache bypass)");
   assert.equal(snapshot.provider.relayHost, "r.jina.ai");
   assert.equal(snapshot.provider.sourceHost, "query2.finance.yahoo.com");
   assert.match(snapshot.provider.sourceUrl, /^https:\/\/query2\.finance\.yahoo\.com\/v8\/finance\/chart\/MNQ=F\?/);

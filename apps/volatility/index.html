@@ -212,17 +212,20 @@
       </div>
       <div class="position-layout">
         <div class="position-input-pane">
-          <div class="column-heading"><strong>포지션 입력</strong><small>체결 정보와 손절·목표·계좌 위험예산을 한 번에 분석합니다.</small></div>
+          <div class="column-heading column-heading-row">
+            <div><strong>포지션 입력</strong><small>체결 정보만 먼저 입력하고 필요한 계획 항목만 펼치세요.</small></div>
+            <button id="clearPositionBtn" class="position-clear-button" type="button">포지션 지우기</button>
+          </div>
           <form id="positionForm">
             <div class="input-grid">
               <label><span>방향</span><select id="positionDirection"><option value="none">포지션 없음</option><option value="long">Long (매수)</option><option value="short">Short (매도)</option></select></label>
               <label><span>평균 체결가격</span><input id="entryPrice" type="number" inputmode="decimal" min="0" step="0.25" /></label>
               <label><span>체결시간</span><input id="enteredAt" type="datetime-local" /></label>
+              <label><span>현재 계약 수</span><input id="currentQuantity" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2" /></label>
             </div>
-            <details class="precision-inputs" open>
-              <summary>리스크 정밀입력 <small>계약·손절·목표·계좌</small></summary>
+            <details id="positionAdvancedInputs" class="precision-inputs">
+              <summary>손절·목표·추가진입 <small>선택 입력</small></summary>
               <div class="input-grid">
-                <label><span>현재 계약 수</span><input id="currentQuantity" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 2" /></label>
                 <label><span>거래 중 최대 계약 수</span><input id="maxQuantity" type="number" inputmode="numeric" min="1" step="1" placeholder="예: 5" /></label>
                 <label><span>추가 진입 횟수</span><input id="addCount" type="number" inputmode="numeric" min="0" step="1" placeholder="없으면 0" /></label>
                 <label><span>손절가</span><input id="stopPrice" type="number" inputmode="decimal" min="0" step="0.25" placeholder="예: 29950" /></label>
@@ -234,30 +237,35 @@
           </form>
         </div>
         <div class="position-output-pane">
-          <div class="column-heading"><strong>대손실 회피 점검</strong><small>현재가·ATR·보유 경로·계약 확대를 한 체크리스트로 검증합니다.</small></div>
-          <div class="tail-evidence-summary" aria-label="대손실 분석 근거">
-            <span><b>7.53%</b> 손실 거래 비중</span>
-            <span><b>78.3%</b> 승리 이익 훼손</span>
-            <span><b>40.0%</b> 최고 위험등급 손실률</span>
-          </div>
-          <div id="positionEmpty" class="empty-state">방향·체결가격·체결시간을 입력하면 대손실 회피 체크리스트를 자동으로 점검합니다.</div>
+          <div class="column-heading"><strong>포지션 분석</strong><small>현재 손익과 변동성 위험을 먼저 보여주고, 강한 경고가 있을 때만 상세 신호를 펼칩니다.</small></div>
+          <div id="positionEmpty" class="empty-state">방향·체결가격·체결시간을 입력하면 현재 손익과 변동성 위험을 자동으로 계산합니다.</div>
           <div id="positionResults" class="position-results" hidden>
             <div id="positionSummary" class="position-summary"></div>
             <p id="positionMarketNote" class="position-market-note"></p>
-            <section class="position-plan" aria-labelledby="positionPlanTitle">
+            <div id="positionRiskSignal" class="position-risk-signal neutral" aria-live="polite">
+              <span>위험 신호</span>
+              <strong id="positionRiskSignalHeadline">계산 대기</strong>
+              <small id="positionRiskSignalSummary">포지션을 입력하면 자동으로 감시합니다.</small>
+            </div>
+            <section id="positionPlan" class="position-plan" aria-labelledby="positionPlanTitle" hidden>
               <div class="integrated-subheading">
                 <div><p class="eyebrow">RISK PLAN</p><h3 id="positionPlanTitle">손절·목표·계좌 위험</h3></div>
               </div>
               <div id="positionPlanMetrics" class="position-plan-metrics"></div>
               <p id="positionPlanNote" class="position-plan-note"></p>
             </section>
-            <section id="positionRiskPanel" class="position-risk-panel safe" aria-labelledby="positionRiskHeadline" aria-live="polite">
+            <section id="positionRiskPanel" class="position-risk-panel caution" aria-labelledby="positionRiskHeadline" hidden>
               <div class="position-risk-verdict">
-                <span>대손실 회피 체크리스트 · 8항목</span>
+                <span id="positionRiskListLabel">감지된 대손실 위험 신호</span>
                 <strong id="positionRiskHeadline">판정 대기</strong>
-                <p id="positionRiskSummary">분석으로 확인된 손실 확대 신호를 조건별로 검증합니다.</p>
+                <p id="positionRiskSummary">주의가 필요한 조건만 보여줍니다.</p>
               </div>
               <div id="positionRiskMetrics" class="position-risk-metrics"></div>
+              <div class="tail-evidence-summary" aria-label="대손실 분석 근거">
+                <span><b>7.53%</b> 손실 거래 비중</span>
+                <span><b>78.3%</b> 승리 이익 훼손</span>
+                <span><b>40.0%</b> 최고 위험등급 손실률</span>
+              </div>
               <ol id="positionRiskChecklist" class="position-risk-checklist"></ol>
             </section>
 
@@ -289,7 +297,7 @@
 
   </main>
 
-  <footer><a href="../../">← Personal Tap</a><span>가시 탭에서 5분마다 자동 갱신합니다.</span></footer>
+  <footer><a href="../../">← Personal Tap</a><span>가시 탭에서 1분마다 최신 지연 시세를 확인합니다.</span></footer>
   <script type="module" src="./js/app.js"></script>
   <script src="../../pwa-update.js"></script>
 </body>

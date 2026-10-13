@@ -10,6 +10,7 @@ const JINA_READER_ORIGIN = "https://r.jina.ai";
 const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
+const REGULAR_MARKET_RANGE_TOLERANCE_TICKS = 2;
 const BAR_SECONDS = 5 * 60;
 // Thirty calendar days supplies roughly twenty futures sessions so EMA50/200,
 // RSI14 and the causal 20-session ATR percentile can be calculated locally.
@@ -591,7 +592,7 @@ function requiredRegularMarketPrice(meta, field, label) {
 }
 
 function validateRegularMarketMetadata(meta, bucketBars) {
-  const observed = {
+  const barObserved = {
     open: bucketBars[0].open,
     high: Math.max(...bucketBars.map(bar => bar.high)),
     low: Math.min(...bucketBars.map(bar => bar.low)),
@@ -607,21 +608,33 @@ function validateRegularMarketMetadata(meta, bucketBars) {
     throw new Error("Yahoo meta regularMarketTime이 유효한 Unix 시각이 아닙니다.");
   }
   expected.time = meta.regularMarketTime;
-  if (expected.high !== observed.high || expected.low !== observed.low ||
-      expected.current !== observed.current || expected.time !== observed.time) {
-    throw new Error("Yahoo meta regularMarket H/L/current/time이 관측 5분봉과 정확히 일치하지 않습니다.");
+  const rangeDeltaTicks = Object.freeze({
+    high: Math.round(Math.abs(expected.high - barObserved.high) / CME_EQUITY_TICK),
+    low: Math.round(Math.abs(expected.low - barObserved.low) / CME_EQUITY_TICK)
+  });
+  if (rangeDeltaTicks.high > REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
+      rangeDeltaTicks.low > REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
+      expected.current !== barObserved.current || expected.time !== barObserved.time) {
+    throw new Error("Yahoo meta current/time 또는 H/L의 2틱 허용범위가 관측 5분봉과 일치하지 않습니다.");
   }
+  const observed = {
+    ...barObserved,
+    high: Math.max(barObserved.high, expected.high),
+    low: Math.min(barObserved.low, expected.low)
+  };
 
   const openFields = ["regularMarketOpen", "regularMarketDayOpen"]
     .filter(field => Object.hasOwn(meta, field));
   for (const field of openFields) {
     const expectedOpen = requiredRegularMarketPrice(meta, field, field);
-    if (expectedOpen !== observed.open) {
+    if (expectedOpen !== barObserved.open) {
       throw new Error(`Yahoo meta ${field}이 현재 CME 세션 첫 5분봉 시가와 일치하지 않습니다.`);
     }
   }
   return {
     observed,
+    rangeDeltaTicks,
+    rangeMetadataExact: rangeDeltaTicks.high === 0 && rangeDeltaTicks.low === 0,
     openMetadataAvailable: openFields.length > 0,
     fieldsVerified: openFields.length > 0
       ? Object.freeze(["open", "high", "low", "current", "time"])
@@ -741,6 +754,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       firstObservedBarAt: bucketBars[0].at.toISOString(),
       atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
+      regularMarketRangeToleranceTicks: REGULAR_MARKET_RANGE_TOLERANCE_TICKS,
+      regularMarketRangeDeltaTicks: regularMarketVerification.rangeDeltaTicks,
+      regularMarketRangeMetadataExact: regularMarketVerification.rangeMetadataExact,
       regularMarketOpenMetadataAvailable: regularMarketVerification.openMetadataAvailable,
       regularMarketFieldsVerified: regularMarketVerification.fieldsVerified
     },
@@ -775,6 +791,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       `Yahoo의 CME 선물 시세는 약 ${CME_DELAY_MINUTES}분 지연이며 무결점 시세가 아닙니다.`,
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
       "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다.",
+      ...(!regularMarketVerification.rangeMetadataExact
+        ? ["Yahoo 당일 H/L 메타와 5분봉 집계가 2틱 이내에서 달라 더 보수적인 고가·저가를 사용했습니다."]
+        : []),
       ...(leadingMissingBucketCount > 0
         ? [`세션 시작 ${leadingMissingBucketCount}개 5분봉이 완전-null이어서 첫 유효 시가는 참고만 하고 현재가·자동 지표는 Yahoo H/L/current/time 교차검증 뒤 사용합니다.`]
         : []),
@@ -798,7 +817,11 @@ export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date
 
   return withRequestTimeout(async signal => {
     const response = await fetchImpl(readerUrl, {
-      headers: { "Accept": "application/json" },
+      headers: {
+        "Accept": "application/json",
+        "X-Engine": "direct",
+        "X-No-Cache": "true"
+      },
       cache: "no-store",
       credentials: "omit",
       referrerPolicy: "no-referrer",
@@ -808,7 +831,7 @@ export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date
     const envelope = await readBoundedJson(response);
     const reader = parseReaderEnvelope(envelope, sourceUrl);
     const snapshot = parseYahooChart(reader.payload, PRIMARY_SYMBOL, fetchedAt);
-    snapshot.provider.transport = "Jina Reader JSON relay";
+    snapshot.provider.transport = "Jina Reader direct JSON relay (cache bypass)";
     snapshot.provider.relayHost = "r.jina.ai";
     snapshot.provider.sourceHost = YAHOO_HOST;
     snapshot.provider.sourceUrl = reader.sourceUrl;

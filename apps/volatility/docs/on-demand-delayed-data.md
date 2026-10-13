@@ -4,7 +4,7 @@
 
 Volatility의 네트워크 시세는 **실시간 피드가 아니다**. 페이지에 처음
 들어오면 Jina Reader를 거쳐 Yahoo Finance의 구조화된 chart 응답을 요청하고,
-보이는 온라인 탭에서는 5분마다 같은 best-effort 확인을 이어 간다. 탭 복귀·
+보이는 온라인 탭에서는 1분마다 같은 best-effort 확인을 이어 간다. 탭 복귀·
 focus·pageshow·온라인 전환 때 직전 요청이 1분 이상 지났다면 즉시 확인하며,
 사용자가 **시세 지금 갱신** 버튼을 누르면 바로 요청한다. 숨겨진 탭·오프라인·
 수동 시세 모드에서는 자동 갱신하지 않는다.
@@ -14,12 +14,13 @@ focus·pageshow·온라인 전환 때 직전 요청이 1분 이상 지났다면 
 만족한 캐시만 화면에 복원한다. 두 경우 모두 새 공급자 응답이 성공할 때까지
 강제로 `referenceOnly` 처리하므로 현재 시세나 거래 계산 입력이 아니다.
 
-Yahoo는 CME 데이터를 약 10분 지연으로 안내한다. 따라서 1분마다 다시
-요청하더라도 실시간이 되지 않으며, 호출 제한과 오류만 늘어난다. 이 구현은
-호출 빈도를 줄이는 실용적 절충안이지 Jina·Yahoo·CME의 공식 시세 API,
-데이터 사용권 또는 거래용 정확성을 보장하는 방식이 아니다. Jina Reader는
-Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데이터의 공급자나
-권리자가 아니다.
+Yahoo는 CME 데이터를 약 10분 지연으로 안내한다. 1분 주기는 그 원천 지연을
+없애지 못하지만, 새 원천봉이 생긴 뒤 앱이 추가로 기다리는 시간을 줄인다.
+Jina 요청에는 `X-Engine: direct`와 `X-No-Cache: true`를 넣어 브라우저 렌더링과
+반복 URL 캐시를 건너뛴다. 공급자 429가 발생하면 1분 주기보다 `Retry-After`를
+우선한다. 이 구현은 Jina·Yahoo·CME의 공식 실시간 시세 API, 데이터 사용권 또는
+거래용 정확성을 보장하는 방식이 아니다. Jina Reader는 Yahoo URL을 대신 읽어
+전달하는 중계 경로일 뿐, 원시 시장데이터의 공급자나 권리자가 아니다.
 
 ## 사용자 흐름
 
@@ -33,7 +34,7 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
    사용하지만, 사용자가 누르는 **시세 지금 갱신**은 요일과 관계없이 원격을
    먼저 확인한다. 새 원격·로컬·현재 화면 후보 중 원천시각이 가장 최근인 것을
    선택하므로 실패하거나 더 오래된 응답이 와도 표시값을 되돌리지 않는다.
-3. 보이는 온라인 탭은 성공·실패 여부와 관계없이 다음 확인을 5분 뒤 예약한다.
+3. 보이는 온라인 탭은 성공·실패 여부와 관계없이 다음 확인을 1분 뒤 예약한다.
    숨겨진 탭에서는 타이머를 해제하고, 화면 복귀·focus·pageshow 때 직전 요청이
    1분 이상 지났다면 바로 확인한다. 같은 기기에서 짧은 시간 안에 반복 이벤트나
    버튼 연타가 생기면 로컬 cooldown이 추가 요청을 막는다. 공급자 429 대기 중에는
@@ -41,7 +42,9 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
 4. Jina 외부 envelope의 `code`·`status`·원본 URL·본문을 검증하고, URL의
    host·path·query가 요청한 Yahoo chart URL과 정확히 같을 때만 내부 Yahoo
    JSON을 파싱한다. 이어 상품 유형·CME 거래소·USD·정확한 `5m` 주기,
-   종목·시각·OHLC 구조를 검증한다. Yahoo 지연 메타가 있으면 정확히 10분만
+   종목·시각·OHLC 구조를 검증한다. 현재가·현재시각은 meta와 봉을 정확히
+   맞추고, 당일 H/L은 Yahoo 집계 차이를 2틱까지만 허용해 더 보수적인 값을
+   사용한다. Yahoo 지연 메타가 있으면 정확히 10분만
    허용하며, 없으면 검증되지 않았다는 상태를 보존한다.
 5. Chicago 기준 정규 주말 휴장에는 정적 앱에 동기화된 로컬 `NQ=F` 최근 완료
    세션을 먼저 읽는다. 평일에는 `MNQ=F` 요청이 429·HTML·네트워크·timeout으로
@@ -78,10 +81,10 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
 ## 데이터 흐름
 
 ```text
-페이지 진입 · 5분 자동 주기 · 탭 복귀/온라인 전환 · 버튼 클릭
+페이지 진입 · 1분 자동 주기 · 탭 복귀/온라인 전환 · 버튼 클릭
         ↓  보이는 온라인 탭에서만 확인
 주말 최초 진입: 동기화된 `data/local-nasdaq-snapshot.json` 우선
-평일 최초 진입·자동 주기·복귀·버튼 클릭: Jina Reader (`r.jina.ai`, 인증정보 없음) 우선
+평일 최초 진입·자동 주기·복귀·버튼 클릭: Jina Reader direct + cache bypass (`r.jina.ai`, 인증정보 없음) 우선
         ↓  `https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F` 전달, 실패 시 로컬 NQ
         ↓  Yahoo chart JSON (`MNQ=F` 최근 30일·5분봉)
         ↓  15초 timeout · 외부/내부 각 512 KiB · URL/provenance 검증
@@ -110,7 +113,8 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   계산한다.
 - 중간 완료봉이 정확히 1개 완전-null인 경우에는 Yahoo meta의
   `regularMarketDayHigh`, `regularMarketDayLow`, `regularMarketPrice`,
-  `regularMarketTime`과 유효 봉의 H/L/current/time을 정확히 교차검증한다.
+  `regularMarketTime`과 유효 봉을 교차검증한다. current/time은 정확히,
+  H/L은 최대 2틱까지만 허용하고 둘 중 더 보수적인 범위를 사용한다.
   day open meta가 있으면 세션 시가도 일치해야 하고, 없으면 첫 유효 세션봉
   시가를 쓰되 open 교차검증 불가 상태를 기록한다. 검사를 통과할 때만 가격
   기반 계산을 허용하며, 불완전한 시계열로 왜곡될 수 있는 ATR은 잠근다.
@@ -199,12 +203,12 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 
 | 파일 | 역할 |
 |---|---|
-| `apps/volatility/js/market-provider.js` | Jina Reader 요청·Yahoo 응답 검증·세션 재구성·결손 정책·스냅샷 생성 |
+| `apps/volatility/js/market-provider.js` | Jina Reader direct/cache-bypass 요청·Yahoo 응답 검증·세션 재구성·결손 정책·스냅샷 생성 |
 | `apps/volatility/js/local-market-provider.js` | 동기화된 로컬 NQ 스냅샷 출처·세션·가격 검증과 주말 판정 |
 | `apps/volatility/tools/sync-local-nasdaq.mjs` | 사용자 관리 `nasdaq_5m.csv`에서 최근 완료 세션 스냅샷 생성 |
 | `apps/volatility/js/request-guard.js` | 일반 10초 경계·공급자 429 대기·시계 rollback·동시 탭 요청 잠금 |
 | `apps/volatility/js/snapshot-policy.js` | 25분 현재 시세·96시간 완료 세션·종료 5분·최근 시가 환산선·심볼의 순수 fail-closed 판정 |
-| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 가시 탭 5분 자동 갱신·복귀/버튼 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |
+| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 가시 탭 1분 자동 갱신·복귀/버튼 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |
 | `apps/volatility/js/calculator.js` | 평균·안전측·포지션·손절 계산 계약 |
 | `apps/volatility/js/weekly-reference.generated.js` | 실행 당일 한국 날짜와 최신 일봉으로 생성된 당주 평균·q25·OOS 계약 |
 | `apps/volatility/tools/build-weekly-reference.mjs` | `nasdaq_daily.csv`에서 월요일 기준 직전 5년·selection·52주 holdout을 재계산하는 생성기 |
@@ -215,8 +219,8 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 ## 근거
 
 - [Jina Reader 공식 문서](https://jina.ai/reader/): 대상 URL 앞에
-  `r.jina.ai`를 붙이는 기본 사용법, API 키 없는 기본 사용과 호출 한도를
-  안내한다.
+  `r.jina.ai`를 붙이는 기본 사용법, API 키 없는 기본 사용과 호출 한도,
+  `X-Engine: direct` 및 `X-No-Cache` 요청 옵션을 안내한다.
 - [Yahoo Finance 거래소별 지연 안내](https://help.yahoo.com/kb/finance/article-exchanges-data-delays-sln2310.html):
   CME 10분 지연, 정보용이며 거래용이 아님을 안내한다.
 - [Yahoo 이용약관](https://legal.yahoo.com/us/en/yahoo/terms/otos/index.html):

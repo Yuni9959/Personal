@@ -17,11 +17,11 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
 | 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 26기관 `대학 입학정보` |
-| Volatility 시세·기준 | 보이는 탭에서 5분마다 지연 시세를 갱신하고 복귀·온라인 전환 때 최신 여부를 확인; 버튼은 즉시 조회하며 가장 최근 원천시각을 유지 |
-| Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간과 손절/목표까지 거리·예상 손익·손익비, 계좌 허용위험 기반 최대 계약 수를 한 화면에 표시 |
+| Volatility 시세·기준 | Jina direct/cache-bypass로 Yahoo 약 10분 지연 MNQ를 보이는 탭에서 1분마다 확인; 복귀·온라인 전환·버튼 조회와 가장 최근 원천시각 유지 |
+| Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
 | 자동 검증 | 2026-10-13 `npm run test:release` 성공 — Node 227/227 및 Chromium·오프라인·320/390px 검증 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.12.0-volatility-continuous.1-admission-<fingerprint>` — Volatility 연속 운영과 입시 Vercel 릴리스 업데이트 감지 연동 |
+| PWA 캐시 | `v3.13.0-volatility-fresh-ui.1-admission-<fingerprint>` — 1분 fresh 시세 확인·조건부 포지션 UI와 입시 Vercel 릴리스 업데이트 감지 연동 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
@@ -34,7 +34,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 Drive 게시 실패와 Volatility 게시를 독립 단계로 분리하고, Volatility 생성·검사·
 커밋은 `origin/main` 기반 임시 worktree에서 실행하도록 바꿨습니다. 따라서 개인
 작업 중인 파일을 건드리거나 섞지 않으면서도 시세 원본 수집이 성공하면 다음
-단계가 계속 진행됩니다. 보이는 탭의 5분 자동 갱신과 복귀·온라인 전환 확인도
+단계가 계속 진행됩니다. 보이는 탭의 1분 자동 확인과 복귀·온라인 전환 확인도
 추가했으며, 10초 중복 방지와 공급자 429 대기는 그대로 적용합니다.
 
 일일 큐 전략 v3는 정답률 80% 미만인 측정 유형만 취약 후보로 다루며,
@@ -313,9 +313,9 @@ http://localhost:8080
 workflow는 `main` push 또는 수동 실행에서 정적 PWA만 배포합니다. 기존
 GitHub Actions의 30분 예약 갱신과 배포 중 Yahoo 호출은 사용하지 않습니다.
 Volatility 페이지는 시작 시 이 기기의 검증 캐시를 먼저 다시 판정해 읽기
-전용 참고값으로 표시한 뒤, 보이는 온라인 탭에서 5분 간격으로
-[Jina Reader](https://jina.ai/reader/)를 통해 `MNQ=F` 최근 30일치 5분봉 지연
-프록시를 best-effort로 조회합니다. 탭 복귀·focus·pageshow·온라인 전환 때도
+전용 참고값으로 표시한 뒤, 보이는 온라인 탭에서 1분 간격으로
+[Jina Reader](https://jina.ai/reader/)의 direct 엔진과 캐시 우회를 통해 `MNQ=F`
+최근 30일치 5분봉 지연 프록시를 best-effort로 조회합니다. 탭 복귀·focus·pageshow·온라인 전환 때도
 직전 요청이 1분 이상 지났다면 최신 여부를 다시 확인하며, **시세 지금 갱신**
 버튼은 즉시 확인을 시작합니다. 숨겨진 탭·오프라인·수동 시세 모드에서는 자동
 갱신을 멈춥니다. 주말 최초 진입은 동기화한 로컬 NQ를 먼저 읽지만 버튼을 누르면
@@ -417,7 +417,7 @@ Service Worker는 현재 앱 scope의 동일 출처 요청만 처리하며,
    Supabase 등 원격 동기화의 범위와 개인정보 정책을 먼저 정합니다.
 5. **Volatility 연속 조회·자동 주간 동기화 실사용 검증**: 예약된 `quant/data`
    갱신 뒤 스냅샷·당주 분석 계약 생성, 임시 worktree 전체 검사, 생성 파일만의
-   commit/push가 이어지는 운영 로그를 확인하고, 5분 자동 갱신·탭 복귀·버튼
+   commit/push가 이어지는 운영 로그를 확인하고, 1분 자동 갱신·탭 복귀·버튼
    조회의 성공률, Jina·Yahoo 429/timeout/포맷 실패율과 원천시각 지연을 기록하고,
    1봉 결손 뒤 최신 연속봉 ATR 재계산이 의도대로 동작하는지 영웅문 모바일의
    실제 MNQ 월물 O/H/L·ATR·가격선과 나란히 대조합니다. 정식 공급원을

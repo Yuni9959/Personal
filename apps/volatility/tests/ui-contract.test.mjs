@@ -51,7 +51,7 @@ test("시나리오와 포지션 분석을 간결한 실행 화면으로 유지�
   const app = read("apps/volatility/js/app.js");
   assert.match(html, /목표가가 아닌/);
   assert.match(html, /양봉·음봉은 종가 확정 전에 알 수 없어/);
-  assert.match(html, /대손실 회피 체크리스트 · 8항목/);
+  assert.match(html, /강한 경고가 있을 때만 상세 신호를 펼칩니다/);
   assert.match(html, /같은 포지션 입력 사용/);
   assert.match(html, /네 가지 과거 군집 중 현재 경향/);
   assert.match(html, /id="positionPlanMetrics"/);
@@ -122,7 +122,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(html, /시세 지금 갱신/);
   assert.match(html, /class="topbar-actions"/);
   assert.match(html, /id="autoRefreshText"/);
-  assert.match(html, /가시 탭에서 5분마다 자동 갱신합니다/);
+  assert.match(html, /가시 탭에서 1분마다 최신 지연 시세를 확인합니다/);
   assert.match(html, /제공자 가격시각/);
   assert.match(html, /이번 조회시각/);
   assert.match(html, /지연·사용 상태/);
@@ -138,7 +138,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(html, /class="position-output-pane"/);
   assert.match(styles, /\.position-layout\s*\{[^}]*grid-template-columns:\s*minmax\(330px,.85fr\) minmax\(0,1.15fr\)/s);
   assert.match(styles, /\.risk-results\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/s);
-  assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.position-layout \{ grid-template-columns: minmax\(0,.88fr\) minmax\(0,1.12fr\);/);
+  assert.match(styles, /@media \(max-width: 620px\)[\s\S]*?\.position-layout \{ grid-template-columns: 1fr;/);
   assert.match(styles, /\.pattern-indicators\s*\{[^}]*grid-template-columns:\s*repeat\(4,minmax\(0,1fr\)\)/s);
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /connect-src 'self' https:\/\/r\.jina\.ai/);
@@ -151,14 +151,22 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   for (const id of ["positionAtr", "quantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   for (const id of ["ema1h", "rsi1h", "atrPercentile", "noFavorableExcursion", "stopHesitation"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
   for (const id of ["patternResults", "patternHeadline", "patternIndicators"]) assert.match(html, new RegExp(`id="${id}"`));
-  assert.match(html, /id="positionRiskPanel"[^>]+aria-live="polite"/);
+  assert.match(html, /id="positionRiskSignal"[^>]+aria-live="polite"/);
+  assert.match(html, /id="positionRiskPanel"[^>]+hidden/);
   assert.match(html, /id="positionRiskPanel"[\s\S]*id="riskTitle"/);
   assert.doesNotMatch(html, /<section class="panel" aria-labelledby="riskTitle">/);
-  assert.match(html, /대손실 회피 체크리스트 · 8항목/);
-  assert.match(html, /체결 정보와 손절·목표·계좌 위험예산을 한 번에 분석합니다/);
+  assert.match(html, /감지된 대손실 위험 신호/);
+  assert.match(html, /체결 정보만 먼저 입력하고 필요한 계획 항목만 펼치세요/);
+  assert.match(html, /id="positionAdvancedInputs" class="precision-inputs"/);
+  assert.doesNotMatch(html, /id="positionAdvancedInputs"[^>]+open/);
+  assert.match(html, /id="clearPositionBtn"/);
+  assert.match(html, /id="positionPlan"[^>]+hidden/);
   assert.match(app, /assessPositionLossRisk/);
   assert.match(app, /assessTailLossAvoidance/);
   assert.match(app, /function renderTailLossChecklist/);
+  assert.match(app, /\["caution", "danger", "critical"\]\.includes\(result\.severity\)/);
+  assert.match(app, /filter\(rule => rule\.status === "triggered"\)/);
+  assert.match(app, /els\.positionRiskPanel\.hidden = !showDetails/);
   assert.match(app, /function positionMarketContext\(\)/);
   assert.match(app, /market\.atr5m14/);
   assert.match(app, /assessment\?\.displayable !== true/);
@@ -171,7 +179,9 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(styles, /\.position-plan-metrics/);
   assert.doesNotMatch(html, /기준과 한계|class="method-card"|사용 원칙:/);
   assert.match(app, /REQUEST_COOLDOWN_MS/);
-  assert.match(app, /AUTO_REFRESH_INTERVAL_MS = 5 \* 60_000/);
+  assert.match(app, /AUTO_REFRESH_INTERVAL_MS = 60_000/);
+  assert.match(app, /화면이 보이는 동안 1분마다 최신 관측을 확인합니다/);
+  assert.doesNotMatch(app, /화면이 보이는 동안 5분마다/);
   assert.match(app, /function scheduleAutoRefresh/);
   assert.match(app, /refreshMarket\(\{ trigger: "auto" \}\)/);
   assert.match(app, /addEventListener\("online"/);
@@ -180,6 +190,8 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
   assert.match(app, /fetchYahooSnapshot\(fetch, requestedAt, \{ timeoutMs: REQUEST_DEADLINE_MS \}\)/);
+  assert.match(read("apps/volatility/js/market-provider.js"), /"X-Engine": "direct"/);
+  assert.match(read("apps/volatility/js/market-provider.js"), /"X-No-Cache": "true"/);
   assert.match(app, /trigger !== "button" && shouldPreferLocalArchive\(requestedAt\)/);
   assert.match(app, /selectBestSnapshotCandidate/);
   assert.match(app, /fetchLocalNasdaqSnapshot\(fetch\)/);
@@ -224,7 +236,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.12\.0-volatility-continuous\.1-admission-/);
+  assert.match(sw, /v3\.13\.0-volatility-fresh-ui\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",

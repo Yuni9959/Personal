@@ -71,17 +71,21 @@ const els = {
   manualOpen: $("#manualOpen"), manualHigh: $("#manualHigh"), manualLow: $("#manualLow"),
   manualCurrent: $("#manualCurrent"), manualAtr: $("#manualAtr"), manualConfirm: $("#manualConfirm"),
   useAutoAtrBtn: $("#useAutoAtrBtn"),
-  positionForm: $("#positionForm"), positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
+  positionForm: $("#positionForm"), clearPositionBtn: $("#clearPositionBtn"),
+  positionAdvancedInputs: $("#positionAdvancedInputs"),
+  positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
   enteredAt: $("#enteredAt"), currentQuantity: $("#currentQuantity"),
   maxQuantity: $("#maxQuantity"), addCount: $("#addCount"), stopPrice: $("#stopPrice"),
   targetPrice: $("#targetPrice"), accountBalanceUsd: $("#accountBalanceUsd"),
   riskBudgetPercent: $("#riskBudgetPercent"),
   positionEmpty: $("#positionEmpty"), positionResults: $("#positionResults"),
   positionSummary: $("#positionSummary"), positionMarketNote: $("#positionMarketNote"),
+  positionRiskSignal: $("#positionRiskSignal"), positionRiskSignalHeadline: $("#positionRiskSignalHeadline"),
+  positionRiskSignalSummary: $("#positionRiskSignalSummary"), positionPlan: $("#positionPlan"),
   positionPlanMetrics: $("#positionPlanMetrics"), positionPlanNote: $("#positionPlanNote"),
   positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
   positionRiskSummary: $("#positionRiskSummary"), positionRiskMetrics: $("#positionRiskMetrics"),
-  positionRiskChecklist: $("#positionRiskChecklist"),
+  positionRiskChecklist: $("#positionRiskChecklist"), positionRiskListLabel: $("#positionRiskListLabel"),
   patternEmpty: $("#patternEmpty"), patternResults: $("#patternResults"),
   patternHeadline: $("#patternHeadline"), patternSummary: $("#patternSummary"),
   patternEvidence: $("#patternEvidence"), patternIndicators: $("#patternIndicators"),
@@ -120,8 +124,8 @@ const state = {
   refreshInFlight: false,
   transientNotice: ""
 };
-const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 대손실 회피 체크리스트를 점검합니다.";
-const AUTO_REFRESH_INTERVAL_MS = 5 * 60_000;
+const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 포지션 위험을 계산합니다.";
+const AUTO_REFRESH_INTERVAL_MS = 60_000;
 const RESUME_REFRESH_MIN_AGE_MS = 60_000;
 const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const kstFormat = new Intl.DateTimeFormat("ko-KR", {
@@ -328,7 +332,7 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     const delayLabel = snapshot?.provider?.delayMetadataVerified === false
       ? "지연시간 메타가 없어 원천 관측시각으로만 신규도를 판정한"
       : "약 10분 지연";
-    els.dataNotice.textContent = `Yahoo ${delayLabel} MNQ 연속선물 프록시입니다. 화면이 보이는 동안 5분마다 자동으로 최신 관측을 확인합니다.`;
+    els.dataNotice.textContent = `Yahoo ${delayLabel} MNQ 연속선물 프록시입니다. 화면이 보이는 동안 1분마다 최신 관측을 확인합니다.`;
   }
   const qualityNotice = barQualityNotice(snapshot, assessment);
   if (qualityNotice) els.dataNotice.textContent += ` ${qualityNotice}`;
@@ -829,7 +833,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       const refreshMessages = {
         load: "화면을 열며 Yahoo 최신 관측을 확인했습니다.",
         button: "요청한 Yahoo 최신 관측을 반영했습니다.",
-        auto: "5분 자동 갱신으로 Yahoo 최신 관측을 반영했습니다.",
+        auto: "1분 자동 갱신으로 Yahoo 최신 관측을 반영했습니다.",
         resume: "화면 복귀 후 Yahoo 최신 관측을 확인했습니다.",
         online: "네트워크 복구 후 Yahoo 최신 관측을 확인했습니다."
       };
@@ -946,11 +950,22 @@ function renderTailLossChecklist(result) {
   const headline = needsInput ? "판정 보류 · 정밀입력 필요" : verdicts[result.severity];
   const issueText = result.inputIssues.length ? ` ${result.inputIssues.join(" ")}` : "";
   const summary = `${result.action}${result.complete ? "" : " 미확인 항목은 안전으로 계산하지 않습니다."}${issueText}`;
-  const statusLabels = {
-    triggered: ["해당", "triggered"], clear: ["미해당", "clear"],
-    pending: ["시간 미도달", "pending"], incomplete: ["입력 필요", "incomplete"]
-  };
+  const showDetails = ["caution", "danger", "critical"].includes(result.severity);
+  const triggeredRules = result.rules
+    .map((rule, index) => ({ ...rule, sourceIndex: index + 1 }))
+    .filter(rule => rule.status === "triggered");
+  els.positionRiskSignal.className = `position-risk-signal ${needsInput ? "incomplete" : result.severity}`;
+  els.positionRiskSignalHeadline.textContent = headline;
+  els.positionRiskSignalSummary.textContent = showDetails
+    ? `${triggeredRules.length}개 위험 조건이 감지됐습니다. 아래에서 해당 신호만 확인하세요.`
+    : summary;
+  els.positionRiskPanel.hidden = !showDetails;
+  if (!showDetails) {
+    els.positionRiskChecklist.replaceChildren();
+    return;
+  }
   els.positionRiskPanel.className = `position-risk-panel ${needsInput ? "incomplete" : result.severity}`;
+  els.positionRiskListLabel.textContent = `감지된 대손실 위험 신호 · ${triggeredRules.length}개`;
   els.positionRiskHeadline.textContent = headline;
   els.positionRiskSummary.textContent = summary;
   const currentGross = result.currentGrossUsd === null ? "—" :
@@ -964,13 +979,17 @@ function renderTailLossChecklist(result) {
     <span>60분·−$500 실험 게이트 <strong>${stopGate}</strong></span>
     <span>−1.84 ATR 관찰선 <strong>${result.lossMedianPrice === null ? "—" : formatNumber(result.lossMedianPrice)}</strong></span>
     <span>4시간 위험선 <strong>${result.fourHourRiskPrice === null ? "—" : formatNumber(result.fourHourRiskPrice)}</strong></span>`;
-  els.positionRiskChecklist.innerHTML = result.rules.map((rule, index) => {
-    const [statusLabel, statusClass] = statusLabels[rule.status];
-    return `<li class="${statusClass}"><span class="risk-rule-number">${index + 1}</span><div><strong>${rule.label}</strong><small>${rule.threshold}</small></div><b>${statusLabel}</b></li>`;
+  els.positionRiskChecklist.innerHTML = triggeredRules.map(rule => {
+    return `<li class="triggered"><span class="risk-rule-number">${rule.sourceIndex}</span><div><strong>${rule.label}</strong><small>${rule.threshold}</small></div><b>감지</b></li>`;
   }).join("");
 }
 
-function renderPositionPlan(plan) {
+function renderPositionPlan(plan, input) {
+  const hasPlanInput = [
+    input.stopPrice, input.targetPrice, input.accountBalanceUsd, input.riskBudgetPercent
+  ].some(value => value !== null && value !== undefined && value !== "");
+  els.positionPlan.hidden = !hasPlanInput;
+  if (!hasPlanInput) return;
   const stopState = plan.stopPrice === null
     ? { value: "손절가 입력", detail: "—" }
     : plan.stopBreached
@@ -1061,7 +1080,7 @@ function renderPosition() {
       <article><span>현재 평가손익</span><strong class="${plan.currentGrossUsd < 0 ? "money-negative" : plan.currentGrossUsd > 0 ? "money-positive" : ""}">${plan.currentGrossUsd === null ? "계약 수 입력" : formatSignedMoney(plan.currentGrossUsd)}</strong></article>
       <article><span>진입 대비 변동</span><strong class="${result.signedMovePoints < 0 ? "money-negative" : result.signedMovePoints > 0 ? "money-positive" : ""}">${formatNumber(result.signedMovePoints, " pt")} · ${formatNumber(result.signedMoveAtr, " ATR")}</strong><small>${formatHoldingMinutes(result.holdingMinutes)}</small></article>`;
     els.positionMarketNote.textContent = `${marketContext.sourceLabel} · ${ageText} · ${formatDate(marketContext.latestBarAt)}${marketContext.referenceOnly ? " · 최근 관측 참고값" : ""}`;
-    renderPositionPlan(plan);
+    renderPositionPlan(plan, input);
     els.positionEmpty.hidden = true;
     els.positionResults.hidden = false;
   } catch (error) {
@@ -1084,6 +1103,19 @@ function restorePosition() {
   els.targetPrice.value = saved.targetPrice ?? "";
   els.accountBalanceUsd.value = saved.accountBalanceUsd ?? "";
   els.riskBudgetPercent.value = saved.riskBudgetPercent ?? "";
+  els.positionAdvancedInputs.open = [
+    saved.maxQuantity, saved.addCount, saved.stopPrice, saved.targetPrice,
+    saved.accountBalanceUsd, saved.riskBudgetPercent
+  ].some(value => value !== null && value !== undefined && value !== "");
+}
+
+function clearPosition() {
+  els.positionForm.reset();
+  els.positionAdvancedInputs.open = false;
+  renderPosition();
+  try { localStorage.removeItem(POSITION_KEY); }
+  catch { /* Private mode can reject storage; the visible form is still cleared. */ }
+  els.positionDirection.focus();
 }
 
 function setRiskCard(element, tone, title, description) {
@@ -1247,6 +1279,7 @@ els.useAutoAtrBtn.addEventListener("click", () => {
 });
 els.refreshBtn.addEventListener("click", () => refreshMarket({ trigger: "button" }));
 els.positionForm.addEventListener("input", renderPosition);
+els.clearPositionBtn.addEventListener("click", clearPosition);
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") resumeMarket("resume");
   else {

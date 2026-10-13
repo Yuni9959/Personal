@@ -443,6 +443,21 @@ async function navigate(client, url) {
   await loaded;
 }
 
+function fulfillCorsPreflight(client, params, browserErrors, label) {
+  if (params.request.method !== "OPTIONS") return false;
+  client.send("Fetch.fulfillRequest", {
+    requestId: params.requestId,
+    responseCode: 204,
+    responseHeaders: [
+      { name: "Access-Control-Allow-Origin", value: "*" },
+      { name: "Access-Control-Allow-Methods", value: "GET, OPTIONS" },
+      { name: "Access-Control-Allow-Headers", value: "x-engine, x-no-cache" },
+      { name: "Access-Control-Max-Age", value: "600" }
+    ]
+  }).catch(error => browserErrors.push(`${label} preflight: ${error.message}`));
+  return true;
+}
+
 async function readBrowserStore(client, storeName) {
   return evaluate(client, `new Promise((resolve, reject) => {
     const openRequest = indexedDB.open("mkat98-training-v2");
@@ -738,6 +753,7 @@ async function run() {
     });
     let readerRequestCount = 0;
     const removeYahooFixture = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Jina Reader fixture")) return;
       readerRequestCount += 1;
       const targetUrl = delayedMnqSourceUrl();
       if (params.request.url !== `https://r.jina.ai/${targetUrl}`) {
@@ -852,6 +868,7 @@ async function run() {
     })()`);
     let leadingRequestCount = 0;
     const removeLeadingFixture = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Leading-null fixture")) return;
       leadingRequestCount += 1;
       client.send("Fetch.fulfillRequest", {
         requestId: params.requestId,
@@ -911,6 +928,7 @@ async function run() {
     ); true`);
     let activeCacheSeedRequestCount = 0;
     const removeActiveCacheSeedFixture = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Active cache seed fixture")) return;
       activeCacheSeedRequestCount += 1;
       client.send("Fetch.fulfillRequest", {
         requestId: params.requestId,
@@ -954,6 +972,7 @@ async function run() {
     let pendingActiveCacheRequest = null;
     let pendingActiveCacheRequestCount = 0;
     const removePendingActiveCacheFixture = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Pending active cache fixture")) return;
       pendingActiveCacheRequestCount += 1;
       pendingActiveCacheRequest = params;
     });
@@ -1141,7 +1160,10 @@ async function run() {
         patternVisible: !document.querySelector("#patternResults").hidden,
         pattern: document.querySelector("#patternHeadline").textContent,
         indicatorCount: document.querySelectorAll("#patternIndicators article").length,
-        p6: document.querySelector("#p6Result strong").textContent
+        p6: document.querySelector("#p6Result strong").textContent,
+        riskDetailsHidden: document.querySelector("#positionRiskPanel").hidden,
+        planHidden: document.querySelector("#positionPlan").hidden,
+        advancedInputsOpen: document.querySelector("#positionAdvancedInputs").open
       };
     })()`);
     assert.equal(volatilityResult.positionVisible, true);
@@ -1149,6 +1171,9 @@ async function run() {
     assert.match(volatilityResult.pattern, /패턴 [1-4]/);
     assert.equal(volatilityResult.indicatorCount, 4);
     assert.doesNotMatch(volatilityResult.p6, /판단 보류|자동 지표 부족/);
+    assert.equal(volatilityResult.riskDetailsHidden, true);
+    assert.equal(volatilityResult.planHidden, true);
+    assert.equal(volatilityResult.advancedInputsOpen, false);
     const positionLossRisk = await evaluate(client, `(() => {
       const current = Number(document.querySelector("#currentPrice").textContent.replaceAll(",", ""));
       const set = (selector, value) => {
@@ -1167,6 +1192,7 @@ async function run() {
       set("#riskBudgetPercent", 1);
       return {
         headline: document.querySelector("#positionRiskHeadline").textContent,
+        riskDetailsHidden: document.querySelector("#positionRiskPanel").hidden,
         statuses: [...document.querySelectorAll("#positionRiskChecklist li")]
           .map(item => item.querySelector("b").textContent),
         text: document.querySelector("#positionRiskPanel").textContent,
@@ -1177,8 +1203,9 @@ async function run() {
       };
     })()`);
     assert.match(positionLossRisk.headline, /적색 · 즉시 축소·청산 재평가/);
-    assert.equal(positionLossRisk.statuses.length, 8);
-    assert.ok(positionLossRisk.statuses.filter(status => status === "해당").length >= 7);
+    assert.equal(positionLossRisk.riskDetailsHidden, false);
+    assert.ok(positionLossRisk.statuses.length >= 7);
+    assert.equal(positionLossRisk.statuses.every(status => status === "감지"), true);
     assert.match(positionLossRisk.text, /−2\.25 ATR/);
     assert.match(positionLossRisk.text, /자동 전량청산하지는 마세요/);
     assert.equal(positionLossRisk.autoAtr, "40.35 pt");
@@ -1272,7 +1299,7 @@ async function run() {
       openVisible: true,
       warningSingleLine: true,
       warningFits: true,
-      positionColumns: 2,
+      positionColumns: 1,
       indicatorColumns: 2,
       allPriceLinesVisible: true
     });
@@ -1335,7 +1362,7 @@ async function run() {
       referenceOpenVisible: true,
       warningSingleLine: true,
       warningFits: true,
-      positionColumns: 2,
+      positionColumns: 1,
       indicatorColumns: 2,
       inputTargetsUsable: true,
       allReferencePriceLinesVisible: true
@@ -1352,10 +1379,31 @@ async function run() {
     await captureOptionalScreenshot(client, "volatility-position-mobile");
     await evaluate(client, "document.querySelector('#riskTitle').scrollIntoView(); true");
     await captureOptionalScreenshot(client, "volatility-risk-mobile");
+    const clearedPosition = await evaluate(client, `(() => {
+      const previous = localStorage.getItem("personal-tap-volatility-position-v1");
+      document.querySelector("#clearPositionBtn").click();
+      const result = {
+        direction: document.querySelector("#positionDirection").value,
+        resultsHidden: document.querySelector("#positionResults").hidden,
+        advancedInputsOpen: document.querySelector("#positionAdvancedInputs").open,
+        saved: localStorage.getItem("personal-tap-volatility-position-v1")
+      };
+      if (previous !== null) {
+        localStorage.setItem("personal-tap-volatility-position-v1", previous);
+      }
+      return result;
+    })()`);
+    assert.deepEqual(clearedPosition, {
+      direction: "none",
+      resultsHidden: true,
+      advancedInputsOpen: false,
+      saved: null
+    });
     await client.send("Emulation.clearDeviceMetricsOverride");
     const errorsBeforeLockedFallback = browserErrors.length;
     let rateLimitRequestCount = 0;
     const removeYahooFailure = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Jina Reader failure fixture")) return;
       rateLimitRequestCount += 1;
       client.send("Fetch.fulfillRequest", {
         requestId: params.requestId,
@@ -1466,6 +1514,7 @@ async function run() {
     const errorsBeforeBlockedStorage = browserErrors.length;
     let blockedStorageRequestCount = 0;
     const removeUnexpectedBlockedStorageRequest = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Blocked-storage fixture")) return;
       blockedStorageRequestCount += 1;
       client.send("Fetch.fulfillRequest", {
         requestId: params.requestId,
@@ -1556,6 +1605,7 @@ async function run() {
     const completedTargetUrl = delayedMnqSourceUrl(completedTime);
     let completedSessionRequestCount = 0;
     const removeCompletedFixture = client.on("Fetch.requestPaused", params => {
+      if (fulfillCorsPreflight(client, params, browserErrors, "Completed-session fixture")) return;
       completedSessionRequestCount += 1;
       if (params.request.url !== `https://r.jina.ai/${completedTargetUrl}`) {
         browserErrors.push(`Unexpected completed-session Reader URL: ${params.request.url}`);
@@ -2607,7 +2657,7 @@ async function run() {
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
       "2단계 힌트·구조화 피드백·인지 영역 분석·390px 모바일, " +
-      "Volatility 최신 원격 우선·첫 관측 주간 환산표·대손실 8항목·실험 손절 게이트·자동 차트 지표·4패턴 통합, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
+      "Volatility 1분 fresh 원격 우선·첫 관측 주간 환산표·조건부 대손실 신호·실험 손절 게이트·자동 차트 지표·4패턴 통합, v2 요약 캐시, 허브·MKAT·Volatility 오프라인 로드"
     );
   } finally {
     try {
