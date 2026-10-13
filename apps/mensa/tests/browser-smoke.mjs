@@ -811,7 +811,7 @@ async function run() {
     assert.equal(delayedQuoteGate.calculationsHidden, false);
     assert.equal(delayedQuoteGate.status, "시세 사용 가능");
     assert.match(delayedQuoteGate.upLine, /pt/);
-    assert.equal(delayedQuoteGate.refreshText, "오늘 시세 새로고침");
+    assert.equal(delayedQuoteGate.refreshText, "시세 지금 갱신");
     assert.equal(delayedQuoteGate.refreshInTopbar, true);
     assert.deepEqual(delayedQuoteGate.liveLabels, [
       `장중 기본 상승선 · OOS ${WEEKLY_VOLATILITY_REFERENCE.exAnte.up.walkForwardHitRate.toFixed(1)}%`,
@@ -1161,12 +1161,18 @@ async function run() {
       set("#currentQuantity", 6);
       set("#maxQuantity", 6);
       set("#addCount", 3);
+      set("#stopPrice", current + 41);
+      set("#targetPrice", current + 241);
+      set("#accountBalanceUsd", 25000);
+      set("#riskBudgetPercent", 1);
       return {
         headline: document.querySelector("#positionRiskHeadline").textContent,
         statuses: [...document.querySelectorAll("#positionRiskChecklist li")]
           .map(item => item.querySelector("b").textContent),
         text: document.querySelector("#positionRiskPanel").textContent,
         autoAtr: document.querySelector("#positionSummary article:nth-child(2) strong").textContent,
+        planCount: document.querySelectorAll("#positionPlanMetrics article").length,
+        planText: document.querySelector("#positionPlanMetrics").textContent,
         savedKeys: Object.keys(JSON.parse(localStorage.getItem("personal-tap-volatility-position-v1"))).sort()
       };
     })()`);
@@ -1176,7 +1182,9 @@ async function run() {
     assert.match(positionLossRisk.text, /−2\.25 ATR/);
     assert.match(positionLossRisk.text, /자동 전량청산하지는 마세요/);
     assert.equal(positionLossRisk.autoAtr, "40.35 pt");
-    assert.deepEqual(positionLossRisk.savedKeys, ["addCount", "currentQuantity", "direction", "enteredAt", "entry", "maxQuantity"]);
+    assert.equal(positionLossRisk.planCount, 6);
+    assert.match(positionLossRisk.planText, /1 : 3\.00/);
+    assert.deepEqual(positionLossRisk.savedKeys, ["accountBalanceUsd", "addCount", "currentQuantity", "direction", "enteredAt", "entry", "maxQuantity", "riskBudgetPercent", "stopPrice", "targetPrice"]);
     const automaticAtrAfter = await evaluate(client, `(() => {
       const values = {
         manualOpen: 30000,
@@ -1317,7 +1325,7 @@ async function run() {
       };
     })()`);
     assert.deepEqual(volatilityTopbar320, {
-      text: "오늘 시세 새로고침",
+      text: "시세 지금 갱신",
       visible: true,
       inViewport: true,
       fitsViewport: true,
@@ -1407,7 +1415,7 @@ async function run() {
     assert.match(lockedFallback.notice, /자동 ATR 위험 판정은 참고값으로 열고/);
     assert.equal(lockedFallback.status, "이전 시세 참고");
     assert.doesNotMatch(lockedFallback.notice, /최근 완료 세션/);
-    assert.equal(lockedFallback.refreshText, "오늘 시세 새로고침");
+    assert.equal(lockedFallback.refreshText, "시세 지금 갱신");
     assert.equal(lockedFallback.manualPanelHidden, true);
     assert.equal(lockedFallback.manualExpanded, "false");
     assert.equal(lockedFallback.rateLimitUntil, Date.parse(VOLATILITY_FIXTURE_NOW) + 120_000);
@@ -1593,7 +1601,7 @@ async function run() {
       return true;
     })()`);
     await waitForCondition(client, `
-      /버튼 요청/.test(document.querySelector("#dataNotice").textContent)
+      /요청한 Yahoo 최신 관측/.test(document.querySelector("#dataNotice").textContent)
     `);
     await client.send("Fetch.disable");
     removeCompletedFixture();

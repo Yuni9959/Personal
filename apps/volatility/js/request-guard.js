@@ -1,9 +1,9 @@
 // This is only a short duplicate-click guard. Provider-directed 429 backoff is
 // deliberately independent and remains at least one minute below.
 export const REQUEST_COOLDOWN_MS = 10_000;
-// Jina Reader is deliberately used only for a user-triggered, one-shot read.
-// Its documented average latency is about eight seconds, so the old seven
-// second deadline rejected otherwise valid responses before they arrived.
+// Jina Reader is used by visible-tab refreshes only. Its typical relay latency
+// can be several seconds, so the deadline leaves room for a valid response
+// without allowing a stalled request to overlap the next refresh cycle.
 export const REQUEST_DEADLINE_MS = 15_000;
 export const REQUEST_LEASE_MS = REQUEST_DEADLINE_MS + 5_000;
 export const RATE_LIMIT_MINIMUM_MS = 60_000;

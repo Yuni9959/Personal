@@ -4,6 +4,7 @@ import {
   assessPositionLossRisk,
   assessTailLossAvoidance,
   calculatePositionPathFeatures,
+  calculatePositionPlan,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
   classifyLiveTradePattern,
@@ -44,7 +45,7 @@ const els = {
   manualToggleBtn: $("#manualToggleBtn"), manualPanel: $("#manualPanel"), manualError: $("#manualError"),
   openPrice: $("#openPrice"), highPrice: $("#highPrice"), lowPrice: $("#lowPrice"),
   currentPriceLabel: $("#currentPriceLabel"), currentPrice: $("#currentPrice"),
-  atrValue: $("#atrValue"), symbolLabel: $("#symbolLabel"),
+  atrValue: $("#atrValue"), symbolLabel: $("#symbolLabel"), autoRefreshText: $("#autoRefreshText"),
   barUpdateText: $("#barUpdateText"), lastUpdateText: $("#lastUpdateText"), delayText: $("#delayText"),
   automaticCalculations: $("#automaticCalculations"), calculationLock: $("#calculationLock"),
   bullMeanReference: $("#bullMeanReference"), bullSafeReference: $("#bullSafeReference"),
@@ -72,9 +73,12 @@ const els = {
   useAutoAtrBtn: $("#useAutoAtrBtn"),
   positionForm: $("#positionForm"), positionDirection: $("#positionDirection"), entryPrice: $("#entryPrice"),
   enteredAt: $("#enteredAt"), currentQuantity: $("#currentQuantity"),
-  maxQuantity: $("#maxQuantity"), addCount: $("#addCount"),
+  maxQuantity: $("#maxQuantity"), addCount: $("#addCount"), stopPrice: $("#stopPrice"),
+  targetPrice: $("#targetPrice"), accountBalanceUsd: $("#accountBalanceUsd"),
+  riskBudgetPercent: $("#riskBudgetPercent"),
   positionEmpty: $("#positionEmpty"), positionResults: $("#positionResults"),
   positionSummary: $("#positionSummary"), positionMarketNote: $("#positionMarketNote"),
+  positionPlanMetrics: $("#positionPlanMetrics"), positionPlanNote: $("#positionPlanNote"),
   positionRiskPanel: $("#positionRiskPanel"), positionRiskHeadline: $("#positionRiskHeadline"),
   positionRiskSummary: $("#positionRiskSummary"), positionRiskMetrics: $("#positionRiskMetrics"),
   positionRiskChecklist: $("#positionRiskChecklist"),
@@ -111,9 +115,14 @@ const state = {
   rateLimitUntil: 0,
   forceLockReason: "",
   expiryTimer: null,
+  autoRefreshTimer: null,
+  nextAutoRefreshAt: 0,
+  refreshInFlight: false,
   transientNotice: ""
 };
 const POSITION_EMPTY_MESSAGE = "방향·체결가격·체결시간을 입력하면 현재가와 자동 5분 ATR로 대손실 회피 체크리스트를 점검합니다.";
+const AUTO_REFRESH_INTERVAL_MS = 5 * 60_000;
+const RESUME_REFRESH_MIN_AGE_MS = 60_000;
 const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const kstFormat = new Intl.DateTimeFormat("ko-KR", {
   timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
@@ -134,6 +143,20 @@ function writeJson(key, value) {
 
 function formatNumber(value, suffix = "") {
   return isFiniteValue(value) ? `${numberFormat.format(Number(value))}${suffix}` : "—";
+}
+
+function formatSignedMoney(value) {
+  if (!isFiniteValue(value)) return "—";
+  const numeric = Number(value);
+  return `${numeric < 0 ? "−" : numeric > 0 ? "+" : ""}$${numberFormat.format(Math.abs(numeric))}`;
+}
+
+function formatHoldingMinutes(value) {
+  if (!isFiniteValue(value)) return "시간 확인 필요";
+  const minutes = Math.max(0, Math.floor(Number(value)));
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return hours > 0 ? `${hours}시간 ${remainder}분 보유` : `${remainder}분 보유`;
 }
 
 function isFiniteValue(value) {
@@ -198,6 +221,59 @@ function setCompactDataStatus(key, text) {
 function setRefreshBusy(busy) {
   els.refreshBtn.disabled = busy;
   els.refreshBtn.setAttribute("aria-busy", String(busy));
+  if (busy) els.autoRefreshText.textContent = "최신 시세 확인 중";
+}
+
+function clearAutoRefreshTimer() {
+  if (state.autoRefreshTimer !== null) window.clearTimeout(state.autoRefreshTimer);
+  state.autoRefreshTimer = null;
+  state.nextAutoRefreshAt = 0;
+}
+
+function scheduleAutoRefresh(delayMs = AUTO_REFRESH_INTERVAL_MS) {
+  clearAutoRefreshTimer();
+  if (state.snapshot?.mode === "manual") {
+    els.autoRefreshText.textContent = "수동 시세 유지 중";
+    return;
+  }
+  if (document.visibilityState !== "visible") {
+    els.autoRefreshText.textContent = "화면 복귀 시 재개";
+    return;
+  }
+  if (globalThis.navigator?.onLine === false) {
+    els.autoRefreshText.textContent = "오프라인 · 연결 시 재개";
+    return;
+  }
+  const providerBackoff = rateLimitRemainingMs();
+  const effectiveDelay = Math.max(Number(delayMs) || 0, providerBackoff, REQUEST_COOLDOWN_MS);
+  state.nextAutoRefreshAt = Date.now() + effectiveDelay;
+  els.autoRefreshText.textContent = `${Math.max(1, Math.ceil(effectiveDelay / 60000))}분 후 자동 확인`;
+  state.autoRefreshTimer = window.setTimeout(() => {
+    state.autoRefreshTimer = null;
+    refreshMarket({ trigger: "auto" });
+  }, effectiveDelay);
+}
+
+function latestRequestAt() {
+  const stored = Number(readJson(LAST_REQUEST_KEY, 0));
+  return Math.max(
+    Number.isFinite(state.lastRequestAt) ? state.lastRequestAt : 0,
+    Number.isFinite(stored) ? stored : 0
+  );
+}
+
+function resumeMarket(trigger) {
+  if (state.snapshot) renderMarket();
+  if (state.snapshot?.mode === "manual") {
+    scheduleAutoRefresh();
+    return;
+  }
+  const elapsed = Date.now() - latestRequestAt();
+  if (elapsed >= RESUME_REFRESH_MIN_AGE_MS) {
+    refreshMarket({ trigger });
+  } else {
+    scheduleAutoRefresh(Math.max(REQUEST_COOLDOWN_MS, AUTO_REFRESH_INTERVAL_MS - Math.max(0, elapsed)));
+  }
 }
 
 function barQualityNotice(snapshot, assessment) {
@@ -252,7 +328,7 @@ function setStatus(snapshot, assessment = assessSnapshot(snapshot)) {
     const delayLabel = snapshot?.provider?.delayMetadataVerified === false
       ? "지연시간 메타가 없어 원천 관측시각으로만 신규도를 판정한"
       : "약 10분 지연";
-    els.dataNotice.textContent = `사용자가 요청할 때만 조회한 Yahoo ${delayLabel} MNQ 연속선물 프록시입니다. 실제 월물·증권사 시세와 확인한 후에만 사용하세요.`;
+    els.dataNotice.textContent = `Yahoo ${delayLabel} MNQ 연속선물 프록시입니다. 화면이 보이는 동안 5분마다 자동으로 최신 관측을 확인합니다.`;
   }
   const qualityNotice = barQualityNotice(snapshot, assessment);
   if (qualityNotice) els.dataNotice.textContent += ` ${qualityNotice}`;
@@ -750,9 +826,14 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       state.rateLimitUntil = 0;
       try { localStorage.removeItem(RATE_LIMIT_UNTIL_KEY); }
       catch { /* Successful data is already verified; stale backoff cleanup is best-effort. */ }
-      state.transientNotice = trigger === "load"
-        ? "이 화면을 열어 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다."
-        : "버튼 요청으로 Yahoo 지연 시세를 한 번 조회했습니다. 백그라운드 갱신은 없습니다.";
+      const refreshMessages = {
+        load: "화면을 열며 Yahoo 최신 관측을 확인했습니다.",
+        button: "요청한 Yahoo 최신 관측을 반영했습니다.",
+        auto: "5분 자동 갱신으로 Yahoo 최신 관측을 반영했습니다.",
+        resume: "화면 복귀 후 Yahoo 최신 관측을 확인했습니다.",
+        online: "네트워크 복구 후 Yahoo 최신 관측을 확인했습니다."
+      };
+      state.transientNotice = refreshMessages[trigger] || refreshMessages.auto;
     } else if (result.source === "local") {
       const remoteDetail = result.remoteFailure
         ? ` ${requestFailureReason(result.remoteFailure)}`
@@ -786,22 +867,30 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
 }
 
 async function refreshMarket(options = {}) {
-  const result = await withExclusiveRequest(() => refreshMarketUnlocked(options));
-  if (result.acquired) return result.value;
-  if (["storage-unavailable", "clock-unavailable"].includes(result.reason)) {
-    state.transientNotice = "요청 보호 저장소를 확인할 수 없어 자동 시세 조회를 보내지 않았습니다.";
+  if (state.refreshInFlight) return undefined;
+  clearAutoRefreshTimer();
+  state.refreshInFlight = true;
+  try {
+    const result = await withExclusiveRequest(() => refreshMarketUnlocked(options));
+    if (result.acquired) return result.value;
+    if (["storage-unavailable", "clock-unavailable"].includes(result.reason)) {
+      state.transientNotice = "요청 보호 저장소를 확인할 수 없어 자동 시세 조회를 보내지 않았습니다.";
+      if (state.snapshot) renderMarket();
+      else showNoUsableSnapshot("요청 보호 저장소를 사용할 수 없어 자동 시세 조회를 중지했습니다. 수동 입력을 사용해 주세요.");
+      setRefreshBusy(false);
+      document.body.dataset.ready = "true";
+      return undefined;
+    }
+    state.transientNotice = "다른 탭에서 이미 시세를 확인 중입니다. 중복 요청을 보내지 않았습니다.";
     if (state.snapshot) renderMarket();
-    else showNoUsableSnapshot("요청 보호 저장소를 사용할 수 없어 자동 시세 조회를 중지했습니다. 수동 입력을 사용해 주세요.");
+    else showNoUsableSnapshot("다른 탭에서 시세를 확인 중입니다. 잠시 후 다시 확인합니다.");
     setRefreshBusy(false);
     document.body.dataset.ready = "true";
     return undefined;
+  } finally {
+    state.refreshInFlight = false;
+    scheduleAutoRefresh();
   }
-  state.transientNotice = "다른 탭에서 이미 시세를 확인 중입니다. 중복 요청을 보내지 않았습니다.";
-  if (state.snapshot) renderMarket();
-  else showNoUsableSnapshot("다른 탭에서 시세를 확인 중입니다. 잠시 후 다시 눌러 주세요.");
-  setRefreshBusy(false);
-  document.body.dataset.ready = "true";
-  return undefined;
 }
 
 function positionInput() {
@@ -811,7 +900,11 @@ function positionInput() {
     enteredAt: els.enteredAt.value,
     currentQuantity: els.currentQuantity.value,
     maxQuantity: els.maxQuantity.value,
-    addCount: els.addCount.value
+    addCount: els.addCount.value,
+    stopPrice: els.stopPrice.value,
+    targetPrice: els.targetPrice.value,
+    accountBalanceUsd: els.accountBalanceUsd.value,
+    riskBudgetPercent: els.riskBudgetPercent.value
   };
 }
 
@@ -877,6 +970,44 @@ function renderTailLossChecklist(result) {
   }).join("");
 }
 
+function renderPositionPlan(plan) {
+  const stopState = plan.stopPrice === null
+    ? { value: "손절가 입력", detail: "—" }
+    : plan.stopBreached
+      ? { value: `손절선 ${formatNumber(Math.abs(plan.stopRemainingPoints), " pt")} 초과`, detail: `${formatNumber(plan.stopPrice)} · ${formatNumber(plan.stopDistanceAtr, " ATR")}` }
+      : { value: formatNumber(plan.stopRemainingPoints, " pt 남음"), detail: `${formatNumber(plan.stopPrice)} · 진입 대비 ${formatNumber(plan.stopDistanceAtr, " ATR")}` };
+  const targetState = plan.targetPrice === null
+    ? { value: "목표가 입력", detail: "—" }
+    : plan.targetReached
+      ? { value: `목표선 ${formatNumber(Math.abs(plan.targetRemainingPoints), " pt")} 초과`, detail: `${formatNumber(plan.targetPrice)} · ${formatNumber(plan.targetDistanceAtr, " ATR")}` }
+      : { value: formatNumber(plan.targetRemainingPoints, " pt 남음"), detail: `${formatNumber(plan.targetPrice)} · 진입 대비 ${formatNumber(plan.targetDistanceAtr, " ATR")}` };
+  const plannedRisk = plan.plannedRiskUsd === null ? "계약·손절 입력" : `−$${numberFormat.format(plan.plannedRiskUsd)}`;
+  const plannedReward = plan.plannedRewardUsd === null ? "계약·목표 입력" : `+$${numberFormat.format(plan.plannedRewardUsd)}`;
+  const rewardRisk = plan.rewardRiskRatio === null ? "손절·목표 입력" : `1 : ${plan.rewardRiskRatio.toFixed(2)}`;
+  const budgetValue = plan.riskBudgetUsd === null ? "계좌·위험% 입력" : `$${numberFormat.format(plan.riskBudgetUsd)}`;
+  const budgetDetail = plan.maxContractsWithinBudget === null
+    ? "예산 내 계약 수 대기"
+    : `최대 ${plan.maxContractsWithinBudget.toLocaleString("ko-KR")}계약 · 계획 위험 ${formatPercent(plan.plannedRiskAccountPercent, 2)}`;
+  els.positionPlanMetrics.innerHTML = `
+    <article><span>손절까지</span><strong class="${plan.stopBreached ? "money-negative" : ""}">${stopState.value}</strong><small>${stopState.detail}</small></article>
+    <article><span>목표까지</span><strong class="${plan.targetReached ? "money-positive" : ""}">${targetState.value}</strong><small>${targetState.detail}</small></article>
+    <article><span>계획 최대손실</span><strong class="money-negative">${plannedRisk}</strong><small>MNQ $2 / point / 계약</small></article>
+    <article><span>목표 도달 손익</span><strong class="money-positive">${plannedReward}</strong><small>수수료 전</small></article>
+    <article><span>계획 손익비</span><strong>${rewardRisk}</strong><small>위험 1 기준</small></article>
+    <article><span>허용 위험예산</span><strong>${budgetValue}</strong><small>${budgetDetail}</small></article>`;
+
+  if (plan.stopBreached) {
+    els.positionPlanNote.textContent = "현재가가 입력한 손절선을 이미 지났습니다.";
+  } else if (plan.quantity !== null && plan.maxContractsWithinBudget !== null &&
+      plan.quantity > plan.maxContractsWithinBudget) {
+    els.positionPlanNote.textContent = `현재 ${plan.quantity}계약이 위험예산 내 최대 ${plan.maxContractsWithinBudget}계약을 초과합니다.`;
+  } else if ([plan.stopPrice, plan.targetPrice, plan.quantity, plan.riskBudgetUsd].some(value => value === null)) {
+    els.positionPlanNote.textContent = "계약 수·손절가·목표가·계좌 위험예산을 채우면 계획 손익과 적정 계약 수가 완성됩니다.";
+  } else {
+    els.positionPlanNote.textContent = "입력한 손절·목표·위험예산이 현재 계약 수 안에서 일치합니다.";
+  }
+}
+
 function renderPosition() {
   const input = positionInput();
   writeJson(POSITION_KEY, input);
@@ -916,14 +1047,21 @@ function renderPosition() {
     }
     if (!input.enteredAt) throw new Error("체결시간을 입력하세요.");
     const result = renderPositionLossRisk(input, marketContext);
+    const plan = calculatePositionPlan({
+      ...input,
+      current: marketContext.current,
+      atr5m14: marketContext.atr5m14
+    });
     const ageText = Number.isFinite(marketContext.ageMinutes)
       ? `${Math.max(0, Math.round(marketContext.ageMinutes))}분 전 관측`
       : "관측시각 미확인";
     els.positionSummary.innerHTML = `
       <article><span>${marketContext.referenceOnly ? "마지막 관측가" : "현재가"}</span><strong>${formatNumber(marketContext.current)}</strong></article>
       <article><span>자동 5분 ATR(14)</span><strong>${formatNumber(marketContext.atr5m14, " pt")}</strong></article>
-      <article><span>진입 대비 방향성 변동</span><strong class="${result.signedMovePoints < 0 ? "money-negative" : result.signedMovePoints > 0 ? "money-positive" : ""}">${formatNumber(result.signedMovePoints, " pt")}</strong></article>`;
+      <article><span>현재 평가손익</span><strong class="${plan.currentGrossUsd < 0 ? "money-negative" : plan.currentGrossUsd > 0 ? "money-positive" : ""}">${plan.currentGrossUsd === null ? "계약 수 입력" : formatSignedMoney(plan.currentGrossUsd)}</strong></article>
+      <article><span>진입 대비 변동</span><strong class="${result.signedMovePoints < 0 ? "money-negative" : result.signedMovePoints > 0 ? "money-positive" : ""}">${formatNumber(result.signedMovePoints, " pt")} · ${formatNumber(result.signedMoveAtr, " ATR")}</strong><small>${formatHoldingMinutes(result.holdingMinutes)}</small></article>`;
     els.positionMarketNote.textContent = `${marketContext.sourceLabel} · ${ageText} · ${formatDate(marketContext.latestBarAt)}${marketContext.referenceOnly ? " · 최근 관측 참고값" : ""}`;
+    renderPositionPlan(plan);
     els.positionEmpty.hidden = true;
     els.positionResults.hidden = false;
   } catch (error) {
@@ -942,6 +1080,10 @@ function restorePosition() {
   els.currentQuantity.value = saved.currentQuantity ?? "";
   els.maxQuantity.value = saved.maxQuantity ?? "";
   els.addCount.value = saved.addCount ?? "";
+  els.stopPrice.value = saved.stopPrice ?? "";
+  els.targetPrice.value = saved.targetPrice ?? "";
+  els.accountBalanceUsd.value = saved.accountBalanceUsd ?? "";
+  els.riskBudgetPercent.value = saved.riskBudgetPercent ?? "";
 }
 
 function setRiskCard(element, tone, title, description) {
@@ -1096,6 +1238,7 @@ els.manualPanel.addEventListener("submit", event => {
   els.manualConfirm.checked = false;
   state.transientNotice = "";
   applySnapshot(manual, { cache: false });
+  scheduleAutoRefresh();
   setManualPanelExpanded(false, { returnFocus: true });
 });
 
@@ -1105,13 +1248,24 @@ els.useAutoAtrBtn.addEventListener("click", () => {
 els.refreshBtn.addEventListener("click", () => refreshMarket({ trigger: "button" }));
 els.positionForm.addEventListener("input", renderPosition);
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible" && state.snapshot) renderMarket();
+  if (document.visibilityState === "visible") resumeMarket("resume");
+  else {
+    clearAutoRefreshTimer();
+    els.autoRefreshText.textContent = "화면 복귀 시 재개";
+  }
 });
 window.addEventListener("focus", () => {
-  if (state.snapshot) renderMarket();
+  if (document.visibilityState === "visible") resumeMarket("resume");
 });
 window.addEventListener("pageshow", () => {
-  if (state.snapshot) renderMarket();
+  if (document.visibilityState === "visible") resumeMarket("resume");
+});
+window.addEventListener("online", () => {
+  if (document.visibilityState === "visible") refreshMarket({ trigger: "online" });
+});
+window.addEventListener("offline", () => {
+  clearAutoRefreshTimer();
+  els.autoRefreshText.textContent = "오프라인 · 연결 시 재개";
 });
 
 els.bullMeanReference.textContent = formatPercent(REFERENCE.directions.bull.rangeMeanPercent);

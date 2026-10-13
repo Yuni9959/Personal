@@ -726,7 +726,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       sourceEventAt: currentBar.at.toISOString(),
       sourceTimestampKind: syntheticSeen ? "latest-synthetic-progress-bar" : "latest-returned-bar",
       observedAgeSeconds: Math.max(0, Math.floor((fetchedAt.getTime() - currentBar.at.getTime()) / 1000)),
-      requestMode: "user-initiated-single-shot",
+      requestMode: "visible-tab-on-demand-and-periodic",
       instrumentType: "continuous-futures-proxy",
       tier,
       fallback: false,

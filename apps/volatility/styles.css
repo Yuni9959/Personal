@@ -80,7 +80,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible
 .top-refresh-button:disabled { cursor: wait; opacity: .62; }
 
 main { width: min(1160px, 100%); margin: 0 auto; padding: 30px 20px 70px; }
-.panel, .method-card { border: 1px solid var(--line); border-radius: 27px; background: var(--surface); box-shadow: var(--shadow); }
+.panel { border: 1px solid var(--line); border-radius: 27px; background: var(--surface); box-shadow: var(--shadow); }
 .hero { display: grid; grid-template-columns: minmax(260px,.72fr) minmax(520px,1.28fr); gap: 26px; padding: clamp(26px, 4vw, 48px); background: linear-gradient(130deg, rgba(33,160,139,.13), transparent 55%), var(--surface); }
 .hero-copy { align-self: center; }
 .eyebrow { margin: 0 0 10px; color: var(--mint); font-size: 11px; font-weight: 950; letter-spacing: .13em; }
@@ -142,7 +142,7 @@ h1 em { color: var(--mint); font-style: normal; }
 .quote-grid strong { display: block; margin-top: 6px; font-size: clamp(23px, 3vw, 31px); letter-spacing: -.035em; }
 .quote-grid .current { border-color: rgba(98,226,189,.25); background: var(--mint-soft); }
 .quote-grid .current strong { color: var(--mint); }
-.quote-meta { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-top: 15px; }
+.quote-meta { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-top: 15px; }
 .quote-meta p { margin: 0; }
 .quote-meta span, .quote-meta strong { display: block; }
 .quote-meta span { color: #708d8e; font-size: 10px; }
@@ -242,17 +242,24 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .tail-evidence-summary b { display: block; color: var(--red); font-size: 12px; }
 .empty-state { margin-top: 14px; padding: 22px; border: 1px dashed var(--line); border-radius: 16px; color: var(--muted); text-align: center; font-size: 12px; line-height: 1.6; }
 .position-results { margin-top: 14px; }
-.position-summary { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
+.position-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; }
 .position-market-note { margin: 9px 2px 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
 .position-summary article, .position-scenario-grid article { min-width: 0; padding: 17px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface-soft); }
-.position-summary span, .position-scenario-grid span { display: block; color: var(--muted); font-size: 10px; }
+.position-summary span, .position-summary small, .position-scenario-grid span { display: block; color: var(--muted); font-size: 10px; }
 .position-summary strong, .position-scenario-grid strong { display: block; margin-top: 5px; font-size: 18px; }
+.position-summary small { margin-top: 4px; }
 .position-scenario-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-top: 10px; }
 .position-scenario-grid article { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
 .position-scenario-grid h3 { grid-column: 1/-1; margin: 0; font-size: 15px; }
 .position-scenario-grid p { margin: 0; }
 .money-positive { color: var(--mint); }
 .money-negative { color: var(--red); }
+.position-plan { margin-top: 15px; padding: 15px; border: 1px solid rgba(112,183,255,.22); border-radius: 15px; background: var(--blue-soft); }
+.position-plan-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 11px; }
+.position-plan-metrics article { min-width: 0; padding: 11px; border: 1px solid var(--line); border-radius: 11px; background: rgba(1,12,17,.36); }
+.position-plan-metrics span, .position-plan-metrics small { display: block; color: var(--muted); font-size: 8px; line-height: 1.4; }
+.position-plan-metrics strong { display: block; margin: 4px 0 2px; color: var(--text); font-size: 13px; }
+.position-plan-note { margin: 9px 1px 0; color: var(--muted); font-size: 9px; line-height: 1.5; }
 .position-risk-panel { margin-top: 12px; padding: 17px; border: 1px solid rgba(98,226,189,.2); border-radius: 16px; background: var(--surface-soft); }
 .position-risk-verdict > span { color: var(--muted); font-size: 10px; font-weight: 800; }
 .position-risk-verdict strong { display: block; margin-top: 5px; color: var(--mint); font-size: 20px; }
@@ -310,12 +317,6 @@ dd { margin: 0; text-align: right; font-size: 13px; font-weight: 850; }
 .risk-card.safe { border-color: rgba(98,226,189,.2); }
 .risk-card.safe strong { color: var(--mint); }
 
-.method-card { margin-top: 18px; padding: clamp(22px,4vw,34px); }
-.method-card h2 { font-size: 24px; }
-.method-card ul { margin: 18px 0 0; padding-left: 20px; color: var(--muted); font-size: 12px; line-height: 1.75; }
-.method-card li + li { margin-top: 7px; }
-.method-card a { color: var(--mint); }
-.method-card > p { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--line); color: #c7d8d6; font-size: 11px; line-height: 1.65; }
 footer { display: flex; width: min(1160px,100%); margin: 0 auto; padding: 0 20px max(30px,env(safe-area-inset-bottom)); justify-content: space-between; gap: 20px; color: #6f898a; font-size: 11px; }
 footer a { color: var(--mint); text-decoration: none; }
 
@@ -333,7 +334,7 @@ footer a { color: var(--mint); text-decoration: none; }
   .topbar { min-height: 68px; padding-top: max(9px,env(safe-area-inset-top)); }
   .brand small { display: none; }
   main { padding: 16px 10px 52px; }
-  .panel, .method-card { border-radius: 21px; }
+  .panel { border-radius: 21px; }
   .hero { padding: 16px 12px 20px; }
   h1 { font-size: clamp(37px,11vw,50px); }
   .mobile-break { display: initial; }
@@ -392,7 +393,10 @@ footer a { color: var(--mint); text-decoration: none; }
   .position-scenario-grid { grid-template-columns: 1fr; }
   .position-scenario-grid article { grid-template-columns: 1fr; gap: 8px; }
   .position-scenario-grid h3 { grid-column: auto; }
-  .position-output-pane .calculation-note { margin-inline: 0; font-size: 8px; }
+  .position-plan { margin-top: 10px; padding: 10px; }
+  .position-plan-metrics { grid-template-columns: 1fr; gap: 5px; }
+  .position-plan-metrics article { padding: 8px; }
+  .position-plan-metrics strong { font-size: 11px; }
   .position-risk-panel { padding: 10px; border-radius: 12px; }
   .position-risk-verdict strong { font-size: 15px; }
   .position-risk-verdict p { font-size: 9px; }

@@ -174,7 +174,7 @@ test("검증된 현재 CME 세션만으로 O/H/L/current와 완료봉 ATR을 만
   assert.equal(result.provider.delayMetadataVerified, true);
   assert.equal(result.provider.delayLabel, "CME 선물 약 10분 지연 참고 시세");
   assert.equal(result.provider.sourceEventAt, result.market.latestBarAt);
-  assert.equal(result.provider.requestMode, "user-initiated-single-shot");
+  assert.equal(result.provider.requestMode, "visible-tab-on-demand-and-periodic");
   assert.equal(result.provider.tier, "mnq-continuous-proxy");
   assert.equal(result.provider.fallback, false);
   assert.equal(result.provider.barQuality, "complete");

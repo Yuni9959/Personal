@@ -374,6 +374,99 @@ export function calculatePositionScenario(position, bar, scenario) {
   };
 }
 
+export function calculatePositionPlan(position) {
+  const direction = position?.direction;
+  if (!["long", "short"].includes(direction)) {
+    throw new Error("포지션 방향은 long 또는 short여야 합니다.");
+  }
+  const entry = finiteNumber(position?.entry);
+  const current = finiteNumber(position?.current);
+  const atr = finiteNumber(position?.atr5m14);
+  if (entry === null || entry <= 0 || current === null || current <= 0 || atr === null || atr <= 0) {
+    throw new Error("포지션 계획에는 진입가·현재가·5분 ATR이 필요합니다.");
+  }
+
+  const tickPrice = (value, label) => {
+    const numeric = finiteNumber(value);
+    if (numeric === null) return null;
+    if (numeric <= 0 || Math.abs(numeric / MNQ_CONTRACT.tickSize - Math.round(numeric / MNQ_CONTRACT.tickSize)) > 1e-6) {
+      throw new Error(`${label}는 0보다 큰 MNQ 0.25포인트 틱 가격이어야 합니다.`);
+    }
+    return numeric;
+  };
+  const optionalPositive = (value, label, { maximum = null } = {}) => {
+    const numeric = finiteNumber(value);
+    if (numeric === null) return null;
+    if (numeric <= 0 || (maximum !== null && numeric > maximum)) {
+      throw new Error(
+        maximum === null
+          ? `${label}는 0보다 커야 합니다.`
+          : `${label}는 0보다 크고 ${maximum} 이하여야 합니다.`,
+      );
+    }
+    return numeric;
+  };
+
+  const quantity = finiteNumber(position?.currentQuantity ?? position?.quantity);
+  if (quantity !== null && (!Number.isInteger(quantity) || quantity < 1)) {
+    throw new Error("현재 계약 수는 1 이상의 정수여야 합니다.");
+  }
+  const stopPrice = tickPrice(position?.stopPrice, "손절가");
+  const targetPrice = tickPrice(position?.targetPrice, "목표가");
+  const accountBalanceUsd = optionalPositive(position?.accountBalanceUsd, "계좌자산");
+  const riskBudgetPercent = optionalPositive(position?.riskBudgetPercent, "허용위험", { maximum: 100 });
+  const sign = direction === "long" ? 1 : -1;
+  const riskPoints = stopPrice === null ? null : sign * (entry - stopPrice);
+  const rewardPoints = targetPrice === null ? null : sign * (targetPrice - entry);
+  if (riskPoints !== null && riskPoints <= 0) {
+    throw new Error(`손절가는 ${direction === "long" ? "진입가보다 낮아야" : "진입가보다 높아야"} 합니다.`);
+  }
+  if (rewardPoints !== null && rewardPoints <= 0) {
+    throw new Error(`목표가는 ${direction === "long" ? "진입가보다 높아야" : "진입가보다 낮아야"} 합니다.`);
+  }
+
+  const dollarsPerPoint = quantity === null ? null : quantity * MNQ_CONTRACT.pointValueUsd;
+  const currentMovePoints = sign * (current - entry);
+  const plannedRiskUsd = riskPoints === null || dollarsPerPoint === null
+    ? null : riskPoints * dollarsPerPoint;
+  const plannedRewardUsd = rewardPoints === null || dollarsPerPoint === null
+    ? null : rewardPoints * dollarsPerPoint;
+  const riskBudgetUsd = accountBalanceUsd === null || riskBudgetPercent === null
+    ? null : accountBalanceUsd * riskBudgetPercent / 100;
+  const riskPerContractUsd = riskPoints === null ? null : riskPoints * MNQ_CONTRACT.pointValueUsd;
+
+  return {
+    direction,
+    entry,
+    current,
+    atr,
+    quantity,
+    currentMovePoints,
+    currentMoveAtr: currentMovePoints / atr,
+    currentGrossUsd: dollarsPerPoint === null ? null : currentMovePoints * dollarsPerPoint,
+    stopPrice,
+    stopDistancePoints: riskPoints,
+    stopDistanceAtr: riskPoints === null ? null : riskPoints / atr,
+    stopRemainingPoints: stopPrice === null ? null : sign * (current - stopPrice),
+    stopBreached: stopPrice === null ? null : sign * (current - stopPrice) <= 0,
+    targetPrice,
+    targetDistancePoints: rewardPoints,
+    targetDistanceAtr: rewardPoints === null ? null : rewardPoints / atr,
+    targetRemainingPoints: targetPrice === null ? null : sign * (targetPrice - current),
+    targetReached: targetPrice === null ? null : sign * (targetPrice - current) <= 0,
+    plannedRiskUsd,
+    plannedRewardUsd,
+    rewardRiskRatio: riskPoints === null || rewardPoints === null ? null : rewardPoints / riskPoints,
+    accountBalanceUsd,
+    riskBudgetPercent,
+    riskBudgetUsd,
+    plannedRiskAccountPercent: plannedRiskUsd === null || accountBalanceUsd === null
+      ? null : plannedRiskUsd / accountBalanceUsd * 100,
+    maxContractsWithinBudget: riskBudgetUsd === null || riskPerContractUsd === null
+      ? null : Math.max(0, Math.floor(riskBudgetUsd / riskPerContractUsd))
+  };
+}
+
 export function assessPositionLossRisk(position, now = new Date()) {
   const direction = position?.direction;
   const entry = finiteNumber(position?.entry);

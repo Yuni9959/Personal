@@ -9,6 +9,7 @@ import {
   assessTailLossAvoidance,
   buildFiveMinuteChartFeatures,
   calculatePositionPathFeatures,
+  calculatePositionPlan,
   calculatePositionScenario,
   calculateSafeReachScenario,
   calculateVolatilityScenario,
@@ -27,6 +28,53 @@ test("MNQ 승수와 tick을 CME 계약값으로 고정한다", () => {
   assert.equal(roundToTick(100.12, "down"), 100);
   assert.equal(roundToTick(100.12, "up"), 100.25);
   assert.equal(roundToTick(100.13), 100.25);
+});
+
+test("포지션 계획은 현재 손익·ATR 거리·손익비·계좌 위험예산을 함께 계산한다", () => {
+  const result = calculatePositionPlan({
+    direction: "long",
+    entry: 30000,
+    current: 30040,
+    atr5m14: 20,
+    currentQuantity: 2,
+    stopPrice: 29950,
+    targetPrice: 30150,
+    accountBalanceUsd: 25000,
+    riskBudgetPercent: 1
+  });
+  assert.equal(result.currentMovePoints, 40);
+  assert.equal(result.currentMoveAtr, 2);
+  assert.equal(result.currentGrossUsd, 160);
+  assert.equal(result.stopDistancePoints, 50);
+  assert.equal(result.stopDistanceAtr, 2.5);
+  assert.equal(result.stopRemainingPoints, 90);
+  assert.equal(result.targetRemainingPoints, 110);
+  assert.equal(result.plannedRiskUsd, 200);
+  assert.equal(result.plannedRewardUsd, 600);
+  assert.equal(result.rewardRiskRatio, 3);
+  assert.equal(result.riskBudgetUsd, 250);
+  assert.equal(result.plannedRiskAccountPercent, 0.8);
+  assert.equal(result.maxContractsWithinBudget, 2);
+});
+
+test("숏 포지션 계획은 가격 방향을 반대로 계산하고 잘못된 손절·목표를 거부한다", () => {
+  const result = calculatePositionPlan({
+    direction: "short", entry: 30000, current: 29970, atr5m14: 20,
+    currentQuantity: 3, stopPrice: 30040, targetPrice: 29880,
+    accountBalanceUsd: 50000, riskBudgetPercent: 0.5
+  });
+  assert.equal(result.currentGrossUsd, 180);
+  assert.equal(result.stopRemainingPoints, 70);
+  assert.equal(result.targetRemainingPoints, 90);
+  assert.equal(result.maxContractsWithinBudget, 3);
+  assert.throws(() => calculatePositionPlan({
+    direction: "long", entry: 30000, current: 30010, atr5m14: 20,
+    stopPrice: 30001
+  }), /손절가는 진입가보다 낮아야/);
+  assert.throws(() => calculatePositionPlan({
+    direction: "short", entry: 30000, current: 29990, atr5m14: 20,
+    targetPrice: 30010
+  }), /목표가는 진입가보다 낮아야/);
 });
 
 test("자동 생성된 평균 범위·조건부 선·실전 ex-ante 계약의 구조와 주간 경계를 고정한다", () => {

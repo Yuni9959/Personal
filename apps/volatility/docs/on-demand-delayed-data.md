@@ -1,12 +1,13 @@
-# Volatility 요청형 지연 시세 설계·작업 기록
+# Volatility 가시 탭 자동 갱신 지연 시세 설계·작업 기록
 
 ## 결론
 
 Volatility의 네트워크 시세는 **실시간 피드가 아니다**. 페이지에 처음
-들어오거나 사용자가 **오늘 시세 새로고침** 버튼을 누를 때만 Jina Reader를 거쳐
-Yahoo Finance의 구조화된 chart 응답을 한 번 요청하는 best-effort 참고
-기능이다. 예약 작업, 백그라운드 폴링, focus·pageshow 네트워크 갱신, 화면을
-열어 둔 동안의 자동 갱신은 사용하지 않는다.
+들어오면 Jina Reader를 거쳐 Yahoo Finance의 구조화된 chart 응답을 요청하고,
+보이는 온라인 탭에서는 5분마다 같은 best-effort 확인을 이어 간다. 탭 복귀·
+focus·pageshow·온라인 전환 때 직전 요청이 1분 이상 지났다면 즉시 확인하며,
+사용자가 **시세 지금 갱신** 버튼을 누르면 바로 요청한다. 숨겨진 탭·오프라인·
+수동 시세 모드에서는 자동 갱신하지 않는다.
 
 페이지 시작 시에는 네트워크보다 먼저 이 기기의 캐시를 다시 검증한다. MNQ
 출처·구조·원천시각 검증을 통과한 활성 세션 캐시와 엄격한 완료 세션 조건을
@@ -29,11 +30,14 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
    않는다.
 2. 평일 최초 진입에는 브라우저가 Jina Reader를 통해 Yahoo `MNQ=F`의 최근
    30일치 5분봉 지연 시세를 한 번 요청한다. 주말 최초 진입은 로컬 NQ를 먼저
-   사용하지만, 사용자가 누르는 **오늘 시세 새로고침**은 요일과 관계없이 원격을
+   사용하지만, 사용자가 누르는 **시세 지금 갱신**은 요일과 관계없이 원격을
    먼저 확인한다. 새 원격·로컬·현재 화면 후보 중 원천시각이 가장 최근인 것을
    선택하므로 실패하거나 더 오래된 응답이 와도 표시값을 되돌리지 않는다.
-3. 같은 기기에서 짧은 시간 안에 반복 접속하거나 버튼을 연속으로 누르면
-   로컬 cooldown이 추가 요청을 막는다.
+3. 보이는 온라인 탭은 성공·실패 여부와 관계없이 다음 확인을 5분 뒤 예약한다.
+   숨겨진 탭에서는 타이머를 해제하고, 화면 복귀·focus·pageshow 때 직전 요청이
+   1분 이상 지났다면 바로 확인한다. 같은 기기에서 짧은 시간 안에 반복 이벤트나
+   버튼 연타가 생기면 로컬 cooldown이 추가 요청을 막는다. 공급자 429 대기 중에는
+   남은 대기시간보다 먼저 자동 요청하지 않는다.
 4. Jina 외부 envelope의 `code`·`status`·원본 URL·본문을 검증하고, URL의
    host·path·query가 요청한 Yahoo chart URL과 정확히 같을 때만 내부 Yahoo
    JSON을 파싱한다. 이어 상품 유형·CME 거래소·USD·정확한 `5m` 주기,
@@ -74,12 +78,12 @@ Yahoo URL을 대신 읽어 전달하는 중계 경로일 뿐, 원시 시장데�
 ## 데이터 흐름
 
 ```text
-페이지 진입 또는 버튼 클릭
-        ↓  한 번만 확인
+페이지 진입 · 5분 자동 주기 · 탭 복귀/온라인 전환 · 버튼 클릭
+        ↓  보이는 온라인 탭에서만 확인
 주말 최초 진입: 동기화된 `data/local-nasdaq-snapshot.json` 우선
-평일 최초 진입·버튼 클릭: Jina Reader (`r.jina.ai`, 인증정보 없음) 우선
+평일 최초 진입·자동 주기·복귀·버튼 클릭: Jina Reader (`r.jina.ai`, 인증정보 없음) 우선
         ↓  `https://query2.finance.yahoo.com/v8/finance/chart/MNQ=F` 전달, 실패 시 로컬 NQ
-        ↓  Yahoo chart JSON (`MNQ=F` 최근 30일·5분봉을 한 번만 확인)
+        ↓  Yahoo chart JSON (`MNQ=F` 최근 30일·5분봉)
         ↓  15초 timeout · 외부/내부 각 512 KiB · URL/provenance 검증
 CME 세션 재구성 (America/Chicago 17:00~익일 16:00)
         ↓  5분 bucket · null · OHLC · tick · 원천시각 검증
@@ -118,7 +122,7 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   저가의 최솟값만 합쳐 범위를 축소하지 않는다.
 - `open`, `high`, `low`, `current`가 양수이고
   `low ≤ open,current ≤ high`이며 0.25 point tick에 맞을 때만 사용한다.
-- 네트워크는 `r.jina.ai`에 canonical Yahoo URL을 붙인 GET 한 번뿐이다.
+- 각 네트워크 확인은 `r.jina.ai`에 canonical Yahoo URL을 붙인 GET 한 번뿐이다.
   `Accept: application/json` 외 비단순 헤더, 쿠키·자격증명·referrer를 보내지
   않고 브라우저 HTTP 캐시를 사용하지 않는다.
 - Jina 외부 envelope는 `code===200`, `status===200|20000`, `data.url`,
@@ -128,7 +132,8 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 - HTTP 오류, HTML 응답, 스키마 변경, 429, timeout은 모두 정상적인
   공급원 실패로 취급하며 응답 본문을 화면이나 로그에 노출하지 않는다.
 - 429의 유효한 `Retry-After`는 안전한 대기정보로 정규화하고, 없거나 무효하면
-  기본 60초를 적용한다. 자동 재시도하지 않는다. Jina 외부 JSON과 그 안의
+  기본 60초를 적용한다. 같은 요청 안에서 즉시 재시도하지 않고 자동 주기도
+  대기 종료 전에는 요청하지 않는다. Jina 외부 JSON과 그 안의
   Yahoo 내부 JSON은 각각 512 KiB 상한을 검사하며, 초과하면 즉시 읽기를
   취소한다. 전체 요청 deadline은 15초다.
 - Yahoo `exchangeDataDelayedBy`가 있으면 숫자 10만 허용한다. 필드가 없으면
@@ -154,9 +159,10 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
   사용한다. Web Locks가 있더라도 cooldown·429 대기를 새 navigation 뒤에
   보존할 로컬 저장소의 쓰기·읽기·삭제 검증을 통과해야 한다. 저장소를 쓸 수
   없으면 요청을 보내지 않는 쪽으로 fail-closed하고 수동 입력을 안내한다.
-- 화면을 열어 둔 중에도 로컬 만료 타이머·focus·pageshow에서 기존 값의
-  신규도만 다시 검사하며, 이 이벤트로 네트워크를 요청하지 않는다. 원천
-  관측시각이 25분을 넘으면 현재 거래 계산은 잠근다. 단, 위 완료 세션 조건과
+- 화면을 열어 둔 중에는 보이는 온라인 탭에서 5분 주기로 네트워크를 확인한다.
+  숨김·오프라인·수동 모드에서는 중지하고, focus·pageshow·visibility 복귀 때
+  직전 요청이 1분 이상 지났으면 즉시 확인한다. 원천 관측시각이 25분을 넘으면
+  현재 거래 계산은 잠근다. 단, 위 완료 세션 조건과
   96시간을 모두 만족하면 가격표를 참고용으로만 유지한다. 주간 기준이 만료되면
   원시 완료 세션 값만 남기고 상승·하락 환산선은 잠근다.
 - 포지션의 손절 ATR은 방향·진입가·진입시각과 출처시각을 묶어 한 번 고정하며,
@@ -198,7 +204,7 @@ Yahoo 시세를 담았던 `data/market.json`과 정적 갱신 도구도 공개 a
 | `apps/volatility/tools/sync-local-nasdaq.mjs` | 사용자 관리 `nasdaq_5m.csv`에서 최근 완료 세션 스냅샷 생성 |
 | `apps/volatility/js/request-guard.js` | 일반 10초 경계·공급자 429 대기·시계 rollback·동시 탭 요청 잠금 |
 | `apps/volatility/js/snapshot-policy.js` | 25분 현재 시세·96시간 완료 세션·종료 5분·최근 시가 환산선·심볼의 순수 fail-closed 판정 |
-| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 진입/버튼 단발 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |
+| `apps/volatility/js/app.js` | 시작 캐시의 강제 읽기 전용 복원, 가시 탭 5분 자동 갱신·복귀/버튼 요청, referenceOnly 계산 격리, 탭 잠금·cooldown과 화면 상태 |
 | `apps/volatility/js/calculator.js` | 평균·안전측·포지션·손절 계산 계약 |
 | `apps/volatility/js/weekly-reference.generated.js` | 실행 당일 한국 날짜와 최신 일봉으로 생성된 당주 평균·q25·OOS 계약 |
 | `apps/volatility/tools/build-weekly-reference.mjs` | `nasdaq_daily.csv`에서 월요일 기준 직전 5년·selection·52주 holdout을 재계산하는 생성기 |

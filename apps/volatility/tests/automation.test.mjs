@@ -7,20 +7,23 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
 
-test("Volatility refresh deploy is fail-closed and only stages generated market files", () => {
+test("Volatility refresh deploy uses an isolated worktree and only stages generated market files", () => {
   const script = read("apps/volatility/tools/refresh-and-deploy.ps1");
   assert.match(script, /npm run sync:volatility-data/);
   assert.match(script, /npm run test:release/);
   assert.match(script, /@\("-C", \$repo, "add", "--"\) \+ \$allowedFiles/);
   assert.match(script, /Invoke-Checked -Program "git" -Arguments \$gitAddArguments/);
-  assert.match(script, /push origin main/);
-  assert.match(script, /unrelated tracked changes/);
+  assert.match(script, /push origin HEAD:main/);
+  assert.match(script, /worktree add --detach/);
+  assert.match(script, /outside the deployment allowlist/);
+  assert.match(script, /worktree remove --force/);
+  assert.doesNotMatch(script, /Repository has unrelated tracked changes/);
   assert.match(script, /PersonalTapVolatilityRefresh/);
   assert.match(script, /function Artifact-Fingerprint/);
   assert.match(script, /export const WEEKLY_VOLATILITY_REFERENCE = deepFreeze/);
   assert.match(script, /sourceRowCount/);
   assert.match(script, /No completed-session or weekly-analysis change/);
-  assert.match(script, /@\("-C", \$repo, "restore", "--worktree", "--"\) \+ \$allowedFiles/);
+  assert.match(script, /No completed-session or weekly-analysis change; timestamp-only output was discarded/);
   assert.match(script, /local-nasdaq-snapshot\.json/);
   assert.match(script, /weekly-reference\.generated\.js/);
 });

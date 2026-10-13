@@ -46,18 +46,20 @@ test("Personal Tap 허브에 안정 Vercel 입학정보 주소가 안전한 외�
   assert.doesNotMatch(apps, /university-admission-private-preview-[a-z0-9]+-yuni14\.vercel\.app/);
 });
 
-test("시나리오를 목표가나 통계적 기대수익으로 표시하지 않는다", () => {
+test("시나리오와 포지션 분석을 간결한 실행 화면으로 유지한다", () => {
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
   assert.match(html, /목표가가 아닌/);
-  assert.match(html, /통계적 기대값이 아닙니다/);
   assert.match(html, /양봉·음봉은 종가 확정 전에 알 수 없어/);
   assert.match(html, /대손실 회피 체크리스트 · 8항목/);
   assert.match(html, /같은 포지션 입력 사용/);
   assert.match(html, /네 가지 과거 군집 중 현재 경향/);
-  assert.match(html, /확정 분류나 손실 확률이 아닙니다/);
+  assert.match(html, /id="positionPlanMetrics"/);
+  assert.match(html, /손절·목표·계좌 위험/);
+  assert.doesNotMatch(html, /기준과 한계|class="method-card"|사용 원칙:/);
   assert.match(app, /classifyLiveTradePattern/);
   assert.match(app, /calculatePositionPathFeatures/);
+  assert.match(app, /calculatePositionPlan/);
   assert.match(app, /고변동·약세 복합 경고/);
   assert.match(app, /10분 무반응 경고/);
 });
@@ -106,7 +108,7 @@ test("평균·실전 ex-ante·사후 조건부 안전선을 시각적으로 분�
   assert.doesNotMatch(html, /1\.409%.*안전측/);
 });
 
-test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값은 계산에서 차단한다", () => {
+test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값은 계산에서 차단한다", () => {
   const html = read("apps/volatility/index.html");
   const app = read("apps/volatility/js/app.js");
   const policy = read("apps/volatility/js/snapshot-policy.js");
@@ -117,13 +119,10 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   const scheduleExpiry = app.slice(scheduleStart, scheduleEnd);
   const startupStart = app.indexOf("const cachedSnapshot = loadFallbackSnapshot()");
   const startup = app.slice(startupStart);
-  assert.match(html, /오늘 시세 새로고침/);
+  assert.match(html, /시세 지금 갱신/);
   assert.match(html, /class="topbar-actions"/);
-  assert.match(html, /페이지 최초 진입과 .*오늘 시세 새로고침.* 버튼을 누른 때에만 값을 확인합니다/);
-  assert.match(html, /버튼을 누르면 휴장 여부와 관계없이 Yahoo 최신 MNQ를 먼저 조회하고/);
-  assert.match(html, /일반 반복 확인은 최대 10초만 막고/);
-  assert.match(html, /공급자 429 제한은 최소 60초 이상 따로 지킵니다/);
-  assert.match(html, /백그라운드·주기 갱신은 하지 않습니다/);
+  assert.match(html, /id="autoRefreshText"/);
+  assert.match(html, /가시 탭에서 5분마다 자동 갱신합니다/);
   assert.match(html, /제공자 가격시각/);
   assert.match(html, /이번 조회시각/);
   assert.match(html, /지연·사용 상태/);
@@ -146,7 +145,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.doesNotMatch(html, /connect-src[^;]*query[12]\.finance\.yahoo\.com/);
   assert.match(html, /name="referrer" content="no-referrer"/);
   assert.match(html, /id="manualAtr"[^>]+step="any"/);
-  for (const id of ["positionDirection", "entryPrice", "enteredAt", "currentQuantity", "maxQuantity", "addCount"]) {
+  for (const id of ["positionDirection", "entryPrice", "enteredAt", "currentQuantity", "maxQuantity", "addCount", "stopPrice", "targetPrice", "accountBalanceUsd", "riskBudgetPercent"]) {
     assert.match(html, new RegExp(`id="${id}"`));
   }
   for (const id of ["positionAtr", "quantity", "fees"]) assert.doesNotMatch(html, new RegExp(`id="${id}"`));
@@ -156,7 +155,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(html, /id="positionRiskPanel"[\s\S]*id="riskTitle"/);
   assert.doesNotMatch(html, /<section class="panel" aria-labelledby="riskTitle">/);
   assert.match(html, /대손실 회피 체크리스트 · 8항목/);
-  assert.match(html, /계약 정보를 더하면 대손실 판정이 완성됩니다/);
+  assert.match(html, /체결 정보와 손절·목표·계좌 위험예산을 한 번에 분석합니다/);
   assert.match(app, /assessPositionLossRisk/);
   assert.match(app, /assessTailLossAvoidance/);
   assert.match(app, /function renderTailLossChecklist/);
@@ -169,8 +168,13 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
   assert.match(styles, /\.precision-inputs/);
   assert.match(styles, /\.tail-evidence-summary/);
   assert.match(styles, /\.integrated-pattern-review/);
-  assert.doesNotMatch(html, /자동 시세 새로고침|실시간 시세|LIVE DEFAULT/);
+  assert.match(styles, /\.position-plan-metrics/);
+  assert.doesNotMatch(html, /기준과 한계|class="method-card"|사용 원칙:/);
   assert.match(app, /REQUEST_COOLDOWN_MS/);
+  assert.match(app, /AUTO_REFRESH_INTERVAL_MS = 5 \* 60_000/);
+  assert.match(app, /function scheduleAutoRefresh/);
+  assert.match(app, /refreshMarket\(\{ trigger: "auto" \}\)/);
+  assert.match(app, /addEventListener\("online"/);
   assert.doesNotMatch(app, /hasUsableQuote/);
   assert.match(guard, /requestedAt = Math\.max\(memoryAt, storedAt\)/);
   assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
@@ -220,7 +224,7 @@ test("지연 시세는 사용자 요청 때만 조회하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.11\.2-university-reports-s30\.1-admission-/);
+  assert.match(sw, /v3\.12\.0-volatility-continuous\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",
