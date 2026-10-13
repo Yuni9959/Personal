@@ -9,7 +9,7 @@ export const WEEKLY_VOLATILITY_REFERENCE = deepFreeze({
   "schemaVersion": 3,
   "effectiveFrom": "2026-10-12",
   "effectiveThrough": "2026-10-18",
-  "calculatedAt": "2026-10-13T18:58:08.337+09:00",
+  "calculatedAt": "2026-10-14T08:30:17.982+09:00",
   "sourceSymbol": "NQ continuous proxy",
   "sourceDataset": "nasdaq_daily.csv",
   "sourceSha256": "d39699f965c4118bcc3d7761f3d9a802d87883302764702d71f847a9b01ad3d1",
