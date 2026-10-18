@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "mode": "local-archive",
-  "generatedAt": "2026-10-16T23:30:19.343Z",
+  "generatedAt": "2026-10-18T23:30:19.319Z",
   "provider": {
     "name": "사용자 관리 로컬 Nasdaq 보관 데이터",
     "requestedSymbol": "NQ=F",
@@ -11,9 +11,9 @@
     "fallback": true,
     "localArchive": true,
     "sourceFile": "nasdaq_5m.csv",
-    "sourceSha256": "0498ebf253f4b0f78d5dd8f4311a08b44f02bd9eeb3cd851f471c4141bc79c69",
+    "sourceSha256": "7ff667dbd789455dd2c854b02458f8473173660826b7031bc3ce8e5532c924b3",
     "sourceEventAt": "2026-10-16T20:55:00.000Z",
-    "sourceRowCount": 101742,
+    "sourceRowCount": 101757,
     "barQuality": "one-interior-missing-bucket",
     "leadingMissingBucketCount": 0,
     "leadingMissingBucketAt": null,
@@ -41,7 +41,7 @@
     "open": 30089,
     "high": 30225,
     "low": 29268.75,
-    "current": 29391.25,
+    "current": 29391.5,
     "latestBarAt": "2026-10-16T20:55:00.000Z",
     "atr5m14": 35.486917,
     "atrLastCompletedBarAt": "2026-10-16T20:55:00.000Z"
@@ -50,10 +50,10 @@
     "timeframe": "5m",
     "sourceBarAt": "2026-10-16T20:55:00.000Z",
     "historyBarCount": 101742,
-    "ema50": 29447.163523,
-    "ema200": 29758.736705,
+    "ema50": 29447.173327,
+    "ema200": 29758.739192,
     "emaRegime": "bearish",
-    "rsi14": 50.28289,
+    "rsi14": 50.333251,
     "atrPercentile20d": 86.576087,
     "atrPercentileSampleCount": 5520
   },
@@ -9715,7 +9715,7 @@
       "at": "2026-10-16T20:55:00.000Z",
       "high": 29396,
       "low": 29376.75,
-      "close": 29391.25,
+      "close": 29391.5,
       "atr14": 35.486919
     }
   ],
