@@ -11,24 +11,54 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 
 | 항목 | 상태 |
 | --- | --- |
-| 확인일 | 2026-10-13 (Asia/Seoul) |
+| 확인일 | 2026-10-20 (Asia/Seoul) |
 | 문제은행 | `2026.08.10-content.4`, 59개 유형·990문제·6,298개 보기 |
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
-| 신규 앱 | `Volatility` 및 안정 Vercel 별칭으로 연결한 26기관 `대학 입학정보` |
-| Volatility 시세·기준 | Jina direct/cache-bypass로 Yahoo 약 10분 지연 MNQ를 보이는 탭에서 1분마다 확인; 복귀·온라인 전환·버튼 조회와 가장 최근 원천시각 유지 |
+| 신규 앱 | `AI Trend` — GitHub 급상승·새 AI 프로젝트·모델·공식 뉴스 14개, 검색·저장·3장 카드뉴스·30일 기록 |
+| Volatility 시세·기준 | 전용 Vercel API가 Yahoo 두 호스트를 직접 조회; Jina는 장애 시 보조 경로. 결손 없는 CME 세션봉으로 O/H/L 계산. 주간 기준은 클라우드에서도 갱신 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
-| 자동 검증 | 2026-10-13 `npm run test:release` 성공 — Node 227/227 및 Chromium·오프라인·320/390px 검증 통과 |
+| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 239/239·Chromium·AI 검색/저장/3장 독서·320/390px·오프라인·actionlint 1.7.12 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v3.13.0-volatility-fresh-ui.1-admission-<fingerprint>` — 1분 fresh 시세 확인·조건부 포지션 UI와 입시 Vercel 릴리스 업데이트 감지 연동 |
+| PWA 캐시 | `v4.0.0-ai-trend-direct-api.1-admission-<fingerprint>` — AI Trend 오프라인 지원, 발행본은 network-first·쿼리 없는 cache key |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
+
+## 2026-10-20: 전용 시세 API와 AI Trend
+
+장중 시세는 `https://personal-tap-data-yuni14.vercel.app/api/market`에서 받습니다.
+API는 Yahoo query1 → query2 순서로 최신 MNQ 5분봉을 확인하고, 브라우저가
+종목·CME 세션·OHLC·현재가/시각을 다시 검증합니다. PC·Google Drive·Git 배포를
+거치지 않으며 시세를 CDN에 캐시하지 않습니다. Jina 실패/429 대기와 독립적으로
+전용 API를 확인하고, API 장애 때만 대기 중이 아닌 Jina를 사용합니다. Yahoo
+자체의 약 10분 지연은 유지하며 원천시각 25분 초과 데이터는 계산을 잠급니다.
+완전한 세션봉에서는 Yahoo 일중 요약과 다른 H/L 관측 창 때문에 전체 계산을
+잠그지 않고 세션봉 자체의 O/H/L을 사용합니다. 결손봉·현재가/시각 불일치는
+계속 거부합니다. 실제 증권사 MNQ 월물을 대체하지 않습니다.
+
+`AI Trend`는 [전용 탭](./apps/ai-trend/)에서 매일 발견한 프로젝트·모델·뉴스를
+원문 발췌와 한국어 관측 안내로 정리합니다. 자동 번역이나 LLM 요약을 가장하지
+않으며 원문 언어를 보존합니다. 데이터·출처·한계·수집 명령은
+[AI Trend 운영 문서](./apps/ai-trend/README.md)에 있습니다.
+
+`.github/workflows/daily-briefing.yml`은 매일 **08:17 KST**에 GitHub Actions에서
+AI 수집과 만료된 주간 기준 재생성을 독립 실행합니다. PC가 꺼져 있어도 실행되며,
+일부 실패 시 직전 검증 파일을 보존합니다. 검증 후 생성 데이터만 commit/push하고
+재사용 Pages workflow를 호출합니다. 봇 push가 다른 workflow를 트리거하지 않는
+GitHub 정책을 고려한 구성입니다. 예약은 GitHub 상황에 따라 늦어질 수 있습니다.
+`npm run sync:cloud-reference -- --force --check`로 원본을 저장하지 않고 클라우드
+일봉 재계산도 검증할 수 있습니다.
+
+API 코드 변경 배포: Vercel CLI 로그인 후 이 저장소에서
+`vercel link --project personal-tap-data-yuni14` → `vercel deploy --prod`.
+`.vercelignore`는 API와 계산 모듈만 전송하고, Pages artifact는 `.env*`, `.vercel`,
+API 소스와 Vercel 설정을 제외합니다. 시세 조회에 사용자 비밀키는 필요 없습니다.
 
 최근 실제 멘사 테스트에 출제되지 않는 T26 네 글자 알파벳 변환 유형
 12문항을 모든 훈련·진단·실전 큐에서 제외했습니다. 원본 패키지는 출처
 감사를 위해 그대로 보존하고, 실행용 문제은행에만 폐기 정책을 적용합니다.
 
-2026-09-24 이후 Volatility 게시가 멈춘 직접 원인은 활성 저장소의 다른 변경을
+이전 장애 기록: 2026-09-24 이후 Volatility 게시가 멈춘 직접 원인은 활성 저장소의 다른 변경을
 배포기가 감지해 계속 중단한 것이고, 2026-10-03 이후에는 Google Drive가
 연결되지 않아 상위 예약 배치가 Volatility 단계에 도달하지 못한 것이었습니다.
 Drive 게시 실패와 Volatility 게시를 독립 단계로 분리하고, Volatility 생성·검사·
@@ -43,7 +73,7 @@ Drive 게시 실패와 Volatility 게시를 독립 단계로 분리하고, Volat
 전날 유형 쏠림이 생기지 않는지 회귀 검증합니다.
 
 `Volatility`는 실행 당일 한국 날짜로 이번 주 월요일을 구하고 직전 5년의
-NQ 연속선물 프록시만 사용해 주간 계약을 자동 생성합니다. 현재 2026-10-12
+NQ 연속선물 프록시만 사용해 주간 계약을 자동 생성합니다. 2026-10-12 당시
 기준 평균 H−L 범위는 양봉 1.758%·음봉 1.962%입니다. 장중 실전 기본선은
 방향을 모르는 전체 거래일의 q25인 상승 +0.359%·하락 −0.295%이며, 최종
 미사용 구간 도달률은 74.0%·75.2%입니다. 사후 양봉·음봉 조건부 복기선
@@ -158,6 +188,7 @@ Web Storage origin을 공유합니다. 따라서 같은 계정의 다른 Pages �
 - **MKAT 98**: Repository 내부의 `./apps/mensa/`
 - **Diary for my Wife**: 기존 GitHub Pages 주소
 - **Volatility**: Repository 내부의 `./apps/volatility/`
+- **AI Trend**: Repository 내부의 `./apps/ai-trend/`
 - **TouchBebe**: 준비 중 카드
 - **YML Studio**: 준비 중 카드
 - **대학 입학정보**: 안정 Vercel 별칭 `https://university-admission-private-preview-yuni14.vercel.app/`
@@ -314,7 +345,7 @@ workflow는 `main` push 또는 수동 실행에서 정적 PWA만 배포합니다
 GitHub Actions의 30분 예약 갱신과 배포 중 Yahoo 호출은 사용하지 않습니다.
 Volatility 페이지는 시작 시 이 기기의 검증 캐시를 먼저 다시 판정해 읽기
 전용 참고값으로 표시한 뒤, 보이는 온라인 탭에서 1분 간격으로
-[Jina Reader](https://jina.ai/reader/)의 direct 엔진과 캐시 우회를 통해 `MNQ=F`
+전용 Vercel API(보조: [Jina Reader](https://jina.ai/reader/))를 통해 `MNQ=F`
 최근 30일치 5분봉 지연 프록시를 best-effort로 조회합니다. 탭 복귀·focus·pageshow·온라인 전환 때도
 직전 요청이 1분 이상 지났다면 최신 여부를 다시 확인하며, **시세 지금 갱신**
 버튼은 즉시 확인을 시작합니다. 숨겨진 탭·오프라인·수동 시세 모드에서는 자동
@@ -322,7 +353,7 @@ Volatility 페이지는 시작 시 이 기기의 검증 캐시를 먼저 다시 
 원격을 먼저 확인하고, 원격·로컬·현재 화면 중 원천시각이 가장 최근인 후보를
 유지합니다. 일반 반복 호출은 최대 10초 cooldown 동안 막고 이 제한은 새로고침·
 다른 탭에도 유지합니다. 공급자 429 응답은 별도로 최소 60초, 최대 15분의
-지시된 대기를 유지하며 자동 주기는 그 시간이 지난 뒤 다음 차례에 다시 확인합니다.
+지시된 보조 중계 대기를 유지하되 전용 API는 독립적으로 확인합니다.
 보호 상태를 보존할 로컬 저장소 검증이 실패하면 자동 요청을 보내지 않고 수동
 입력으로 전환합니다. 진행 세션 원천시각이 25분을 넘으면 거래 계산을
 fail-closed합니다. 완료 세션은 마지막 5분 관측과 96시간

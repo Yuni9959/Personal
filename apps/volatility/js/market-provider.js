@@ -7,6 +7,7 @@ const CHICAGO_TIME_ZONE = "America/Chicago";
 const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"]);
 const YAHOO_HOST = "query2.finance.yahoo.com";
 const JINA_READER_ORIGIN = "https://r.jina.ai";
+export const MARKET_API_URL = "https://personal-tap-data-yuni14.vercel.app/api/market";
 const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
@@ -591,7 +592,7 @@ function requiredRegularMarketPrice(meta, field, label) {
   return value;
 }
 
-function validateRegularMarketMetadata(meta, bucketBars) {
+function validateRegularMarketMetadata(meta, bucketBars, { sessionBarsAuthoritative = false, hasMissingBars = false } = {}) {
   const barObserved = {
     open: bucketBars[0].open,
     high: Math.max(...bucketBars.map(bar => bar.high)),
@@ -612,15 +613,21 @@ function validateRegularMarketMetadata(meta, bucketBars) {
     high: Math.round(Math.abs(expected.high - barObserved.high) / CME_EQUITY_TICK),
     low: Math.round(Math.abs(expected.low - barObserved.low) / CME_EQUITY_TICK)
   });
-  if (rangeDeltaTicks.high > REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
-      rangeDeltaTicks.low > REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
+  const rangeMatches = rangeDeltaTicks.high <= REGULAR_MARKET_RANGE_TOLERANCE_TICKS &&
+    rangeDeltaTicks.low <= REGULAR_MARKET_RANGE_TOLERANCE_TICKS;
+  // Yahoo's day-range metadata can cover a different window than the explicit
+  // 17:00 CT CME session (and varies between Yahoo hosts). Complete, validated
+  // session bars are sufficient to reconstruct the session range. A gap still
+  // requires the independent range check; we never invent a missing extreme.
+  const independentSessionRange = sessionBarsAuthoritative && !hasMissingBars && !rangeMatches;
+  if ((!rangeMatches && !independentSessionRange) ||
       expected.current !== barObserved.current || expected.time !== barObserved.time) {
     throw new Error("Yahoo meta current/time 또는 H/L의 2틱 허용범위가 관측 5분봉과 일치하지 않습니다.");
   }
   const observed = {
     ...barObserved,
-    high: Math.max(barObserved.high, expected.high),
-    low: Math.min(barObserved.low, expected.low)
+    high: independentSessionRange ? barObserved.high : Math.max(barObserved.high, expected.high),
+    low: independentSessionRange ? barObserved.low : Math.min(barObserved.low, expected.low)
   };
 
   const openFields = ["regularMarketOpen", "regularMarketDayOpen"]
@@ -633,16 +640,19 @@ function validateRegularMarketMetadata(meta, bucketBars) {
   }
   return {
     observed,
+    independentSessionRange,
     rangeDeltaTicks,
     rangeMetadataExact: rangeDeltaTicks.high === 0 && rangeDeltaTicks.low === 0,
     openMetadataAvailable: openFields.length > 0,
-    fieldsVerified: openFields.length > 0
+    fieldsVerified: independentSessionRange
+      ? Object.freeze([...(openFields.length > 0 ? ["open"] : []), "current", "time"])
+      : openFields.length > 0
       ? Object.freeze(["open", "high", "low", "current", "time"])
       : Object.freeze(["high", "low", "current", "time"])
   };
 }
 
-export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()) {
+export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date(), options = {}) {
   const tier = symbolTier(requestedSymbol);
   if (!(fetchedAt instanceof Date) || !Number.isFinite(fetchedAt.getTime())) {
     throw new TypeError("유효한 조회 시각이 필요합니다.");
@@ -702,7 +712,10 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
     leadingMissingBucketAt
   } = validateCurrentSession(timestamps, quote);
   const currentBar = bucketBars.at(-1);
-  const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars);
+  const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars, {
+    sessionBarsAuthoritative: options.sessionBarsAuthoritative === true,
+    hasMissingBars: missingInteriorBucketCount > 0 || leadingMissingBucketCount > 0
+  });
   const sessionEndedAtFetch = fetchedAt.getTime() >= session.end.getTime();
   // A wall-clock time after the scheduled close is not enough to call a
   // returned session complete.  The source also has to contain the terminal
@@ -754,6 +767,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       firstObservedBarAt: bucketBars[0].at.toISOString(),
       atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
+      sessionRangeFromCompleteBars: regularMarketVerification.independentSessionRange,
       regularMarketRangeToleranceTicks: REGULAR_MARKET_RANGE_TOLERANCE_TICKS,
       regularMarketRangeDeltaTicks: regularMarketVerification.rangeDeltaTicks,
       regularMarketRangeMetadataExact: regularMarketVerification.rangeMetadataExact,
@@ -791,7 +805,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       `Yahoo의 CME 선물 시세는 약 ${CME_DELAY_MINUTES}분 지연이며 무결점 시세가 아닙니다.`,
       "공급자가 가용성·정확성·연속성을 보장하는 거래용 API가 아닙니다.",
       "CME 세션은 America/Chicago 17:00~익일 16:00을 DST-aware로 재구성했습니다.",
-      ...(!regularMarketVerification.rangeMetadataExact
+      ...(regularMarketVerification.independentSessionRange
+        ? ["Yahoo 일중 H/L 메타의 관측 범위가 CME 세션봉과 달라, 결손 없는 17:00 CT 세션 5분봉으로 고가·저가를 계산했습니다."]
+        : !regularMarketVerification.rangeMetadataExact
         ? ["Yahoo 당일 H/L 메타와 5분봉 집계가 2틱 이내에서 달라 더 보수적인 고가·저가를 사용했습니다."]
         : []),
       ...(leadingMissingBucketCount > 0
@@ -837,4 +853,34 @@ export async function fetchYahooSnapshot(fetchImpl = fetch, fetchedAt = new Date
     snapshot.provider.sourceUrl = reader.sourceUrl;
     return snapshot;
   }, options.signal, timeoutMs);
+}
+
+// A first-party server fetch avoids browser CORS and the Reader cache. Both
+// paths use the same provenance/session/OHLC checks and one overall deadline.
+export async function fetchMarketSnapshot(fetchImpl = fetch, fetchedAt = new Date(), options = {}) {
+  return withRequestTimeout(async signal => {
+    try {
+      const response = await fetchImpl(`${MARKET_API_URL}?t=${fetchedAt.getTime()}`, {
+        cache: "no-store", credentials: "omit", referrerPolicy: "no-referrer",
+        signal: AbortSignal.any([signal, AbortSignal.timeout(10000)])
+      });
+      validateJsonResponse(response, fetchedAt);
+      const payload = await readBoundedJson(response);
+      const snapshot = parseYahooChart(payload, PRIMARY_SYMBOL, fetchedAt, { sessionBarsAuthoritative: true });
+      snapshot.provider.transport = "Personal Tap direct server API";
+      snapshot.provider.relayHost = new URL(MARKET_API_URL).host;
+      snapshot.provider.sourceHost = payload.service?.sourceHost || "query1.finance.yahoo.com";
+      return snapshot;
+    } catch (error) {
+      if (signal.aborted) throw error;
+      if (options.readerBackoffRemainingMs > 0) {
+        throw providerError(`전용 API 확인에 실패했고 보조 중계는 HTTP 429 대기 중입니다. ${Math.ceil(options.readerBackoffRemainingMs / 1000)}초 후 보조 조회가 가능합니다.`, {
+          metadata: { code: "rate-limited", status: 429, retryAfterSeconds: Math.ceil(options.readerBackoffRemainingMs / 1000) }
+        });
+      }
+      const snapshot = await fetchYahooSnapshot(fetchImpl, fetchedAt, { signal, timeoutMs: 15000 });
+      snapshot.provider.transportFallback = true;
+      return snapshot;
+    }
+  }, options.signal, normalizeTimeout(options.timeoutMs ?? DEFAULT_TIMEOUT_MS));
 }

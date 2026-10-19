@@ -189,7 +189,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(guard, /requestedAt = Math\.max\(memoryAt, storedAt\)/);
   assert.match(app, /10초 중복 조회 방지 대기 중입니다/);
   assert.match(app, /refreshMarket\(\{ trigger: "load" \}\)/);
-  assert.match(app, /fetchYahooSnapshot\(fetch, requestedAt, \{ timeoutMs: REQUEST_DEADLINE_MS \}\)/);
+  assert.match(app, /fetchMarketSnapshot\(fetch, requestedAt, \{ timeoutMs: REQUEST_DEADLINE_MS, readerBackoffRemainingMs: rateLimitRemainingMs\(\) \}\)/);
   assert.match(read("apps/volatility/js/market-provider.js"), /"X-Engine": "direct"/);
   assert.match(read("apps/volatility/js/market-provider.js"), /"X-No-Cache": "true"/);
   assert.match(app, /trigger !== "button" && shouldPreferLocalArchive\(requestedAt\)/);
@@ -236,7 +236,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v3\.13\.0-volatility-fresh-ui\.1-admission-/);
+  assert.match(sw, /v4\.0\.0-ai-trend-direct-api\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",

@@ -37,5 +37,6 @@ test("generated weekly reference and local snapshot use a network-first cache ro
   assert.match(route, /local-nasdaq-snapshot\.json/);
   assert.match(route, /weekly-reference\.generated\.js/);
   assert.match(route, /cache: "no-store"/);
-  assert.match(route, /caches\.match\(request\)/);
+  assert.match(route, /caches\.match\(cacheKey\)/);
+  assert.match(route, /new Request\(`\$\{url.origin\}\$\{url.pathname\}`\)/);
 });

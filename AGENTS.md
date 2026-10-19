@@ -1,5 +1,20 @@
 # Personal Tap 작업 지침
 
+## AI Trend·시세 API 운영
+
+- AI Trend와 주간 기준은 `daily-briefing.yml`의 매일 08:17 KST 클라우드 수집을
+  사용한다. 자동 게시 허용 파일은 `apps/ai-trend/data/**`와
+  `apps/volatility/js/weekly-reference.generated.js`뿐이다.
+- 봇 push 뒤에는 재사용 Pages workflow를 직접 호출한다. GITHUB_TOKEN push만으로
+  다른 workflow가 실행된다고 가정하지 않는다.
+- 장중 시세는 `api/market.js`의 전용 Vercel API를 우선한다. 비밀키·PC·Drive에
+  의존하지 않으며 원시 시세 파일을 Pages에 자동 게시하지 않는다.
+- 완전한 세션봉과 다른 일중 요약 H/L을 비교할 때의 범위 차이만 분리한다.
+  결손봉·현재가/원천시각·종목·만료 검증을 제거해 성공으로 바꾸지 않는다.
+- AI 카드는 원문 발췌와 관측 지표 안내다. 자동 번역/LLM 요약으로 표시하지
+  않으며 출처 실패·지난 발행일·첫 관측의 미측정 성장량을 숨기지 않는다.
+- `.env*`, `.vercel/`, 로컬 거래 자료는 Git·Pages·Vercel upload에 넣지 않는다.
+
 ## 입시 Vercel 릴리스 연동 규칙
 
 - 입시 서비스의 검증된 Vercel stable 릴리스는 `tools/publish-university-release.ps1`로만 PT에 반영한다.

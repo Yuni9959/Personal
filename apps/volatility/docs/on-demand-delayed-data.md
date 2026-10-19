@@ -2,6 +2,23 @@
 
 ## 결론
 
+2026-10-20 변경이 아래 이전 기록보다 우선한다. 기본 경로는
+`Personal Tap → Vercel /api/market → Yahoo query1/query2`이며 Jina는 보조다.
+서버와 브라우저가 각각 provenance·OHLC·CME 세션·현재가/시각을 검증하고
+시세 API는 CDN/브라우저/PWA에 캐시하지 않는다. 브라우저 로컬의 검증값은
+기존 참고값 복원 정책을 유지한다. 원천 약 10분 지연과 25분 만료도 그대로다.
+
+Yahoo regularMarketDayHigh/Low는 세션봉과 다른 관측 범위일 수 있다. 완전한
+CME 세션봉일 때만 `sessionBarsAuthoritative` 옵션으로 봉 집계 H/L을 채택한다.
+`sessionRangeFromCompleteBars`와 실제로 비교한 `regularMarketFieldsVerified`를
+기록하고 UI에 세션봉 집계임을 표시한다. 결손이 있거나 current/time이 다르면
+이 옵션으로 통과시킬 수 없다. 기존 Reader 경로는 엄격한 범위 비교를 유지한다.
+Jina의 429 대기 상태는 보조 호출에만 적용하며 전용 API 확인을 막지 않는다.
+
+주간 기준은 기존 PC 경로와 별개로 `daily-briefing.yml`이 만료 여부를 확인하고
+클라우드 Yahoo NQ 일봉에서 기존 5년/2σ/Wilson 정책으로 생성한다. 원시 일봉은
+공개 파일로 저장하지 않으며 충분한 최신 이력이 없으면 직전 계약을 보존한다.
+
 Volatility의 네트워크 시세는 **실시간 피드가 아니다**. 페이지에 처음
 들어오면 Jina Reader를 거쳐 Yahoo Finance의 구조화된 chart 응답을 요청하고,
 보이는 온라인 탭에서는 1분마다 같은 best-effort 확인을 이어 간다. 탭 복귀·

@@ -443,7 +443,19 @@ async function navigate(client, url) {
   await loaded;
 }
 
-function fulfillCorsPreflight(client, params, browserErrors, label) {
+function fulfillCorsPreflight(client, params, browserErrors, label, allowPrimaryApi = false) {
+  // Legacy fixtures exercise the independent Reader fallback. Keep the new
+  // primary deterministic too, so smoke tests never depend on a live quote.
+  if (!allowPrimaryApi && params.request.url.startsWith("https://personal-tap-data-yuni14.vercel.app/")) {
+    client.send("Fetch.fulfillRequest", {
+      requestId: params.requestId, responseCode: 200,
+      responseHeaders: [
+        { name: "Content-Type", value: "application/json" },
+        { name: "Access-Control-Allow-Origin", value: "*" }
+      ], body: Buffer.from("{}").toString("base64")
+    }).catch(error => browserErrors.push(`${label} primary fallback: ${error.message}`));
+    return true;
+  }
   if (params.request.method !== "OPTIONS") return false;
   client.send("Fetch.fulfillRequest", {
     requestId: params.requestId,
@@ -566,7 +578,7 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 6"
+      "document.querySelectorAll('.app-card').length === 7"
     );
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
     assert.equal(
@@ -589,7 +601,7 @@ async function run() {
     })()`);
     assert.deepEqual(desktopHubLayout, {
       gridBeforeWelcome: true,
-      rows: 2,
+      rows: 3,
       firstRowSize: 3
     });
     const hubAccessibility = await evaluate(client, `(() => {
@@ -676,7 +688,7 @@ async function run() {
     await navigate(client, `${baseUrl}/?hub-mobile-smoke=1`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 6"
+      "document.querySelectorAll('.app-card').length === 7"
     );
     const mobileHubLayout = await evaluate(client, `(() => {
       const cardRects = [...document.querySelectorAll(".app-card")].map(card => {
@@ -708,9 +720,8 @@ async function run() {
     assert.equal(mobileHubLayout.fitsViewport, true);
     assert.equal(mobileHubLayout.cardWidth >= 110, true);
     assert.equal(mobileHubLayout.gridBeforeWelcome, true);
-    assert.equal(mobileHubLayout.rows, 2);
-    assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3]);
-    assert.equal(mobileHubLayout.allCardsAboveFold, true);
+    assert.equal(mobileHubLayout.rows, 3);
+    assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3, 1]);
     assert.equal(
       mobileHubLayout.cardRects.every(rect =>
         rect.height >= 168 && rect.width >= 110 && rect.left >= 0 && rect.right <= 390
@@ -740,6 +751,39 @@ async function run() {
       cardsPerRow: 3
     });
     await client.send("Emulation.clearDeviceMetricsOverride");
+    console.log("[smoke] AI Trend 카드·검색·저장·독서·모바일");
+    await navigate(client, `${baseUrl}/apps/ai-trend/`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true' && document.querySelectorAll('.trend-card').length >= 3");
+    assert.equal(await evaluate(client, "document.title"), "AI Trend | Personal Tap");
+    const trendCount = await evaluate(client, "document.querySelectorAll('.trend-card').length");
+    assert.equal(await evaluate(client, `(() => {
+      document.querySelector(".save-button").click();
+      document.querySelector('[data-filter="saved"]').click();
+      return document.querySelectorAll(".trend-card").length;
+    })()`), 1);
+    await evaluate(client, `document.querySelector(".read-button").click(); true`);
+    assert.equal(await evaluate(client, "document.querySelector('#reader').open"), true);
+    await evaluate(client, `document.querySelector("#nextSlide").click(); true`);
+    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "2 / 3");
+    await evaluate(client, `document.querySelector("#nextSlide").click(); true`);
+    assert.equal(await evaluate(client, "document.querySelector('#nextSlide').disabled"), true);
+    assert.equal(await evaluate(client, "document.querySelector('#readerLink').rel"), "noopener noreferrer");
+    await evaluate(client, `document.querySelector("#closeReader").click(); document.querySelector('[data-filter="all"]').click(); true`);
+    await evaluate(client, `(() => {const s = document.querySelector("#searchInput"); s.value="no-matching-project-xyz"; s.dispatchEvent(new Event("input")); return true;})()`);
+    assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 0);
+    assert.equal(await evaluate(client, "document.querySelector('#emptyState').hidden"), false);
+    await evaluate(client, `(() => {const s = document.querySelector("#searchInput"); s.value=""; s.dispatchEvent(new Event("input")); return true;})()`);
+    assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), trendCount);
+    for (const width of [1280, 390, 320]) {
+      await client.send("Emulation.setDeviceMetricsOverride", { width, height: 900, deviceScaleFactor: 1, mobile: width < 600 });
+      assert.equal(await evaluate(client, "document.documentElement.scrollWidth <= window.innerWidth"), true, `AI Trend ${width}px overflow`);
+      await captureOptionalScreenshot(client, `ai-trend-${width}`);
+    }
+    await navigate(client, `${baseUrl}/apps/ai-trend/?saved-reload=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    await evaluate(client, `document.querySelector('[data-filter="saved"]').click(); true`);
+    assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 1);
+    await client.send("Emulation.clearDeviceMetricsOverride");
     const fixedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `(() => {
         const NativeDate = Date;
@@ -753,22 +797,13 @@ async function run() {
     });
     let readerRequestCount = 0;
     const removeYahooFixture = client.on("Fetch.requestPaused", params => {
-      if (fulfillCorsPreflight(client, params, browserErrors, "Jina Reader fixture")) return;
+      if (fulfillCorsPreflight(client, params, browserErrors, "Primary market API fixture", true)) return;
       readerRequestCount += 1;
       const targetUrl = delayedMnqSourceUrl();
-      if (params.request.url !== `https://r.jina.ai/${targetUrl}`) {
-        browserErrors.push(`Unexpected Jina Reader URL: ${params.request.url}`);
+      if (!params.request.url.startsWith("https://personal-tap-data-yuni14.vercel.app/api/market?")) {
+        browserErrors.push(`Unexpected primary API URL: ${params.request.url}`);
       }
-      const fixtureBody = Buffer.from(JSON.stringify({
-        code: 200,
-        status: 200,
-        data: {
-          title: "",
-          description: "",
-          url: targetUrl,
-          content: JSON.stringify(delayedMnqFixture())
-        }
-      })).toString("base64");
+      const fixtureBody = Buffer.from(JSON.stringify(delayedMnqFixture())).toString("base64");
       client.send("Fetch.fulfillRequest", {
         requestId: params.requestId,
         responseCode: 200,
@@ -781,7 +816,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Jina Reader fixture: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     const errorsBeforeVolatility = browserErrors.length;
     await navigate(client, `${baseUrl}/apps/volatility/`);
@@ -882,7 +917,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Leading-null fixture: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     await navigate(client, `${baseUrl}/apps/volatility/?leading-null-reference-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
@@ -942,7 +977,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Active cache seed fixture: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     await navigate(client, `${baseUrl}/apps/volatility/?active-cache-seed-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
@@ -977,7 +1012,7 @@ async function run() {
       pendingActiveCacheRequest = params;
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     const errorsBeforePendingActiveCache = browserErrors.length;
     await navigate(client, `${baseUrl}/apps/volatility/?active-cache-pending-smoke=1`);
@@ -1419,7 +1454,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Jina Reader failure fixture: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     await evaluate(client, `localStorage.setItem(
       "personal-tap-volatility-last-request-v1",
@@ -1477,7 +1512,7 @@ async function run() {
       return true;
     })()`);
     await waitForCondition(client, `
-      /120초/.test(document.querySelector("#dataNotice").textContent)
+      /10초 중복 조회 방지/.test(document.querySelector("#dataNotice").textContent)
     `);
     assert.equal(rateLimitRequestCount, 1);
     await client.send("Fetch.disable");
@@ -1528,7 +1563,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Unexpected blocked-storage request: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     await navigate(client, `${baseUrl}/apps/volatility/?blocked-storage-fail-closed-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
@@ -1631,7 +1666,7 @@ async function run() {
       }).catch(error => browserErrors.push(`Completed-session fixture: ${error.message}`));
     });
     await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }]
+      patterns: [{ urlPattern: "https://r.jina.ai/*", requestStage: "Request" }, { urlPattern: "https://personal-tap-data-yuni14.vercel.app/*", requestStage: "Request" }]
     });
     const errorsBeforeCompletedSession = browserErrors.length;
     await navigate(client, `${baseUrl}/apps/volatility/?completed-session-reference-smoke=1`);
@@ -2200,7 +2235,7 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 6"
+      "document.querySelectorAll('.app-card').length === 7"
     );
     const mkatMetric = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
@@ -2626,7 +2661,7 @@ async function run() {
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 6",
+      "document.querySelectorAll('.app-card').length === 7",
       15000
     );
     const offlineUniversityCard = await evaluate(client, `(() => {
@@ -2638,6 +2673,10 @@ async function run() {
       target: "_blank",
       rel: "noopener noreferrer"
     });
+    await evaluate(client, 'localStorage.removeItem("personal-tap-ai-trend-edition-v1"); true');
+    await navigate(client, `${baseUrl}/apps/ai-trend/?offline-smoke=1`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true'");
+    assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length >= 3"), true);
     const offlineNetworkErrors = browserErrors.splice(errorsBeforeOffline);
     assert.equal(offlineNetworkErrors.every(message =>
       /Failed to load resource: net::ERR_INTERNET_DISCONNECTED/.test(message)
@@ -2652,7 +2691,7 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 6카드·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
+      "브라우저 스모크 성공: 허브 7카드·AI Trend 검색/저장/3장 독서/320px·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +

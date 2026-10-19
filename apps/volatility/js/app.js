@@ -11,7 +11,7 @@ import {
   classifyPatternRisk,
   validateMarketBar
 } from "./calculator.js";
-import { fetchYahooSnapshot } from "./market-provider.js";
+import { fetchMarketSnapshot } from "./market-provider.js";
 import {
   fetchLocalNasdaqSnapshot,
   shouldPreferLocalArchive
@@ -248,7 +248,8 @@ function scheduleAutoRefresh(delayMs = AUTO_REFRESH_INTERVAL_MS) {
     els.autoRefreshText.textContent = "오프라인 · 연결 시 재개";
     return;
   }
-  const providerBackoff = rateLimitRemainingMs();
+  // A Reader throttle never prevents the independent first-party API check.
+  const providerBackoff = 0;
   const effectiveDelay = Math.max(Number(delayMs) || 0, providerBackoff, REQUEST_COOLDOWN_MS);
   state.nextAutoRefreshAt = Date.now() + effectiveDelay;
   els.autoRefreshText.textContent = `${Math.max(1, Math.ceil(effectiveDelay / 60000))}분 후 자동 확인`;
@@ -282,6 +283,9 @@ function resumeMarket(trigger) {
 
 function barQualityNotice(snapshot, assessment) {
   const provider = snapshot?.provider || {};
+  if (assessment.displayable && provider.sessionRangeFromCompleteBars) {
+    return "CME 17:00 CT 세션의 결손 없는 5분봉으로 시가·고가·저가를 계산했습니다. Yahoo 당일 H/L 요약과는 관측 범위가 다르며 현재가·시각은 교차검증했습니다.";
+  }
   const missingCount = Number(provider.missingInteriorBucketCount || 0);
   if (assessment.displayable && snapshot?.mode === "local-archive" && missingCount === 1) {
     return "로컬 보관 5분봉 1개 결손 이후 연속 완료봉으로 ATR과 차트 지표를 다시 계산했습니다.";
@@ -750,7 +754,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   const cooldownRemaining = cooldownRemainingMs();
   // A provider-directed backoff must not block the same-origin local archive
   // during the regular weekend closure because no relay request is sent then.
-  const backoffRemaining = preferLocalArchive ? 0 : rateLimitRemainingMs();
+  const backoffRemaining = 0;
   const remaining = Math.max(cooldownRemaining, backoffRemaining);
   if (remaining > 0) {
     const seconds = Math.ceil(remaining / 1000);
@@ -796,7 +800,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       let localSnapshot = null;
       try {
         remoteSnapshot = validateSnapshot(
-          await fetchYahooSnapshot(fetch, requestedAt, { timeoutMs: REQUEST_DEADLINE_MS })
+          await fetchMarketSnapshot(fetch, requestedAt, { timeoutMs: REQUEST_DEADLINE_MS, readerBackoffRemainingMs: rateLimitRemainingMs() })
         );
       } catch (error) {
         remoteFailure = error;

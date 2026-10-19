@@ -37,6 +37,17 @@ window.PERSONAL_TAP_APPS = [
     metric: "volatility"
   },
   {
+    id: "ai-trend",
+    title: "AI Trend",
+    subtitle: "매일 발견하는 AI 흐름",
+    description: "떠오르는 GitHub 프로젝트·AI 모델·공식 뉴스를 카드로 읽습니다.",
+    href: "./apps/ai-trend/",
+    icon: "✳️",
+    badge: "DAILY",
+    enabled: true,
+    accent: "amber"
+  },
+  {
     id: "touchbebe",
     title: "TouchBebe",
     subtitle: "육아 도구",

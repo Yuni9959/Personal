@@ -1,6 +1,6 @@
 const CACHE_PREFIX = "personal-tap-";
 const UNIVERSITY_ADMISSION_RELEASE = "0453de5a7ba78193d245597db4012d1e5412460bfdff2587341b1c4e93b0450b";
-const CACHE_NAME = `${CACHE_PREFIX}v3.13.0-volatility-fresh-ui.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
+const CACHE_NAME = `${CACHE_PREFIX}v4.0.0-ai-trend-direct-api.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -38,7 +38,14 @@ const CORE_ASSETS = [
   "./apps/volatility/js/local-market-provider.js",
   "./apps/volatility/js/request-guard.js",
   "./apps/volatility/js/snapshot-policy.js",
-  "./apps/volatility/data/local-nasdaq-snapshot.json"
+  "./apps/volatility/data/local-nasdaq-snapshot.json",
+  "./apps/ai-trend/",
+  "./apps/ai-trend/index.html",
+  "./apps/ai-trend/styles.css",
+  "./apps/ai-trend/js/app.js",
+  "./apps/ai-trend/js/model.js",
+  "./apps/ai-trend/data/latest.json",
+  "./apps/ai-trend/data/index.json"
 ];
 
 self.addEventListener("install", event => {
@@ -90,17 +97,21 @@ self.addEventListener("fetch", event => {
     "/apps/volatility/data/local-nasdaq-snapshot.json",
     "/apps/volatility/js/weekly-reference.generated.js"
   ];
-  if (VOLATILITY_REFRESHABLE_PATHS.some(pathname => url.pathname.endsWith(pathname))) {
+  if (VOLATILITY_REFRESHABLE_PATHS.some(pathname => url.pathname.endsWith(pathname)) ||
+      /\/apps\/ai-trend\/data\//.test(url.pathname)) {
+    // A refresh nonce must not make the offline copy unreachable, or create
+    // an extra cached edition on every button press.
+    const cacheKey = new Request(`${url.origin}${url.pathname}`);
     event.respondWith((async () => {
       try {
         const response = await fetch(new Request(request, { cache: "no-store" }));
         if (response.ok) {
           const cache = await caches.open(CACHE_NAME);
-          await cache.put(request, response.clone());
+          await cache.put(cacheKey, response.clone());
         }
         return response;
       } catch {
-        return caches.match(request);
+        return caches.match(cacheKey);
       }
     })());
     return;
@@ -124,6 +135,9 @@ self.addEventListener("fetch", event => {
         }
         if (request.url.includes("/apps/volatility/")) {
           return caches.match("./apps/volatility/index.html");
+        }
+        if (request.url.includes("/apps/ai-trend/")) {
+          return caches.match("./apps/ai-trend/index.html");
         }
         return caches.match("./index.html");
       }

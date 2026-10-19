@@ -1,0 +1,66 @@
+name: Daily AI Trend and weekly reference
+
+on:
+  schedule:
+    - cron: '17 23 * * *' # 08:17 Asia/Seoul; GitHub can delay scheduled runs.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-briefing
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+      - name: Collect daily AI briefing
+        id: ai
+        continue-on-error: true
+        run: npm run collect:ai-trend
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Refresh expired weekly reference independently
+        id: reference
+        continue-on-error: true
+        run: npm run sync:cloud-reference
+      - name: Verify application
+        run: npm run test:release
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
+      - name: Publish only generated public data
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- apps/ai-trend/data apps/volatility/js/weekly-reference.generated.js
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: refresh daily AI briefing and weekly reference"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
+      - name: Report collection failures
+        if: steps.ai.outcome == 'failure' || steps.reference.outcome == 'failure'
+        run: |
+          echo 'One collection failed; previous verified data was preserved. Check step logs.' >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: collect
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+      actions: read
+    uses: ./.github/workflows/deploy-pages.yml
