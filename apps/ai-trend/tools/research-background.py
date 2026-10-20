@@ -33,11 +33,17 @@ def main():
     work = REPO / ".tmp" / "ai-trend-research" / stamp
     work.parent.mkdir(parents=True, exist_ok=True)
     work_added = False
+    # This Desktop checkout was created with an administrator token. The hidden
+    # task deliberately runs as the normal user. Trust only these exact, known
+    # checkouts for this invocation, without a global safe.directory wildcard.
+    git_prefix = ["git", "-c", f"safe.directory={REPO.as_posix()}", "-c", f"safe.directory={work.as_posix()}"]
     try:
         with log_path.open("w", encoding="utf-8") as log:
             def run(args, cwd=REPO, timeout=120, capture=False):
                 log.write("RUN " + " ".join(str(a) for a in args[:4]) + "\n")
                 log.flush()
+                if args[0] == "git":
+                    args = git_prefix + args[1:]
                 result = subprocess.run(args, cwd=cwd, env={**os.environ, "PYTHONIOENCODING": "utf-8"}, stdout=subprocess.PIPE if capture else log, stderr=log, text=True, encoding="utf-8", timeout=timeout, creationflags=FLAGS)
                 if result.returncode:
                     raise RuntimeError(f"Command failed ({result.returncode}); see {log_path}")
@@ -70,9 +76,9 @@ def main():
                 run(["git", "push", "origin", "HEAD:main"], cwd=work)
                 # Explicit dispatch also works when publication credentials are
                 # a bot token and its push does not trigger another workflow.
-                run(["gh", "workflow", "run", "deploy-pages.yml", "--ref", "main"], cwd=work)
+                run(["gh", "workflow", "run", "deploy-pages.yml", "--ref", "main", "--repo", "Yuni9959/Personal"], cwd=work)
             log.write("SUCCESS: Korean edition validated and publication completed\n")
-        run_cleanup = subprocess.run(["git", "worktree", "remove", str(work)], cwd=REPO, capture_output=True, creationflags=FLAGS)
+        run_cleanup = subprocess.run(git_prefix + ["worktree", "remove", str(work)], cwd=REPO, capture_output=True, creationflags=FLAGS)
         if run_cleanup.returncode:
             return 1
         for old in sorted(STATE.glob("research-*.log"), reverse=True)[30:]:
