@@ -583,6 +583,8 @@ async function run() {
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
     assert.deepEqual(await evaluate(client, "[...document.querySelectorAll('.app-card')].slice(0, 3).map(card => card.dataset.appId)"), ["ai-trend", "volatility", "university-admission"]);
     assert.equal(await evaluate(client, "document.querySelector('[data-app-id=touchbebe]') === null"), true);
+    assert.equal(await evaluate(client, "document.querySelector('#appsTitle').textContent"), "My Apps");
+    assert.equal(await evaluate(client, "document.querySelector('.guide-card, .welcome-panel, #greeting, #focusSummary') === null"), true);
     assert.equal(
       await evaluate(
         client,
@@ -592,17 +594,14 @@ async function run() {
     );
     const desktopHubLayout = await evaluate(client, `(() => {
       const grid = document.querySelector(".app-grid");
-      const welcome = document.querySelector(".welcome-panel");
       const cards = [...document.querySelectorAll(".app-card")];
       const rowTops = [...new Set(cards.map(card => Math.round(card.getBoundingClientRect().top)))];
       return {
-        gridBeforeWelcome: grid.getBoundingClientRect().top < welcome.getBoundingClientRect().top,
         rows: rowTops.length,
         firstRowSize: cards.filter(card => Math.abs(card.getBoundingClientRect().top - cards[0].getBoundingClientRect().top) < 2).length
       };
     })()`);
     assert.deepEqual(desktopHubLayout, {
-      gridBeforeWelcome: true,
       rows: 2,
       firstRowSize: 3
     });
@@ -630,7 +629,7 @@ async function run() {
     assert.equal(hubAccessibility.descriptionsResolve, true);
     assert.equal(hubAccessibility.actionHeight >= 44, true);
     assert.equal(hubAccessibility.touchAction, "manipulation");
-    assert.deepEqual(hubAccessibility.headingOrder, ["H1", "H2"]);
+    assert.deepEqual(hubAccessibility.headingOrder, ["H1"]);
     const volatilityCard = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
         .find(item => item.textContent.includes("Volatility"));
@@ -710,8 +709,6 @@ async function run() {
           .gridTemplateColumns.split(" ").filter(Boolean).length,
         fitsViewport: document.documentElement.scrollWidth <= window.innerWidth,
         cardWidth: document.querySelector(".app-card").getBoundingClientRect().width,
-        gridBeforeWelcome: document.querySelector(".app-grid").getBoundingClientRect().top <
-          document.querySelector(".welcome-panel").getBoundingClientRect().top,
         rows: rowTops.length,
         cardsPerRow: rowTops.map(top => cardRects.filter(card => Math.abs(card.top - top) < 2).length),
         allCardsAboveFold: Math.max(...cardRects.map(card => card.bottom)) <= window.innerHeight,
@@ -721,7 +718,6 @@ async function run() {
     assert.equal(mobileHubLayout.columns, 3);
     assert.equal(mobileHubLayout.fitsViewport, true);
     assert.equal(mobileHubLayout.cardWidth >= 110, true);
-    assert.equal(mobileHubLayout.gridBeforeWelcome, true);
     assert.equal(mobileHubLayout.rows, 2);
     assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3]);
     assert.equal(

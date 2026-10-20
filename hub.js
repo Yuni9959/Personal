@@ -11,9 +11,6 @@ import { WEEKLY_VOLATILITY_REFERENCE as VOLATILITY_REFERENCE } from "./apps/vola
   const $ = selector => document.querySelector(selector);
   const els = {
     appGrid: $("#appGrid"),
-    greeting: $("#greeting"),
-    todayLabel: $("#todayLabel"),
-    focusSummary: $("#focusSummary"),
     lastOpened: $("#lastOpened"),
     connectionBadge: $("#connectionBadge"),
     installBtn: $("#installBtn")
@@ -26,23 +23,6 @@ import { WEEKLY_VOLATILITY_REFERENCE as VOLATILITY_REFERENCE } from "./apps/vola
     const m = String(date.getMonth() + 1).padStart(2, "0");
     const d = String(date.getDate()).padStart(2, "0");
     return `${y}-${m}-${d}`;
-  }
-
-  function setGreeting() {
-    const now = new Date();
-    const hour = now.getHours();
-    const greeting = hour < 6 ? "늦은 밤이에요." :
-      hour < 12 ? "좋은 아침이에요." :
-      hour < 18 ? "좋은 오후예요." : "편안한 저녁이에요.";
-
-    const formatted = new Intl.DateTimeFormat("ko-KR", {
-      month: "long",
-      day: "numeric",
-      weekday: "long"
-    }).format(now);
-
-    els.greeting.textContent = greeting;
-    els.todayLabel.textContent = formatted;
   }
 
   function currentStreak(dateKeys) {
@@ -129,21 +109,6 @@ import { WEEKLY_VOLATILITY_REFERENCE as VOLATILITY_REFERENCE } from "./apps/vola
     if (!s.attempts) return "아직 훈련 기록이 없습니다. 오늘의 10문제로 시작하세요.";
     if (!s.migrated) return "기존 기록이 있습니다. MKAT를 열어 v2 기록으로 안전하게 이전하세요.";
     return `오늘 ${s.goalProgress}/${s.goalTarget} · 누적 정확도 ${s.accuracy}% · 목표 ${s.streak}일 연속`;
-  }
-
-  function updateFocus() {
-    const s = readMkatStats();
-    if (!s.attempts) {
-      els.focusSummary.textContent = "오늘 첫 문제를 시작해 보세요.";
-      return;
-    }
-    if (!s.migrated) {
-      els.focusSummary.textContent = "MKAT를 열어 기존 기록을 안전하게 이전해 주세요.";
-    } else if (s.goalProgress > 0) {
-      els.focusSummary.textContent = `오늘 목표 ${s.goalProgress}/${s.goalTarget} · 정확도 ${s.accuracy}%`;
-    } else {
-      els.focusSummary.textContent = `목표 완주 ${s.streak}일 연속 기록을 이어가세요.`;
-    }
   }
 
   function getRecent() {
@@ -257,9 +222,7 @@ import { WEEKLY_VOLATILITY_REFERENCE as VOLATILITY_REFERENCE } from "./apps/vola
     els.installBtn.classList.add("hidden");
   });
 
-  setGreeting();
   updateConnection();
-  updateFocus();
   renderRecent();
   renderApps();
 })();
