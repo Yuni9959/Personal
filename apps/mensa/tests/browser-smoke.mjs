@@ -1473,6 +1473,11 @@ async function run() {
     await navigate(client, `${baseUrl}/apps/volatility/?provider-failure-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
     const lockedFallback = await evaluate(client, `(() => ({
+      attemptTime: document.querySelector("#lastUpdateText").textContent,
+      expectedAttemptTime: new Intl.DateTimeFormat("ko-KR", {
+        timeZone: "Asia/Seoul", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
+      }).format(new Date()) + " KST",
+      refreshResult: document.querySelector("#refreshResultText").textContent,
       locked: !document.querySelector("#calculationLock").hidden,
       calculationsHidden: document.querySelector("#automaticCalculations").hidden,
       atr: document.querySelector("#atrValue").textContent,
@@ -1496,6 +1501,8 @@ async function run() {
       ))
     }))()`);
     assert.equal(rateLimitRequestCount, 1);
+    assert.equal(lockedFallback.attemptTime, lockedFallback.expectedAttemptTime);
+    assert.match(lockedFallback.refreshResult, /갱신 실패/);
     assert.equal(lockedFallback.locked, true);
     assert.equal(lockedFallback.calculationsHidden, true);
     assert.notEqual(lockedFallback.atr, "—");

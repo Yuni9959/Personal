@@ -124,7 +124,8 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
   assert.match(html, /id="autoRefreshText"/);
   assert.match(html, /가시 탭에서 1분마다 최신 지연 시세를 확인합니다/);
   assert.match(html, /제공자 가격시각/);
-  assert.match(html, /이번 조회시각/);
+  assert.match(html, /최근 조회 시도/);
+  assert.match(html, /id="refreshResultText"/);
   assert.match(html, /지연·사용 상태/);
   assert.match(html, /id="currentPriceLabel">현재가/);
   assert.match(html, /방금 영웅문 모바일에서/);
@@ -236,7 +237,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v4\.2\.1-hub-minimal\.1-admission-/);
+  assert.match(sw, /v4\.2\.2-volatility-refresh\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",

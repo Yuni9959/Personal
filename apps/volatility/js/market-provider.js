@@ -8,6 +8,10 @@ const YAHOO_ACCEPTED_TIME_ZONES = new Set(["America/Chicago", "America/New_York"
 const YAHOO_HOST = "query2.finance.yahoo.com";
 const JINA_READER_ORIGIN = "https://r.jina.ai";
 export const MARKET_API_URL = "https://personal-tap-data-yuni14.vercel.app/api/market";
+export const SESSION_RANGE_COLUMNS = Object.freeze([
+  "name", "description", "close", "open", "high", "low", "time",
+  "update_mode", "exchange", "currency", "type", "pricescale", "minmov"
+]);
 const PRIMARY_SYMBOL = "MNQ=F";
 const CME_DELAY_MINUTES = 10;
 const CME_EQUITY_TICK = 0.25;
@@ -592,7 +596,47 @@ function requiredRegularMarketPrice(meta, field, label) {
   return value;
 }
 
-function validateRegularMarketMetadata(meta, bucketBars, { sessionBarsAuthoritative = false, hasMissingBars = false } = {}) {
+function corroborateSessionRange(evidence, observed, session, fetchedAt) {
+  const receivedAt = new Date(evidence?.fetchedAt || "");
+  if (evidence?.provider !== "tradingview-scanner" || !Number.isFinite(receivedAt.getTime()) ||
+      Math.abs(receivedAt.getTime() - fetchedAt.getTime()) > 120000) {
+    throw new Error("독립 세션 범위의 출처·수신시각을 검증할 수 없습니다.");
+  }
+  const rows = evidence.payload?.data;
+  const row = Array.isArray(rows) && rows.length === 1 ? rows[0] : null;
+  if (evidence.payload?.totalCount !== 1 || row?.s !== "CME_MINI:MNQ1!" ||
+      !Array.isArray(row.d) || row.d.length !== SESSION_RANGE_COLUMNS.length) {
+    throw new Error("독립 세션 범위가 CME MNQ 연속선물 응답이 아닙니다.");
+  }
+  const values = Object.fromEntries(SESSION_RANGE_COLUMNS.map((field, i) => [field, row.d[i]]));
+  // TradingView `time` is the DAILY SESSION START, never the last quote time.
+  // Current price/time still have to agree exactly within Yahoo's raw chart.
+  if (values.name !== "MNQ1!" || values.exchange !== "CME_MINI" || values.currency !== "USD" ||
+      values.type !== "futures" || values.update_mode !== "delayed_streaming_600" ||
+      values.pricescale !== 100 || values.minmov !== 25 ||
+      values.time !== session.start.getTime() / 1000) {
+    throw new Error("독립 세션 범위의 거래소·통화·틱·지연·세션이 일치하지 않습니다.");
+  }
+  for (const field of ["open", "high", "low", "close"]) {
+    if (typeof values[field] !== "number" || !Number.isFinite(values[field]) ||
+        values[field] <= 0 || !isTickAligned(values[field])) {
+      throw new Error("독립 세션 범위에 유효하지 않은 가격이 있습니다.");
+    }
+  }
+  if (Math.abs(values.open - observed.open) > CME_EQUITY_TICK * REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
+      values.low > Math.min(values.open, values.close) ||
+      values.high < Math.max(values.open, values.close) ||
+      Math.abs(values.high - observed.high) > CME_EQUITY_TICK * REGULAR_MARKET_RANGE_TOLERANCE_TICKS ||
+      Math.abs(values.low - observed.low) > CME_EQUITY_TICK * REGULAR_MARKET_RANGE_TOLERANCE_TICKS) {
+    throw new Error(`독립 세션 시가·고가·저가가 관측 5분봉과 일치하지 않습니다. ${JSON.stringify({ observed, range: values })}`);
+  }
+  return { provider: "TradingView CME_MINI:MNQ1!", sessionStart: session.start.toISOString(),
+    fetchedAt: receivedAt.toISOString(), open: values.open, high: values.high, low: values.low };
+}
+
+function validateRegularMarketMetadata(meta, bucketBars, {
+  sessionBarsAuthoritative = false, hasMissingBars = false, rangeEvidence, session, fetchedAt
+} = {}) {
   const barObserved = {
     open: bucketBars[0].open,
     high: Math.max(...bucketBars.map(bar => bar.high)),
@@ -620,14 +664,25 @@ function validateRegularMarketMetadata(meta, bucketBars, { sessionBarsAuthoritat
   // session bars are sufficient to reconstruct the session range. A gap still
   // requires the independent range check; we never invent a missing extreme.
   const independentSessionRange = sessionBarsAuthoritative && !hasMissingBars && !rangeMatches;
-  if ((!rangeMatches && !independentSessionRange) ||
-      expected.current !== barObserved.current || expected.time !== barObserved.time) {
+  if (expected.current !== barObserved.current || expected.time !== barObserved.time) {
     throw new Error("Yahoo meta current/time 또는 H/L의 2틱 허용범위가 관측 5분봉과 일치하지 않습니다.");
   }
+  const corroboration = rangeEvidence
+    ? corroborateSessionRange(rangeEvidence, barObserved, session, fetchedAt) : null;
+  if (!rangeMatches && !independentSessionRange && !corroboration) {
+    const error = new Error("Yahoo meta H/L의 2틱 허용범위가 관측 5분봉과 일치하지 않습니다. 독립 출처의 세션 범위 확인이 필요합니다.");
+    error.code = "session-range-unverified";
+    throw error;
+  }
+  const useBarRange = independentSessionRange || !!corroboration;
   const observed = {
     ...barObserved,
-    high: independentSessionRange ? barObserved.high : Math.max(barObserved.high, expected.high),
-    low: independentSessionRange ? barObserved.low : Math.min(barObserved.low, expected.low)
+    // Use the independent provider's actual session open, not an averaged or
+    // invented tick. Cross-feed first prints can differ within the same strict
+    // 2-tick tolerance already used for range corroboration.
+    open: corroboration?.open ?? barObserved.open,
+    high: useBarRange ? Math.max(barObserved.high, corroboration?.high ?? barObserved.high) : Math.max(barObserved.high, expected.high),
+    low: useBarRange ? Math.min(barObserved.low, corroboration?.low ?? barObserved.low) : Math.min(barObserved.low, expected.low)
   };
 
   const openFields = ["regularMarketOpen", "regularMarketDayOpen"]
@@ -641,10 +696,11 @@ function validateRegularMarketMetadata(meta, bucketBars, { sessionBarsAuthoritat
   return {
     observed,
     independentSessionRange,
+    corroboration,
     rangeDeltaTicks,
     rangeMetadataExact: rangeDeltaTicks.high === 0 && rangeDeltaTicks.low === 0,
     openMetadataAvailable: openFields.length > 0,
-    fieldsVerified: independentSessionRange
+    fieldsVerified: useBarRange
       ? Object.freeze([...(openFields.length > 0 ? ["open"] : []), "current", "time"])
       : openFields.length > 0
       ? Object.freeze(["open", "high", "low", "current", "time"])
@@ -714,7 +770,9 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
   const currentBar = bucketBars.at(-1);
   const regularMarketVerification = validateRegularMarketMetadata(meta, bucketBars, {
     sessionBarsAuthoritative: options.sessionBarsAuthoritative === true,
-    hasMissingBars: missingInteriorBucketCount > 0 || leadingMissingBucketCount > 0
+    hasMissingBars: missingInteriorBucketCount > 0 || leadingMissingBucketCount > 0,
+    rangeEvidence: options.sessionBarsAuthoritative === true ? payload.rangeEvidence : undefined,
+    session, fetchedAt
   });
   const sessionEndedAtFetch = fetchedAt.getTime() >= session.end.getTime();
   // A wall-clock time after the scheduled close is not enough to call a
@@ -768,6 +826,7 @@ export function parseYahooChart(payload, requestedSymbol, fetchedAt = new Date()
       atrSourceBarCount: atrBars.length,
       regularMarketMetadataVerified: true,
       sessionRangeFromCompleteBars: regularMarketVerification.independentSessionRange,
+      sessionRangeCorroboration: regularMarketVerification.corroboration,
       regularMarketRangeToleranceTicks: REGULAR_MARKET_RANGE_TOLERANCE_TICKS,
       regularMarketRangeDeltaTicks: regularMarketVerification.rangeDeltaTicks,
       regularMarketRangeMetadataExact: regularMarketVerification.rangeMetadataExact,

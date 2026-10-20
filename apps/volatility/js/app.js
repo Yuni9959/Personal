@@ -46,7 +46,7 @@ const els = {
   openPrice: $("#openPrice"), highPrice: $("#highPrice"), lowPrice: $("#lowPrice"),
   currentPriceLabel: $("#currentPriceLabel"), currentPrice: $("#currentPrice"),
   atrValue: $("#atrValue"), symbolLabel: $("#symbolLabel"), autoRefreshText: $("#autoRefreshText"),
-  barUpdateText: $("#barUpdateText"), lastUpdateText: $("#lastUpdateText"), delayText: $("#delayText"),
+  barUpdateText: $("#barUpdateText"), lastUpdateText: $("#lastUpdateText"), refreshResultText: $("#refreshResultText"), delayText: $("#delayText"),
   automaticCalculations: $("#automaticCalculations"), calculationLock: $("#calculationLock"),
   bullMeanReference: $("#bullMeanReference"), bullSafeReference: $("#bullSafeReference"),
   bearMeanReference: $("#bearMeanReference"), bearSafeReference: $("#bearSafeReference"),
@@ -116,11 +116,13 @@ const state = {
   autoAtr: null,
   calculationAllowed: false,
   lastRequestAt: 0,
+  refreshResult: "대기 중",
   rateLimitUntil: 0,
   forceLockReason: "",
   expiryTimer: null,
   autoRefreshTimer: null,
   nextAutoRefreshAt: 0,
+  nextAutoRefreshDelayMs: null,
   refreshInFlight: false,
   transientNotice: ""
 };
@@ -252,7 +254,9 @@ function scheduleAutoRefresh(delayMs = AUTO_REFRESH_INTERVAL_MS) {
   const providerBackoff = 0;
   const effectiveDelay = Math.max(Number(delayMs) || 0, providerBackoff, REQUEST_COOLDOWN_MS);
   state.nextAutoRefreshAt = Date.now() + effectiveDelay;
-  els.autoRefreshText.textContent = `${Math.max(1, Math.ceil(effectiveDelay / 60000))}분 후 자동 확인`;
+  els.autoRefreshText.textContent = effectiveDelay < 60000
+    ? `${Math.ceil(effectiveDelay / 1000)}초 후 자동 확인`
+    : `${Math.ceil(effectiveDelay / 60000)}분 후 자동 확인`;
   state.autoRefreshTimer = window.setTimeout(() => {
     state.autoRefreshTimer = null;
     refreshMarket({ trigger: "auto" });
@@ -283,6 +287,9 @@ function resumeMarket(trigger) {
 
 function barQualityNotice(snapshot, assessment) {
   const provider = snapshot?.provider || {};
+  if (assessment.displayable && provider.sessionRangeCorroboration) {
+    return "시가·고가·저가는 같은 CME 세션의 TradingView MNQ와 교차검증했습니다. 5분봉 결손을 채우지 않았으며, ATR은 결손 이후 연속 완료봉으로 계산합니다.";
+  }
   if (assessment.displayable && provider.sessionRangeFromCompleteBars) {
     return "CME 17:00 CT 세션의 결손 없는 5분봉으로 시가·고가·저가를 계산했습니다. Yahoo 당일 H/L 요약과는 관측 범위가 다르며 현재가·시각은 교차검증했습니다.";
   }
@@ -556,7 +563,7 @@ function renderMarket() {
     : "—";
   els.symbolLabel.textContent = `${providerDescription(state.snapshot)} · ${state.snapshot.session?.label || "수동 세션"}`;
   els.barUpdateText.textContent = formatDate(market.latestBarAt);
-  els.lastUpdateText.textContent = formatDate(state.snapshot.generatedAt);
+  renderRequestStatus();
   els.delayText.textContent = delayDescription(state.snapshot, assessment);
 
   if (!assessment.usable) {
@@ -710,7 +717,8 @@ function showNoUsableSnapshot(message) {
   els.quoteGrid.setAttribute("aria-label", "MNQ 오늘 시세");
   els.currentPriceLabel.textContent = "현재가";
   for (const element of [els.openPrice, els.highPrice, els.lowPrice, els.currentPrice, els.atrValue,
-    els.symbolLabel, els.barUpdateText, els.lastUpdateText]) element.textContent = "—";
+    els.symbolLabel, els.barUpdateText]) element.textContent = "—";
+  renderRequestStatus();
   els.useAutoAtrBtn.disabled = true;
   state.autoAtr = null;
   setCompactDataStatus("error", "시세 없음");
@@ -742,6 +750,11 @@ async function showLockedFallback(reason) {
   applySnapshot(fallback, { cache: false, forceLockReason: reason });
 }
 
+function renderRequestStatus() {
+  els.lastUpdateText.textContent = formatDate(state.lastRequestAt);
+  els.refreshResultText.textContent = state.refreshResult;
+}
+
 async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   setRefreshBusy(true);
   setCompactDataStatus("loading", "조회 중");
@@ -758,6 +771,11 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   const remaining = Math.max(cooldownRemaining, backoffRemaining);
   if (remaining > 0) {
     const seconds = Math.ceil(remaining / 1000);
+    // A reload during the shared 10-second guard must retry when the guard
+    // expires, rather than leaving the cached quote locked for a full minute.
+    state.nextAutoRefreshDelayMs = remaining + 100;
+    state.refreshResult = `요청 간격 대기 · ${seconds}초 후 재확인`;
+    renderRequestStatus();
     const waitingForProvider = backoffRemaining >= cooldownRemaining && backoffRemaining > 0;
     state.transientNotice = waitingForProvider
       ? `시세 중계 호출 제한에 따라 ${seconds}초 후 다시 확인할 수 있습니다.`
@@ -778,7 +796,10 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
   }
 
   state.lastRequestAt = Date.now();
+  state.refreshResult = "조회 중";
+  renderRequestStatus();
   writeJson(LAST_REQUEST_KEY, state.lastRequestAt);
+  const previousSourceAt = state.snapshot?.market?.latestBarAt;
   try {
     let result = null;
     let localFailure = null;
@@ -842,14 +863,23 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
         online: "네트워크 복구 후 Yahoo 최신 관측을 확인했습니다."
       };
       state.transientNotice = refreshMessages[trigger] || refreshMessages.auto;
+      const sameSourceTime = previousSourceAt === snapshot.market.latestBarAt;
+      state.refreshResult = sameSourceTime
+        ? "응답 확인 · 공급자 가격시각 동일"
+        : "갱신 완료 · 새 가격시각 반영";
+      if (sameSourceTime) {
+        state.transientNotice = `${trigger === "button" ? "요청한 Yahoo 최신 관측" : "Yahoo 최신 관측"}을 다시 확인했습니다. 공급자가 아직 같은 가격시각을 제공하고 있습니다.`;
+      }
     } else if (result.source === "local") {
       const remoteDetail = result.remoteFailure
         ? ` ${requestFailureReason(result.remoteFailure)}`
         : "";
-      state.transientNotice = `주말·휴장용으로 동기화된 로컬 NQ 최근 완료 세션을 불러왔습니다.${remoteDetail}`;
+      state.refreshResult = result.remoteFailure ? "갱신 실패 · 이전 NQ 참고값" : "최근 완료 NQ 세션 참고";
+      state.transientNotice = `${result.remoteFailure ? "최신 MNQ 조회에 실패해" : "휴장 참고용으로"} 보관된 NQ 완료 세션을 표시합니다. 현재 시세가 아닙니다.${remoteDetail}`;
     } else {
       const remoteDetail = result.remoteFailure ? ` ${requestFailureReason(result.remoteFailure)}` : "";
       state.transientNotice = `새 조회보다 기존 관측값이 더 최근이어서 그대로 유지했습니다.${remoteDetail}`;
+      state.refreshResult = result.remoteFailure ? "갱신 실패 · 기존 관측값 유지" : "이전 응답 · 더 최근인 기존 값 유지";
     }
     applySnapshot(snapshot, {
       cache: assessment.displayable && result.source !== "current",
@@ -858,6 +888,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
         : ""
     });
   } catch (error) {
+    state.refreshResult = "조회 실패 · 최신 시세 미반영";
     const failureReason = requestFailureReason(error);
     // Manual input may remain usable after a network failure, but its 25-minute
     // freshness contract is checked again at the exact failure boundary.
@@ -869,6 +900,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
       await showLockedFallback(`${failureReason} 이전 값으로 자동 계산하지 않습니다.`);
     }
   } finally {
+    renderRequestStatus();
     setRefreshBusy(false);
     document.body.dataset.ready = "true";
   }
@@ -877,6 +909,7 @@ async function refreshMarketUnlocked({ trigger = "load" } = {}) {
 async function refreshMarket(options = {}) {
   if (state.refreshInFlight) return undefined;
   clearAutoRefreshTimer();
+  state.nextAutoRefreshDelayMs = null;
   state.refreshInFlight = true;
   try {
     const result = await withExclusiveRequest(() => refreshMarketUnlocked(options));
@@ -897,7 +930,7 @@ async function refreshMarket(options = {}) {
     return undefined;
   } finally {
     state.refreshInFlight = false;
-    scheduleAutoRefresh();
+    scheduleAutoRefresh(state.nextAutoRefreshDelayMs ?? AUTO_REFRESH_INTERVAL_MS);
   }
 }
 
