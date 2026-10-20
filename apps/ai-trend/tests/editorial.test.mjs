@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { makeCard } from "../tools/collect.mjs";
+import { buildEdition, makeCard } from "../tools/collect.mjs";
 import { applyAnalyses, validateAnalysis } from "../tools/editorial.mjs";
 import { filterCards, validateEdition } from "../js/model.js";
 import { promptFor, requirePrimaryEvidence } from "../tools/research.mjs";
@@ -23,6 +23,8 @@ test("한글 본문·출처 연결·다섯 장 검증 후에만 발행하며 새
   assert.throws(() => validateAnalysis({ ...analysis, summary: "English only" }, evidence), /한글/);
   const unsafe = structuredClone(edition); unsafe.cards[0].evidence[0].url = "javascript:alert(1)";
   assert.throws(() => validateEdition(unsafe), /출처/);
+  const unsafeSignal = structuredClone(edition); unsafeSignal.cards[0].selection = { score: 10, badge: "관측", signals: [{ label: "근거", url: "javascript:alert(1)" }] };
+  assert.throws(() => validateEdition(unsafeSignal), /선정 근거/);
 });
 test("새 항목 생성 실패는 검증된 한글 발행본의 날짜·내용을 보존한다", () => {
   const candidate = fixture();
@@ -43,4 +45,17 @@ test("기사 대신 짧은 모델 위젯이나 통계만 추출된 자료는 생
   assert.throws(() => requirePrimaryEvidence([{ kind: "official", text: "Metadata ".repeat(300) }]), /충분한 원문/);
   const source = [{ kind: "creator", text: "Original article content. ".repeat(100) }];
   assert.equal(requirePrimaryEvidence(source), source);
+});
+test("상위 후보의 한글 생성이 실패하면 전체 후보에서 검증된 대안을 선정하며 원문 후보는 공개하지 않는다", () => {
+  const now = new Date("2026-10-20T01:00:00Z");
+  const items = Array.from({ length: 8 }, (_, i) => ({ category: "project", title: `owner${i}/project`, source: "GitHub", url: `https://github.com/owner${i}/project`, dailyStars: 900 - i * 50, stars: 1000, publishedAt: "2026-10-19T01:00:00Z" }));
+  items.push({ category: "model", title: "owner/model", source: "HF", url: "https://huggingface.co/owner/model", trendRank: 1 });
+  items.push({ category: "news", title: "AI release", source: "Official", url: "https://example.com/release", publishedAt: "2026-10-20T00:00:00Z" });
+  const candidate = buildEdition(items, [], { now });
+  const topUrls = new Set(candidate.cards.map(c => c.url));
+  const backup = candidate.candidatePool.filter(c => c.category !== "project" || !topUrls.has(c.url));
+  assert.equal(backup.length, 4);
+  const result = applyAnalyses(candidate, Object.fromEntries(backup.map(c => [c.url, structuredClone(analysis)])));
+  assert.equal(result.cards.length, 4); assert.ok(result.cards.some(c => c.category === "project" && !topUrls.has(c.url)));
+  assert.equal(result.candidatePool, undefined); assert.equal(result.candidateCount, 10);
 });

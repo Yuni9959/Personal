@@ -34,6 +34,14 @@ function renderCards() {
     const body = node("div", "card-body");
     if (card.headline && card.category !== "news") body.append(node("h4", "card-headline", card.headline));
     body.append(node("span", "card-tag", card.signalLabel), node("p", "card-summary", card.summary));
+    if (card.selection?.signals?.length) {
+      const details = node("details", "selection-reasons");
+      details.append(node("summary", "", "선정 이유"));
+      const list = node("ul", "");
+      for (const signal of card.selection.signals.slice(0, 4)) { const item = node("li", ""); item.append(link(signal.url, signal.label, "")); list.append(item); }
+      details.append(list, node("p", "", `${card.selection.repeated ? "최근 소개 항목으로 반복 노출 감점을 적용했습니다. " : ""}관심 신호이며 성능·품질 순위가 아닙니다.`));
+      body.append(details);
+    }
     if (card.reviewedAt) body.append(node("p", "review-time", `내용 검토 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(card.reviewedAt))}`));
     const stats = node("div", "stats");
     for (const stat of card.stats) { const el = node("span", "stat"); el.append(node("strong", "", `${number(stat.value)}${(stat.suffix || "").replace("stars", "별").replace("forks", "포크")}`), document.createTextNode(({ Stars: "별", Downloads: "다운로드", Likes: "좋아요" })[stat.label] || stat.label)); stats.append(el); }
@@ -48,7 +56,7 @@ function renderEdition() {
   $("#topicSelect").replaceChildren(new Option("모든 분야", "all"), ...topics.map(t => new Option(t, t)));
   $("#topicSelect").value = topics.includes(selectedTopic) ? selectedTopic : "all";
   $("#editionDate").textContent = edition.date.replaceAll("-", ".");
-  $("#editionCount").textContent = `${edition.cards.length}개의 발견 · ${topics.length}개 분야 · 프로젝트 / 모델 / 소식`;
+  $("#editionCount").textContent = `${edition.cards.length}개의 발견 · ${topics.length}개 분야${edition.candidateCount ? ` · 후보 ${edition.candidateCount}개에서 선정` : ""}`;
   $("#editorial").textContent = edition.editorial;
   const sources = Array.isArray(edition.sources) ? edition.sources : [];
   $("#sourceCount").textContent = `${sources.filter(s => s.status === "ok").length}/${sources.length} 출처 수집`;

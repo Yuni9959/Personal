@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import crypto from "node:crypto";
+import { canonicalUrl, rankCandidates, selectDiverse, nextMetricHistory, SELECTION_VERSION } from "./selection.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const AI = /\b(?:ai|llm|agents?|machine.learning|deep.learning|diffusion|transformer|inference|generative|rag|mcp|language.model|neural|tts|text.to.speech)\b|人工智能|大模型/i;
@@ -74,6 +75,8 @@ export function makeCard(item, now = new Date()) {
       : "원문에서 공개 일정과 직접 사용할 수 있는 기능을 확인하세요. 발표 수치의 평가 조건과 실제 제공 범위를 함께 읽어 보세요.";
   return {
     id: idFor(url), category: item.category, title: plain(item.title, 160), source: item.source,
+    selection: item.selection || null, name: item.name || null, topics: item.topics || [], discoveryTopic: item.discoveryTopic || null,
+    pipelineTag: item.pipelineTag || null, pushedAt: item.pushedAt || null, stars: item.stars ?? null, likes: item.likes ?? null,
     url, publishedAt: item.publishedAt || null, discoveredAt: now.toISOString(),
     summary: plain(item.description || item.title, 320), tags, stats,
     signalLabel: item.dailyStars != null ? "오늘 급상승" : item.starDelta != null ? "성장 관측" : item.category === "project" ? "새 프로젝트" : item.category === "model" ? "모델 레이더" : "공식 발표",
@@ -86,22 +89,21 @@ export function makeCard(item, now = new Date()) {
   };
 }
 export function buildEdition(items, sources, { now = new Date(), previous = null } = {}) {
-  const seen = new Set();
-  const candidates = items.filter(item => {
-    const url = safeUrl(item.url);
-    if (!url || seen.has(url)) return false;
-    seen.add(url); return true;
-  });
-  const picked = [];
-  for (const [category, limit] of [["project", 6], ["news", 5], ["model", 3]]) {
-    picked.push(...candidates.filter(item => item.category === category).slice(0, limit));
-  }
+  const candidates = rankCandidates(items, { now, previous });
+  const picked = selectDiverse(candidates);
   if (picked.length < 3 || new Set(picked.map(item => item.category)).size < 2) throw new Error("충분한 최신 정보를 수집하지 못해 직전 발행본을 보존합니다.");
   const oldMetrics = previous?.repositoryMetrics || {};
-  const cards = picked.map(item => makeCard({ ...item, starDelta: item.name && oldMetrics[item.name] != null ? item.stars - oldMetrics[item.name] : null }, now));
+  const previousIds = new Map((previous?.cards || []).map(c => [canonicalUrl(c.url), c.id]));
+  const toCard = item => {
+    const card = makeCard({ ...item, starDelta: item.name && oldMetrics[item.name] != null ? item.stars - oldMetrics[item.name] : null }, now);
+    return previousIds.has(item.url) ? { ...card, id: previousIds.get(item.url) } : card;
+  };
+  const cards = picked.map(toCard);
   return {
     schemaVersion: 1, date: dayKst(now), generatedAt: now.toISOString(), cards, sources,
-    repositoryMetrics: Object.fromEntries(items.filter(item => item.name && Number.isFinite(item.stars)).map(item => [item.name, item.stars])),
+    candidatePool: candidates.map(toCard), selectionPolicy: SELECTION_VERSION,
+    metricHistory: nextMetricHistory(candidates, previous, now),
+    repositoryMetrics: Object.fromEntries(candidates.filter(item => item.name && Number.isFinite(item.stars)).map(item => [item.name, item.stars])),
     editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 하루 4회, 6시간마다 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
   };
 }
@@ -115,33 +117,44 @@ export async function collect({ now = new Date(), token = process.env.GH_TOKEN |
   const repoItem = (repo, extra = {}) => ({
     name: repo.full_name, title: repo.full_name, description: repo.description,
     url: repo.html_url, source: "GitHub", category: "project", topics: repo.topics,
-    publishedAt: repo.created_at, stars: repo.stargazers_count,
+    publishedAt: repo.created_at, pushedAt: repo.pushed_at, stars: repo.stargazers_count,
+    archived: repo.archived, fork: repo.fork, private: repo.private,
     stats: [{ label: "Stars", value: repo.stargazers_count }, { label: repo.language || "Code", value: repo.forks_count, suffix: " forks" }], ...extra
   });
   const since = new Date(now - 45 * 86400000).toISOString().slice(0, 10);
   const results = await Promise.allSettled([
     source("GitHub Trending", "https://github.com/trending?since=daily", async () => {
-      const trending = parseTrending(await get("https://github.com/trending?since=daily")).slice(0, 6);
+      const trending = parseTrending(await get("https://github.com/trending?since=daily")).slice(0, 10);
       const repos = [];
       for (const row of trending) {
         try {
           const repo = JSON.parse(await get(`https://api.github.com/repos/${row.name}`));
-          repos.push(repoItem(repo, { dailyStars: row.dailyStars, stats: [{ label: "오늘", value: row.dailyStars, suffix: " stars" }, { label: "전체", value: repo.stargazers_count, suffix: " stars" }] }));
+          repos.push(repoItem(repo, { dailyStars: row.dailyStars, discovery: ["github-trending"], stats: [{ label: "오늘", value: row.dailyStars, suffix: " stars" }, { label: "전체", value: repo.stargazers_count, suffix: " stars" }] }));
         } catch { /* Search and other sources can still supply cards. */ }
       }
       return repos;
     }),
     source("GitHub New AI", "https://github.com/topics/llm", async () => {
-      const q = `topic:llm created:>=${since} stars:>=20 archived:false fork:false`;
-      const data = JSON.parse(await get(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=stars&order=desc&per_page=12`));
-      if (!Array.isArray(data.items)) throw new Error("저장소 검색 형식 변경");
-      return data.items.map(repo => repoItem(repo));
+      const rows = [], failures = [];
+      for (const topic of ["llm", "ai-agents", "mcp", "computer-vision", "text-to-speech", "machine-learning"]) {
+        try {
+          const q = `topic:${topic} created:>=${since} stars:>=10 archived:false fork:false is:public`;
+          const data = JSON.parse(await get(`https://api.github.com/search/repositories?q=${encodeURIComponent(q)}&sort=updated&order=desc&per_page=12`));
+          if (!Array.isArray(data.items) || data.incomplete_results) throw new Error("검색 불완전");
+          rows.push(...data.items.map(repo => repoItem(repo, { discovery: [`github-topic:${topic}`], discoveryTopic: topic })));
+        } catch (e) { failures.push(`${topic}: ${e.message}`); }
+      }
+      if (!rows.length) throw new Error(failures.join("; "));
+      if (failures.length) sources.push({ name: "GitHub topic coverage", url: "https://github.com/topics/artificial-intelligence", status: "partial", detail: failures.join("; "), checkedAt: now.toISOString() });
+      return rows;
     }),
     source("Hugging Face Models", "https://huggingface.co/models?sort=trending", async () => {
-      const rows = JSON.parse(await get("https://huggingface.co/api/models?sort=trendingScore&limit=6"));
-      return rows.map(row => ({
+      const rows = JSON.parse(await get("https://huggingface.co/api/models?sort=trendingScore&limit=12&full=true"));
+      return rows.map((row, index) => ({
         category: "model", title: row.id, description: `${row.pipeline_tag || "AI model"} · ${row.id}. ${row.downloads?.toLocaleString("ko-KR") || 0} downloads, ${row.likes || 0} likes.`,
         source: "Hugging Face", url: `https://huggingface.co/${row.id}`, publishedAt: row.createdAt,
+        trendRank: index + 1, pipelineTag: row.pipeline_tag, likes: row.likes || 0,
+        topics: row.tags || [], discovery: ["huggingface-trending"],
         stats: [{ label: "Downloads", value: row.downloads || 0 }, { label: "Likes", value: row.likes || 0 }]
       }));
     }),
@@ -149,14 +162,29 @@ export async function collect({ now = new Date(), token = process.env.GH_TOKEN |
       ["OpenAI", "https://openai.com/news/rss.xml"],
       ["Google AI", "https://blog.google/technology/ai/rss/"],
       ["Hugging Face Blog", "https://huggingface.co/blog/feed.xml"]
-    ].map(([name, url]) => source(name, url, async () => parseFeed(await get(url), name, now).slice(0, 5)))
+    ].map(([name, url]) => source(name, url, async () => parseFeed(await get(url), name, now).slice(0, 8))),
+    source("Hacker News AI", "https://news.ycombinator.com/", async () => {
+      const after = Math.floor(+now / 1000) - 3 * 86400;
+      const data = JSON.parse(await get(`https://hn.algolia.com/api/v1/search_by_date?query=AI&tags=story&numericFilters=created_at_i%3E${after}%2Cpoints%3E20&hitsPerPage=30`));
+      return (data.hits || []).filter(h => AI.test(`${h.title} ${h.story_text || ""}`) && h.url && h.created_at_i <= +now / 1000).map(h => ({ url: canonicalUrl(h.url), title: h.title, points: h.points, comments: h.num_comments || 0, storyUrl: `https://news.ycombinator.com/item?id=${h.objectID}` }));
+    })
   ]);
   const groups = results.map(result => result.status === "fulfilled" ? result.value : []);
-  const projects = [...groups[0].slice(0, 3), ...groups[1], ...groups[0].slice(3)];
-  // Round-robin news prevents one publisher occupying the whole edition.
-  const diversifiedNews = [];
-  for (let round = 0; round < 5; round++) for (const group of groups.slice(3)) if (group[round]) diversifiedNews.push(group[round]);
-  const edition = buildEdition([...projects, ...diversifiedNews, ...groups[2]], sources, { now, previous });
+  const projects = [...groups[0], ...groups[1]];
+  const news = groups.slice(3, 6).flat();
+  const community = groups[6] || [];
+  // Only an exact canonical URL match is a cross-platform confirmation. Shared
+  // words or multiple GitHub topic searches are not independent confirmations.
+  for (const hit of community.filter(h => /^https:\/\/github\.com\/[^/]+\/[^/?]+$/.test(h.url || "")).slice(0, 4)) {
+    if (!projects.some(p => canonicalUrl(p.url) === hit.url)) {
+      try { projects.push(repoItem(JSON.parse(await get(`https://api.github.com/repos${new URL(hit.url).pathname}`)), { discovery: ["hacker-news"] })); } catch {}
+    }
+  }
+  const all = [...projects, ...news, ...groups[2]].map(item => {
+    const hit = community.find(h => h.url === canonicalUrl(item.url));
+    return hit ? { ...item, hn: { points: hit.points, comments: hit.comments, url: hit.storyUrl } } : item;
+  });
+  const edition = buildEdition(all, sources, { now, previous });
   // Enrich model cards and blogs which do not include RSS descriptions, using
   // the publisher's public README/article, without executing repository code.
   await Promise.allSettled(edition.cards.map(async card => {

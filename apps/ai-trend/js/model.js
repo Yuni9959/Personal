@@ -14,6 +14,7 @@ export function validateEdition(value) {
       if (ids.size !== card.evidence.length || card.slides.some(s => !ko(s.title) || !ko(s.body) || s.body.length < 100 || !Array.isArray(s.evidenceIds) || !s.evidenceIds.length || s.evidenceIds.some(id => !ids.has(id)))) throw new Error("본문과 근거 연결 검증 실패");
     }
     seen.add(card.id);
+    if (card.selection && (!Number.isFinite(card.selection.score) || typeof card.selection.badge !== "string" || !Array.isArray(card.selection.signals) || !card.selection.signals.length || card.selection.signals.some(s => typeof s.label !== "string" || !validUrl(s.url)))) throw new Error("선정 근거 형식 오류");
   }
   return value;
 }

@@ -19,12 +19,20 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `AI Trend` — 근거 연결 한국어 5장 카드뉴스, 유동적 분야 분류·검색·저장·30일 기록; 클라우드 수집·로컬 심층 생성 각각 6시간 예약 |
 | Volatility 시세·기준 | 전용 Vercel API가 Yahoo 두 호스트를 직접 조회; Jina는 장애 시 보조 경로. 결손 없는 CME 세션봉으로 O/H/L 계산. 주간 기준은 클라우드에서도 갱신 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
-| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 243/243·Chromium·AI 한글/분야/근거/5장 독서·320/390px·오프라인 통과 |
+| 자동 검증 | 2026-10-20 전체 검증 통과: Node 251/251·Chromium·AI 한글/분야/선정 근거/5장 독서·320/390px·오프라인 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.1.0-ai-editorial.1-admission-<fingerprint>` — 한국어 5장·분야·근거 링크, 기존 오프라인·6시간 수집 지원 |
+| PWA 캐시 | `v4.2.0-ai-selection.1-admission-<fingerprint>` — 증가 속도·신규성·반복/분야 편향 완화, 카드별 선정 이유 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 ## 2026-10-20: 전용 시세 API와 AI Trend
+
+AI Trend 주제 선정 개선: 누적 별 순으로 목록 앞부분을 가져오던 방식을 최근 관심 증가·
+공개 시점·개발 활동을 비교하는 방식으로 바꿨습니다. 신규 탐색은 6개 주제로 넓히고,
+Hacker News에서 정확히 같은 링크가 확인될 때만 별도 커뮤니티 신호를 연결합니다.
+반복 소개·분야 집중을 감점하고 제작자/뉴스 매체의 독점을 제한합니다. 한글 요약 실패는
+다음 후보로 보충하며 카드의 ‘선정 이유’에서 수치·관측 기간·근거 링크를 확인합니다.
+첫 관측은 성장률로 꾸미지 않으며 모델 다운로드 차이도 증가 속도로 쓰지 않습니다.
+정책·한계·보관 필드는 [AI Trend 운영 문서](./apps/ai-trend/README.md)에 정리했습니다.
 
 2026-10-20 허브 정리: TouchBebe 카드를 제거하고 AI Trend → Volatility → 대학
 입학정보를 첫 줄에 배치했습니다. 나머지는 MKAT 98 → Diary for my Wife → YML

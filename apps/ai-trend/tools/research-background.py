@@ -59,7 +59,7 @@ def main():
             result = subprocess.run(["node", "apps/ai-trend/tools/research.mjs"], cwd=work, env=child_env, stdout=log, stderr=log, timeout=90 * 60, creationflags=FLAGS)
             if result.returncode:
                 raise RuntimeError(f"Research failed ({result.returncode})")
-            run(["node", "--test", "apps/ai-trend/tests/collector.test.mjs", "apps/ai-trend/tests/editorial.test.mjs"], cwd=work)
+            run(["node", "--test", "apps/ai-trend/tests/collector.test.mjs", "apps/ai-trend/tests/editorial.test.mjs", "apps/ai-trend/tests/selection.test.mjs"], cwd=work)
             # Audit the allowed changes before staging anything.
             changed = run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=work, capture=True)
             for line in changed.splitlines():

@@ -758,6 +758,8 @@ async function run() {
     await waitForCondition(client, "document.body.dataset.ready === 'true' && document.querySelectorAll('.trend-card').length >= 3");
     assert.equal(await evaluate(client, "document.title"), "AI Trend | Personal Tap");
     const trendCount = await evaluate(client, "document.querySelectorAll('.trend-card').length");
+    assert.ok(await evaluate(client, "document.querySelectorAll('.selection-reasons').length") >= 3);
+    assert.equal(await evaluate(client, "[...document.querySelectorAll('.selection-reasons a')].every(a => a.href.startsWith('https://') && a.rel === 'noopener noreferrer')"), true);
     assert.equal(await evaluate(client, "[...document.querySelectorAll('.card-summary')].every(el => /[가-힣]/.test(el.textContent))"), true);
     assert.ok(await evaluate(client, "document.querySelector('#topicSelect').options.length") > 2);
     await evaluate(client, `(() => { const select = document.querySelector("#topicSelect"); select.selectedIndex = 1; select.dispatchEvent(new Event("change")); return true; })()`);

@@ -5,6 +5,7 @@ import { spawn } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { collect, plain, publish } from "./collect.mjs";
 import { applyAnalyses, EDITORIAL_VERSION, validateAnalysis } from "./editorial.mjs";
+import { canonicalUrl, selectDiverse } from "./selection.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ALLOWED = new Set(["api.github.com", "github.com", "huggingface.co", "raw.githubusercontent.com", "openai.com", "blog.google", "algolia.com", "hn.algolia.com"]);
@@ -117,20 +118,27 @@ export async function generate({ root = ROOT } = {}) {
   let previous = null, analyses = {};
   try { previous = JSON.parse(await fs.readFile(path.join(data, "latest.json"), "utf8")); } catch {}
   try { analyses = JSON.parse(await fs.readFile(path.join(data, "analyses.json"), "utf8")); } catch {}
+  analyses = Object.fromEntries(Object.entries(analyses).map(([url, value]) => [canonicalUrl(url), value]));
   const candidate = await collect({ previous });
-  let failures = 0;
-  for (const card of candidate.cards) {
-    if (analyses[card.url]?.version === EDITORIAL_VERSION && Date.now() - Date.parse(analyses[card.url].reviewedAt) < 5.5 * 3600000) continue;
+  let failures = 0, attempts = 0;
+  const failed = new Set(), refreshed = new Set();
+  const pool = candidate.candidatePool || candidate.cards;
+  while (attempts < 24) {
+    const targets = selectDiverse(pool.filter(c => !failed.has(c.url)).map(c => ({ ...c, topic: analyses[c.url]?.topic })));
+    const card = targets.find(c => !refreshed.has(c.url) && !(analyses[c.url]?.version === EDITORIAL_VERSION && Date.now() - Date.parse(analyses[c.url].reviewedAt) < 5.5 * 3600000));
+    if (!card) break;
+    attempts++;
     try {
       const evidence = await research(card);
       const analysis = await infer(card, evidence);
       analyses[card.url] = { ...analysis, evidence: evidence.map(({ text, ...citation }) => citation) };
+      refreshed.add(card.url);
       console.log(`한국어 심층 요약 완료: ${card.title} / ${analysis.topic}`);
       // Checkpoint each verified result, without exposing raw source text.
       await fs.writeFile(path.join(data, "analyses.json"), `${JSON.stringify(analyses, null, 2)}\n`);
-    } catch (e) { failures++; console.error(`${card.title}: ${e.message}`); }
+    } catch (e) { failures++; failed.add(card.url); console.error(`${card.title}: ${e.message}`); }
   }
-  const active = new Set(candidate.cards.map(c => c.url));
+  const active = new Set(pool.map(c => c.url));
   analyses = Object.fromEntries(Object.entries(analyses).filter(([url, a]) => active.has(url) || Date.now() - Date.parse(a.reviewedAt) < 30 * 86400000));
   await fs.writeFile(path.join(data, "analyses.json"), `${JSON.stringify(analyses, null, 2)}\n`);
   const edition = applyAnalyses(candidate, analyses, previous);
