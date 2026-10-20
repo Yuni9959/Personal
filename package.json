@@ -14,6 +14,7 @@
     "publish:university-release": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/publish-university-release.ps1",
     "test:admission-sync": "node --test tools/tests/*.test.mjs",
     "collect:ai-trend": "node apps/ai-trend/tools/collect.mjs",
+    "research:ai-trend": "node apps/ai-trend/tools/research.mjs",
     "sync:cloud-reference": "node tools/sync-cloud-reference.mjs",
     "test:ai-trend": "node --test apps/ai-trend/tests/*.test.mjs",
     "test:volatility": "node --test apps/volatility/tests/*.test.mjs",

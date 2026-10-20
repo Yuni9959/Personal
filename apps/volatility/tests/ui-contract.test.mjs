@@ -236,7 +236,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v4\.0\.1-hub-priority\.1-admission-/);
+  assert.match(sw, /v4\.1\.0-ai-editorial\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",

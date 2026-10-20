@@ -16,12 +16,12 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
 | 허브 UI | 6개 카드·3열 × 2행. 첫 줄 AI Trend → Volatility → 대학 입학정보, 둘째 줄 MKAT 98 → Diary for my Wife → YML Studio. TouchBebe 제거 |
-| 신규 앱 | `AI Trend` — GitHub 급상승·새 AI 프로젝트·모델·공식 뉴스 14개, 검색·저장·3장 카드뉴스·30일 기록 |
+| 신규 앱 | `AI Trend` — 근거 연결 한국어 5장 카드뉴스, 유동적 분야 분류·검색·저장·30일 기록; 클라우드 수집·로컬 심층 생성 각각 6시간 예약 |
 | Volatility 시세·기준 | 전용 Vercel API가 Yahoo 두 호스트를 직접 조회; Jina는 장애 시 보조 경로. 결손 없는 CME 세션봉으로 O/H/L 계산. 주간 기준은 클라우드에서도 갱신 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
-| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 239/239·Chromium·AI 검색/저장/3장 독서·320/390px·오프라인·actionlint 1.7.12 통과 |
+| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 242/242·Chromium·AI 한글/분야/근거/5장 독서·320/390px·오프라인 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.0.1-hub-priority.1-admission-<fingerprint>` — 자주 쓰는 앱 우선 배치·TouchBebe 제거, 기존 오프라인·6시간 수집 지원 |
+| PWA 캐시 | `v4.1.0-ai-editorial.1-admission-<fingerprint>` — 한국어 5장·분야·근거 링크, 기존 오프라인·6시간 수집 지원 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 ## 2026-10-20: 전용 시세 API와 AI Trend
@@ -49,9 +49,14 @@ API는 Yahoo query1 → query2 순서로 최신 MNQ 5분봉을 확인하고, 브
 잠그지 않고 세션봉 자체의 O/H/L을 사용합니다. 결손봉·현재가/시각 불일치는
 계속 거부합니다. 실제 증권사 MNQ 월물을 대체하지 않습니다.
 
-`AI Trend`는 [전용 탭](./apps/ai-trend/)에서 매일 발견한 프로젝트·모델·뉴스를
-원문 발췌와 한국어 관측 안내로 정리합니다. 자동 번역이나 LLM 요약을 가장하지
-않으며 원문 언어를 보존합니다. 데이터·출처·한계·수집 명령은
+`AI Trend`는 [전용 탭](./apps/ai-trend/)에서 발견한 프로젝트·모델·뉴스를 한국어
+5장으로 정리합니다. 무엇인지·제작자의 소개·구체적 활용·공개 반응·도입 조건을
+원문 근거와 함께 읽고, 카드 상단의 분야 배지와 유동적 분야 필터로 탐색합니다.
+제작자의 주장은 독립 검증과 구분하고 외부 반응이 없으면 미확인이라고 표시합니다.
+클라우드 수집은 아래 일정으로 유지합니다. 새 한국어 심층 요약은 이 PC의 인증된
+Codex에서 02:35·08:35·14:35·20:35 KST에 창 없이 생성합니다. PC 종료나 생성 실패 시
+기존 검증 한글을 유지하고 내용 검토 시각·대기 상태를 표시합니다. 로컬 인증을
+클라우드로 옮기지 않습니다. 데이터·근거·한계·운영 명령은
 [AI Trend 운영 문서](./apps/ai-trend/README.md)에 있습니다.
 
 `.github/workflows/daily-briefing.yml`은 하루 4회 **02:17·08:17·14:17·20:17 KST**, 6시간 간격으로 GitHub Actions에서

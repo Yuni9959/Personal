@@ -186,7 +186,11 @@ export async function publish(edition, root = ROOT) {
 async function main() {
   let previous = null;
   try { previous = JSON.parse(await fs.readFile(path.join(ROOT, "data/latest.json"), "utf8")); } catch { /* First edition. */ }
-  const edition = await collect({ previous });
+  const { applyAnalyses } = await import("./editorial.mjs");
+  let analyses = {};
+  try { analyses = JSON.parse(await fs.readFile(path.join(ROOT, "data/analyses.json"), "utf8")); } catch { /* No verified Korean research yet. */ }
+  const candidate = await collect({ previous });
+  const edition = applyAnalyses(candidate, analyses, previous);
   await publish(edition);
   console.log(`AI Trend ${edition.date}: ${edition.cards.length} cards; ${edition.sources.filter(s => s.status === "ok").length}/${edition.sources.length} sources`);
   for (const source of edition.sources) console.log(`  ${source.name}: ${source.status} ${source.count ?? source.detail}`);

@@ -758,6 +758,12 @@ async function run() {
     await waitForCondition(client, "document.body.dataset.ready === 'true' && document.querySelectorAll('.trend-card').length >= 3");
     assert.equal(await evaluate(client, "document.title"), "AI Trend | Personal Tap");
     const trendCount = await evaluate(client, "document.querySelectorAll('.trend-card').length");
+    assert.equal(await evaluate(client, "[...document.querySelectorAll('.card-summary')].every(el => /[가-힣]/.test(el.textContent))"), true);
+    assert.ok(await evaluate(client, "document.querySelector('#topicSelect').options.length") > 2);
+    await evaluate(client, `(() => { const select = document.querySelector("#topicSelect"); select.selectedIndex = 1; select.dispatchEvent(new Event("change")); return true; })()`);
+    assert.equal(await evaluate(client, "[...document.querySelectorAll('.topic-badge')].every(el => el.textContent === document.querySelector('#topicSelect').value)"), true);
+    await evaluate(client, `(() => { const select = document.querySelector("#topicSelect"); select.value = "all"; select.dispatchEvent(new Event("change")); return true; })()`);
+    assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), trendCount);
     assert.equal(await evaluate(client, `(() => {
       document.querySelector(".save-button").click();
       document.querySelector('[data-filter="saved"]').click();
@@ -766,9 +772,13 @@ async function run() {
     await evaluate(client, `document.querySelector(".read-button").click(); true`);
     assert.equal(await evaluate(client, "document.querySelector('#reader').open"), true);
     await evaluate(client, `document.querySelector("#nextSlide").click(); true`);
-    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "2 / 3");
+    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "2 / 5");
     await evaluate(client, `document.querySelector("#nextSlide").click(); true`);
+    assert.equal(await evaluate(client, "document.querySelector('#nextSlide').disabled"), false);
+    await evaluate(client, `document.querySelector("#nextSlide").click(); document.querySelector("#nextSlide").click(); true`);
+    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "5 / 5");
     assert.equal(await evaluate(client, "document.querySelector('#nextSlide').disabled"), true);
+    assert.ok(await evaluate(client, "document.querySelectorAll('#slideSources a').length") >= 1);
     assert.equal(await evaluate(client, "document.querySelector('#readerLink').rel"), "noopener noreferrer");
     await evaluate(client, `document.querySelector("#closeReader").click(); document.querySelector('[data-filter="all"]').click(); true`);
     await evaluate(client, `(() => {const s = document.querySelector("#searchInput"); s.value="no-matching-project-xyz"; s.dispatchEvent(new Event("input")); return true;})()`);
@@ -2675,7 +2685,7 @@ async function run() {
       target: "_blank",
       rel: "noopener noreferrer"
     });
-    await evaluate(client, 'localStorage.removeItem("personal-tap-ai-trend-edition-v1"); true');
+    await evaluate(client, 'localStorage.removeItem("personal-tap-ai-trend-edition-v2"); true');
     await navigate(client, `${baseUrl}/apps/ai-trend/?offline-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length >= 3"), true);
@@ -2693,7 +2703,7 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 6카드·AI Trend/Volatility/대입 우선·TouchBebe 제거·AI Trend 검색/저장/3장 독서/320px·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
+      "브라우저 스모크 성공: 허브 6카드·AI Trend/Volatility/대입 우선·TouchBebe 제거·AI Trend 한글·분야·근거/저장/5장 독서/320px·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +
