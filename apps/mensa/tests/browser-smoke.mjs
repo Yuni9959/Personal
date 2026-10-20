@@ -578,9 +578,11 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 7"
+      "document.querySelectorAll('.app-card').length === 6"
     );
     assert.equal(await evaluate(client, "document.title"), "Personal Tap");
+    assert.deepEqual(await evaluate(client, "[...document.querySelectorAll('.app-card')].slice(0, 3).map(card => card.dataset.appId)"), ["ai-trend", "volatility", "university-admission"]);
+    assert.equal(await evaluate(client, "document.querySelector('[data-app-id=touchbebe]') === null"), true);
     assert.equal(
       await evaluate(
         client,
@@ -601,7 +603,7 @@ async function run() {
     })()`);
     assert.deepEqual(desktopHubLayout, {
       gridBeforeWelcome: true,
-      rows: 3,
+      rows: 2,
       firstRowSize: 3
     });
     const hubAccessibility = await evaluate(client, `(() => {
@@ -688,7 +690,7 @@ async function run() {
     await navigate(client, `${baseUrl}/?hub-mobile-smoke=1`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 7"
+      "document.querySelectorAll('.app-card').length === 6"
     );
     const mobileHubLayout = await evaluate(client, `(() => {
       const cardRects = [...document.querySelectorAll(".app-card")].map(card => {
@@ -720,8 +722,8 @@ async function run() {
     assert.equal(mobileHubLayout.fitsViewport, true);
     assert.equal(mobileHubLayout.cardWidth >= 110, true);
     assert.equal(mobileHubLayout.gridBeforeWelcome, true);
-    assert.equal(mobileHubLayout.rows, 3);
-    assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3, 1]);
+    assert.equal(mobileHubLayout.rows, 2);
+    assert.deepEqual(mobileHubLayout.cardsPerRow, [3, 3]);
     assert.equal(
       mobileHubLayout.cardRects.every(rect =>
         rect.height >= 168 && rect.width >= 110 && rect.left >= 0 && rect.right <= 390
@@ -2235,7 +2237,7 @@ async function run() {
     await navigate(client, `${baseUrl}/`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 7"
+      "document.querySelectorAll('.app-card').length === 6"
     );
     const mkatMetric = await evaluate(client, `(() => {
       const card = [...document.querySelectorAll(".app-card")]
@@ -2661,7 +2663,7 @@ async function run() {
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
     await waitForCondition(
       client,
-      "document.querySelectorAll('.app-card').length === 7",
+      "document.querySelectorAll('.app-card').length === 6",
       15000
     );
     const offlineUniversityCard = await evaluate(client, `(() => {
@@ -2691,7 +2693,7 @@ async function run() {
 
     assert.deepEqual(browserErrors, []);
     console.log(
-      "브라우저 스모크 성공: 허브 7카드·AI Trend 검색/저장/3장 독서/320px·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
+      "브라우저 스모크 성공: 허브 6카드·AI Trend/Volatility/대입 우선·TouchBebe 제거·AI Trend 검색/저장/3장 독서/320px·대학 입학정보 Vercel 링크·Volatility 데스크톱/모바일, 유형 59개, " +
       "일일·진단·실전·속도·유형학습·복습 큐, 선택 후 제출, " +
       "진단 원자 저장·실전 자동 제출·확대 보기, v1 안전 이전, " +
       "IndexedDB 응시·숙달 이벤트, 유형 중복 없는 일일 고정 큐, 세션 복원, " +

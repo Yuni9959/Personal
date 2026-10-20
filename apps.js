@@ -1,5 +1,43 @@
 window.PERSONAL_TAP_APPS = [
   {
+    id: "ai-trend",
+    title: "AI Trend",
+    subtitle: "매일 발견하는 AI 흐름",
+    description: "떠오르는 GitHub 프로젝트·AI 모델·공식 뉴스를 카드로 읽습니다.",
+    href: "./apps/ai-trend/",
+    icon: "✳️",
+    badge: "DAILY",
+    enabled: true,
+    accent: "amber"
+  },
+  {
+    id: "volatility",
+    title: "Volatility",
+    subtitle: "MNQ 매매 점검",
+    description: "MNQ 변동폭과 포지션 손절·위험 신호를 한눈에 점검합니다.",
+    href: "./apps/volatility/",
+    icon: "〽️",
+    badge: "BETA",
+    enabled: true,
+    accent: "mint",
+    metric: "volatility"
+  },
+  {
+    id: "university-admission",
+    title: "대학 입학정보",
+    subtitle: "2027·2026 작곡 입시",
+    description: "검증된 대학·예술고·예술중 작곡 입학 보고서를 한곳에서 확인합니다.",
+    href: "https://university-admission-private-preview-yuni14.vercel.app/",
+    releaseFingerprint: "d22a5f7e5f7ef05cd0250124236a31c789f0bf11b35888ccddd0028d2572bded",
+    releaseDeploymentId: "dpl_FCVuJXoHYRZiNYziU95uLpq3A5VK",
+    releasePublishedAt: "2026-10-15T05:32:36.594397Z",
+    icon: "🎓",
+    badge: "VERCEL",
+    enabled: true,
+    external: true,
+    accent: "violet"
+  },
+  {
     id: "mkat98",
     title: "MKAT 98",
     subtitle: "멘사 합격 프로젝트",
@@ -25,40 +63,6 @@ window.PERSONAL_TAP_APPS = [
     accent: "rose"
   },
   {
-    id: "volatility",
-    title: "Volatility",
-    subtitle: "MNQ 매매 점검",
-    description: "MNQ 변동폭과 포지션 손절·위험 신호를 한눈에 점검합니다.",
-    href: "./apps/volatility/",
-    icon: "〽️",
-    badge: "BETA",
-    enabled: true,
-    accent: "mint",
-    metric: "volatility"
-  },
-  {
-    id: "ai-trend",
-    title: "AI Trend",
-    subtitle: "매일 발견하는 AI 흐름",
-    description: "떠오르는 GitHub 프로젝트·AI 모델·공식 뉴스를 카드로 읽습니다.",
-    href: "./apps/ai-trend/",
-    icon: "✳️",
-    badge: "DAILY",
-    enabled: true,
-    accent: "amber"
-  },
-  {
-    id: "touchbebe",
-    title: "TouchBebe",
-    subtitle: "육아 도구",
-    description: "출산과 육아를 더 편하게 할 도구를 준비하고 있어요.",
-    href: "#",
-    icon: "👶",
-    badge: "COMING SOON",
-    enabled: false,
-    accent: "mint"
-  },
-  {
     id: "yml-studio",
     title: "YML Studio",
     subtitle: "레슨실 운영",
@@ -68,20 +72,5 @@ window.PERSONAL_TAP_APPS = [
     badge: "COMING SOON",
     enabled: false,
     accent: "amber"
-  },
-  {
-    id: "university-admission",
-    title: "대학 입학정보",
-    subtitle: "2027·2026 작곡 입시",
-    description: "검증된 대학·예술고·예술중 작곡 입학 보고서를 한곳에서 확인합니다.",
-    href: "https://university-admission-private-preview-yuni14.vercel.app/",
-    releaseFingerprint: "d22a5f7e5f7ef05cd0250124236a31c789f0bf11b35888ccddd0028d2572bded",
-    releaseDeploymentId: "dpl_FCVuJXoHYRZiNYziU95uLpq3A5VK",
-    releasePublishedAt: "2026-10-15T05:32:36.594397Z",
-    icon: "🎓",
-    badge: "VERCEL",
-    enabled: true,
-    external: true,
-    accent: "violet"
   }
 ];

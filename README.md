@@ -15,16 +15,29 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 문제은행 | `2026.08.10-content.4`, 59개 유형·990문제·6,298개 보기 |
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
-| 허브 UI | 320px 모바일부터 데스크톱까지 3열 × n행 앱 카드; 모바일은 압축형 3 × 2 입구 |
+| 허브 UI | 6개 카드·3열 × 2행. 첫 줄 AI Trend → Volatility → 대학 입학정보, 둘째 줄 MKAT 98 → Diary for my Wife → YML Studio. TouchBebe 제거 |
 | 신규 앱 | `AI Trend` — GitHub 급상승·새 AI 프로젝트·모델·공식 뉴스 14개, 검색·저장·3장 카드뉴스·30일 기록 |
 | Volatility 시세·기준 | 전용 Vercel API가 Yahoo 두 호스트를 직접 조회; Jina는 장애 시 보조 경로. 결손 없는 CME 세션봉으로 O/H/L 계산. 주간 기준은 클라우드에서도 갱신 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
 | 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 239/239·Chromium·AI 검색/저장/3장 독서·320/390px·오프라인·actionlint 1.7.12 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.0.0-ai-trend-direct-api.2-admission-<fingerprint>` — 하루 4회 수집 안내, AI Trend 오프라인 지원, 발행본은 network-first·쿼리 없는 cache key |
+| PWA 캐시 | `v4.0.1-hub-priority.1-admission-<fingerprint>` — 자주 쓰는 앱 우선 배치·TouchBebe 제거, 기존 오프라인·6시간 수집 지원 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 ## 2026-10-20: 전용 시세 API와 AI Trend
+
+2026-10-20 허브 정리: TouchBebe 카드를 제거하고 AI Trend → Volatility → 대학
+입학정보를 첫 줄에 배치했습니다. 나머지는 MKAT 98 → Diary for my Wife → YML
+Studio 순서이며 기존 기록은 유지합니다. Node 239개·Chromium·320/390px·오프라인
+검증을 통과했습니다. 입시 공개 배포는 별도 원본 manifest와 496개 파일의 해시,
+보안 헤더 10종과 404 동작까지 대조했습니다. 추가 첨부 감시의 HTML 응답/다운로드
+경고는 보고서 열람 상태와 구분해 운영 기록에 남깁니다.
+
+이 PC의 Quant 수집·Drive 점검·입시 갱신 예약 작업은 `wscript.exe`와 숨김 VBS
+래퍼로 시작합니다. 기존 선물거래 처리도 같은 방식입니다. 일정·사용자 권한·
+중복 실행 방지·재시도·로그는 유지하고 실제 종료코드를 스케줄러에 전달합니다.
+정의 백업과 재설정 도구는 바탕화면 `automation-background/`, 운영 상세는
+`자동화_작업_인수인계.md`에 있습니다. GitHub의 AI Trend 수집은 클라우드 실행입니다.
 
 장중 시세는 `https://personal-tap-data-yuni14.vercel.app/api/market`에서 받습니다.
 API는 Yahoo query1 → query2 순서로 최신 MNQ 5분봉을 확인하고, 브라우저가
@@ -189,7 +202,6 @@ Web Storage origin을 공유합니다. 따라서 같은 계정의 다른 Pages �
 - **Diary for my Wife**: 기존 GitHub Pages 주소
 - **Volatility**: Repository 내부의 `./apps/volatility/`
 - **AI Trend**: Repository 내부의 `./apps/ai-trend/`
-- **TouchBebe**: 준비 중 카드
 - **YML Studio**: 준비 중 카드
 - **대학 입학정보**: 안정 Vercel 별칭 `https://university-admission-private-preview-yuni14.vercel.app/`
 
