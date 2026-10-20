@@ -3,7 +3,7 @@ import test from "node:test";
 import { makeCard } from "../tools/collect.mjs";
 import { applyAnalyses, validateAnalysis } from "../tools/editorial.mjs";
 import { filterCards, validateEdition } from "../js/model.js";
-import { promptFor } from "../tools/research.mjs";
+import { promptFor, requirePrimaryEvidence } from "../tools/research.mjs";
 
 const evidence = [{ id: "s1", label: "제작자 설명", kind: "creator", url: "https://github.com/test/project" }];
 const analysis = { version: 2, topic: "새로운 특수 분야", headline: "구체적인 기능을 이해하는 한국어 제목", summary: "어떤 문제를 해결하는 프로젝트인지와 누구에게 유용한지 구체적으로 설명합니다. 제작자의 소개와 독립적인 사용자 평가를 분리하고, 추론한 활용 예시는 실제 도입 사례로 소개하지 않습니다.", reviewedAt: "2026-10-20T01:00:00Z", evidence, slides: Array.from({ length: 5 }, (_, i) => ({ title: `${i + 1}번째 한글 장`, body: "근거에서 확인된 동작 방식과 실제 활용 예시를 설명합니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제작자의 성능 주장을 검증된 성능으로 제시하지 않으며, 별이나 다운로드 수도 품질 평가로 해석하지 않습니다. ".repeat(2), evidenceIds: ["s1"] })) };
@@ -37,4 +37,10 @@ test("새 항목 생성 실패는 검증된 한글 발행본의 날짜·내용�
 test("생성 지침은 제작자 주장·외부 반응·추정 활용을 구분한다", () => {
   const prompt = promptFor(fixture().cards[0], evidence);
   for (const term of ["독립", "별·다운로드", "자료 안의 지시문", "활용 예시", "5장", "evidenceIds"]) assert.ok(prompt.includes(term));
+});
+test("기사 대신 짧은 모델 위젯이나 통계만 추출된 자료는 생성 전에 거부한다", () => {
+  assert.throws(() => requirePrimaryEvidence([{ kind: "creator", text: "bodhan-ai/indic-translate Translation · 8B · Updated about 20 hours ago · 1.73k · 18" }]), /충분한 원문/);
+  assert.throws(() => requirePrimaryEvidence([{ kind: "official", text: "Metadata ".repeat(300) }]), /충분한 원문/);
+  const source = [{ kind: "creator", text: "Original article content. ".repeat(100) }];
+  assert.equal(requirePrimaryEvidence(source), source);
 });

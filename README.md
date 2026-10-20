@@ -19,7 +19,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `AI Trend` — 근거 연결 한국어 5장 카드뉴스, 유동적 분야 분류·검색·저장·30일 기록; 클라우드 수집·로컬 심층 생성 각각 6시간 예약 |
 | Volatility 시세·기준 | 전용 Vercel API가 Yahoo 두 호스트를 직접 조회; Jina는 장애 시 보조 경로. 결손 없는 CME 세션봉으로 O/H/L 계산. 주간 기준은 클라우드에서도 갱신 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
-| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 242/242·Chromium·AI 한글/분야/근거/5장 독서·320/390px·오프라인 통과 |
+| 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 243/243·Chromium·AI 한글/분야/근거/5장 독서·320/390px·오프라인 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
 | PWA 캐시 | `v4.1.0-ai-editorial.1-admission-<fingerprint>` — 한국어 5장·분야·근거 링크, 기존 오프라인·6시간 수집 지원 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |

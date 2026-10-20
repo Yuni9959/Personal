@@ -19,6 +19,10 @@ async function get(url, json = false) {
   const data = await r.text(); if (Buffer.byteLength(data) > 3000000) throw new Error("조사 응답 크기 초과");
   return json ? JSON.parse(data) : data;
 }
+export function requirePrimaryEvidence(evidence) {
+  if (!evidence.some(e => e.kind === "creator" && e.text?.length >= 1000)) throw new Error("충분한 원문 본문을 확보하지 못했습니다. 메뉴·위젯·짧은 소개만으로 발행하지 않습니다.");
+  return evidence;
+}
 export async function research(card) {
   const evidence = [];
   const add = (label, url, kind, text) => { if (text?.length > 30) evidence.push({ id: `s${evidence.length + 1}`, label, url, kind, text: String(text).slice(0, 18000) }); };
@@ -65,8 +69,7 @@ export async function research(card) {
     }
     add("발표 원문", card.url, "creator", body);
   }
-  if (!evidence.some(e => e.kind === "creator")) throw new Error("원문 본문을 확보하지 못했습니다.");
-  return evidence;
+  return requirePrimaryEvidence(evidence);
 }
 const string = { type: "string" };
 export const outputSchema = { type: "object", additionalProperties: false, properties: {
