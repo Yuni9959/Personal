@@ -463,3 +463,10 @@ footer a { color: var(--mint); text-decoration: none; }
   }
   .status, .top-refresh-button { width: 100%; justify-content: center; }
 }
+
+@media (max-width: 360px) {
+  .session-prices { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 5px; }
+  .session-price { padding: 5px 8px; }
+  .session-price strong { margin-top: 2px; font-size: 15px; }
+  .session-price span { font-size: 9px; }
+}

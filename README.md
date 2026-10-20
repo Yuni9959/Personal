@@ -21,14 +21,14 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
 | 자동 검증 | 2026-10-21 전체 검증 통과: Node 261/261·Chromium·AI 한글/분야/선정 근거/5장 독서·320/390px·오프라인 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.3.0-scheduled-editions.1-admission-<fingerprint>` — 시세 4항목 요약·서버 정시 발행·데이터 게시 분리 |
+| PWA 캐시 | `v4.3.0-scheduled-editions.2-admission-<fingerprint>` — 시세 4항목 요약·서버 정시 발행·데이터 게시 분리 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 ## 2026-10-21: 시세 요약과 서버 예약 발행
 
 Volatility의 ‘이번 주 고정 기준’ 바로 아래에 시가·저가·고가·Range(pt)를 표시한다.
 Range는 같은 검증 세션의 고가−저가이며 새로고침 때 함께 갱신한다. 보관·수동·첫 관측
-자료의 기준과 기존 계산 잠금은 유지한다. 320/390px에서도 한 줄의 4개 항목을 볼 수 있다.
+자료의 기준과 기존 계산 잠금은 유지한다. 390px에서는 4개 항목을 한 줄로, 320px에서는 2×2로 읽을 수 있다.
 
 AI Trend는 매일 **07:00·19:00 KST**에 서버 시각으로 공개한다. 미리 준비한 오전·오후
 발행본을 각각 보관하며 공개 후 본문은 바꾸지 않는다. 앱은 `/api/ai-trend`를 no-store로

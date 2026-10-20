@@ -1414,6 +1414,7 @@ async function run() {
       inputTargetsUsable: true,
       allReferencePriceLinesVisible: true
     });
+    assert.equal(await evaluate(client, `([...document.querySelectorAll(".session-prices strong")].every(el => el.scrollWidth <= el.clientWidth))`), true);
     await captureOptionalScreenshot(client, "volatility-mobile-320");
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 390,
