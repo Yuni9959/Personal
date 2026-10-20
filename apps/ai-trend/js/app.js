@@ -1,7 +1,18 @@
+import { editionForRelease, resolvePublication } from "./schedule.js";
 import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js";
 const $ = selector => document.querySelector(selector);
 const STORAGE = "personal-tap-ai-trend-saved-v1";
-const CACHE = "personal-tap-ai-trend-edition-v2";
+const CACHE = "personal-tap-ai-trend-edition-v3";
+const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
+const remote = !["localhost", "127.0.0.1", ""].includes(location.hostname);
+let publicationTimer, serverOffset = 0;
+const displayTime = value => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+function scheduleRefresh(nextAt, retry = false) {
+  clearTimeout(publicationTimer);
+  if ($("#editionSelect").value !== "latest") return;
+  const delay = retry ? 60000 : Math.max(250, Date.parse(nextAt) - (Date.now() + serverOffset) + 100);
+  publicationTimer = setTimeout(() => { if (document.visibilityState === "visible") load(); }, Math.min(delay, 2147483647));
+}
 let saved;
 try { saved = new Set(JSON.parse(localStorage.getItem(STORAGE) || "[]")); } catch { saved = new Set(); }
 let edition = null, filter = "all", activeCard = null, slide = 0, pending = null;
@@ -55,7 +66,7 @@ function renderEdition() {
   const selectedTopic = $("#topicSelect").value;
   $("#topicSelect").replaceChildren(new Option("모든 분야", "all"), ...topics.map(t => new Option(t, t)));
   $("#topicSelect").value = topics.includes(selectedTopic) ? selectedTopic : "all";
-  $("#editionDate").textContent = edition.date.replaceAll("-", ".");
+  $("#editionDate").textContent = `${edition.date.replaceAll("-", ".")}${edition.publication ? ` · ${edition.publication.id.endsWith("07") ? "아침" : "저녁"}` : ""}`;
   $("#editionCount").textContent = `${edition.cards.length}개의 발견 · ${topics.length}개 분야${edition.candidateCount ? ` · 후보 ${edition.candidateCount}개에서 선정` : ""}`;
   $("#editorial").textContent = edition.editorial;
   const sources = Array.isArray(edition.sources) ? edition.sources : [];
@@ -85,39 +96,63 @@ async function json(url, signal) {
   return response.json();
 }
 async function load({ selected = $("#editionSelect").value } = {}) {
+  clearTimeout(publicationTimer);
   pending?.abort(); const controller = new AbortController(); pending = controller;
   const timeout = setTimeout(() => controller.abort(), 12000);
   $("#refreshBtn").disabled = true; status("발행본을 확인하고 있습니다…");
   try {
-    const url = selected === "latest" ? "./data/latest.json" : `./data/archive/${selected}.json`;
-    const next = validateEdition(await json(`${url}?t=${Date.now()}`, controller.signal));
-    if (selected !== "latest" && next.date !== selected) throw new Error("발행일 불일치");
+    let publication = null, next;
+    if (remote) {
+      publication = await json(`${API}?edition=${encodeURIComponent(selected)}&t=${Date.now()}`, controller.signal);
+      if (!Number.isFinite(Date.parse(publication.serverNow))) throw new Error("서버 시각 오류");
+      serverOffset = Date.parse(publication.serverNow) - Date.now();
+      next = editionForRelease(validateEdition(publication.edition), publication.entry);
+    } else {
+      // Local preview uses the same release policy, with legacy fixtures supported.
+      let manifest = null;
+      if (new URLSearchParams(location.search).has("scheduled-preview")) manifest = await json(`./data/release-manifest.json?t=${Date.now()}`, controller.signal);
+      if (manifest) {
+        publication = resolvePublication(manifest, new Date(), selected);
+        if (!publication.entry) throw new Error("공개 전 발행본");
+        next = editionForRelease(validateEdition(await json(`./data/${publication.entry.path}`, controller.signal)), publication.entry);
+      } else {
+        next = validateEdition(await json(`${selected === "latest" ? "./data/latest.json" : `./data/archive/${selected}.json`}?t=${Date.now()}`, controller.signal));
+      }
+    }
     if (controller !== pending) return;
     edition = next; renderEdition();
-    if (selected === "latest") { try { localStorage.setItem(CACHE, JSON.stringify(edition)); } catch { /* Offline service worker remains available. */ } }
-    const time = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit" }).format(new Date(edition.generatedAt));
+    if (selected === "latest") { try { localStorage.setItem(CACHE, JSON.stringify(edition)); } catch {} }
     const errors = edition.sources?.filter(s => s.status !== "ok").length || 0;
-    const old = selected === "latest" && isOldEdition(edition);
+    const old = selected === "latest" && (publication ? publication.delayed : isOldEdition(edition));
     const pendingText = edition.pendingCount ? ` · 새 항목 ${edition.pendingCount}개 심층 요약 대기` : "";
-    const oldReviewCount = edition.cards.filter(c => c.reviewedAt && Date.now() - Date.parse(c.reviewedAt) > 8 * 3600000).length;
-    const reviewText = oldReviewCount ? ` · ${oldReviewCount}개 카드 내용 재검토 대기` : "";
+    const oldReviews = edition.cards.filter(c => c.reviewedAt && Date.now() + serverOffset - Date.parse(c.reviewedAt) > 24 * 3600000).length;
+    const reviewText = oldReviews ? ` · ${oldReviews}개 카드 내용 재검토 대기` : "";
     const legacy = edition.schemaVersion === 1 ? "이전 형식의 보관본입니다. " : "";
-    status(`${legacy}${old ? "마지막 검증 발행본을 표시합니다. " : ""}${edition.date} ${time} KST 수집 · ${edition.cards.length}개 카드${errors ? ` · ${errors}개 출처 수집 실패` : ""}${pendingText}${reviewText}${edition.collectionWarning ? ` · ${edition.collectionWarning}` : ""}`, old || errors > 0 || edition.pendingCount > 0 || oldReviewCount > 0 || !!legacy);
-    document.body.dataset.ready = "true";
-    try {
-      const index = await json(`./data/index.json?t=${Date.now()}`, controller.signal);
-      if (controller !== pending || !Array.isArray(index.dates)) return;
-      const select = $("#editionSelect");
-      select.replaceChildren(new Option("최신 발행본", "latest"), ...index.dates.filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date)).slice(0, 30).map(date => new Option(date, date)));
+    const issue = edition.publication;
+    const issueText = issue ? `${displayTime(issue.scheduledAt)} 발행본${Date.parse(issue.preparedAt) > Date.parse(issue.scheduledAt) ? " · 지연 준비" : ""} · 자료 수집 ${displayTime(edition.generatedAt)}` : `${displayTime(edition.generatedAt)} KST 수집`;
+    status(`${legacy}${old ? "예정 발행본이 지연되어 마지막 검증 발행본을 표시합니다. " : ""}${issueText} · ${edition.cards.length}개 카드${errors ? ` · ${errors}개 출처 수집 실패` : ""}${pendingText}${reviewText}${edition.collectionWarning ? ` · ${edition.collectionWarning}` : ""}`, old || errors > 0 || edition.pendingCount > 0 || oldReviews > 0 || !!legacy);
+    const select = $("#editionSelect");
+    if (publication) {
+      select.replaceChildren(new Option("최신 발행본", "latest"), ...publication.releases.map(e => new Option(`${e.id.slice(0, 10)} ${e.id.endsWith("07") ? "07:00 아침" : "19:00 저녁"}`, e.id)));
       select.value = selected;
-    } catch { /* Current edition is still readable if the archive index fails. */ }
+      $("#nextPublication").textContent = `다음 발행 ${displayTime(publication.nextPublishAt)} KST · 자동 갱신`;
+      if (selected === "latest") scheduleRefresh(publication.nextPublishAt, old);
+    } else {
+      try {
+        const index = await json(`./data/index.json?t=${Date.now()}`, controller.signal);
+        if (controller !== pending || !Array.isArray(index.dates)) return;
+        select.replaceChildren(new Option("최신 발행본", "latest"), ...index.dates.filter(date => /^\d{4}-\d{2}-\d{2}$/.test(date)).slice(0, 30).map(date => new Option(date, date)));
+        select.value = selected;
+      } catch {}
+    }
   } catch (error) {
     if (controller !== pending) return;
     if (!edition && selected === "latest") {
-      try { edition = validateEdition(JSON.parse(localStorage.getItem(CACHE))); renderEdition(); } catch { /* No verified cached edition. */ }
+      try { edition = validateEdition(JSON.parse(localStorage.getItem(CACHE))); renderEdition(); } catch {}
     }
-    status(edition ? `새 발행본을 받지 못했습니다. ${edition.date} 발행본을 유지합니다. ${navigator.onLine ? "잠시 후 새로고침해 주세요." : "오프라인 보관본입니다."}` : "발행본을 불러오지 못했습니다. 연결을 확인하고 새로고침해 주세요.", true);
+    status(edition ? `새 발행본을 받지 못했습니다. ${edition.date} 발행본을 유지합니다. ${navigator.onLine ? "1분 뒤 자동으로 다시 확인합니다." : "오프라인 보관본입니다."}` : "발행본을 불러오지 못했습니다. 1분 뒤 자동으로 다시 확인합니다.", true);
     if (!edition) { $("#emptyState").hidden = false; $("#emptyMessage").textContent = "인터넷 연결 후 새로고침하면 최신 카드를 받을 수 있습니다."; }
+    if (selected === "latest") scheduleRefresh(null, true);
   } finally {
     clearTimeout(timeout);
     if (controller === pending) { $("#refreshBtn").disabled = false; document.body.dataset.ready = "true"; }
@@ -140,5 +175,5 @@ let touchX = null;
 $("#slideContent").addEventListener("touchstart", event => { touchX = event.touches[0]?.clientX ?? null; }, { passive: true });
 $("#slideContent").addEventListener("touchend", event => { const x = event.changedTouches[0]?.clientX; if (touchX != null && x != null && Math.abs(x - touchX) > 50) moveSlide(x < touchX ? 1 : -1); touchX = null; }, { passive: true });
 window.addEventListener("online", () => load());
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && edition && isOldEdition(edition) && $("#editionSelect").value === "latest") load(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("#editionSelect").value === "latest") load(); });
 load();

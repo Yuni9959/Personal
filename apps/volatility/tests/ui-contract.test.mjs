@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..", "..", "..");
-const read = relative => fs.readFileSync(path.join(root, relative), "utf8");
+const read = relative => fs.readFileSync(path.join(root, relative), "utf8").replace(/\r\n/g, "\n");
 
 test("Personal Tap 허브에 Volatility 앱 입구가 활성화돼 있다", () => {
   const apps = read("apps.js");
@@ -237,7 +237,7 @@ test("지연 시세는 가시 탭에서 자동 갱신하고 실패한 이전값�
 
 test("Service Worker가 Volatility 필수 자산과 오프라인 탐색을 포함한다", () => {
   const sw = read("sw.js");
-  assert.match(sw, /v4\.2\.2-volatility-refresh\.1-admission-/);
+  assert.match(sw, /v4\.3\.0-scheduled-editions\.1-admission-/);
   assert.match(sw, /const UNIVERSITY_ADMISSION_RELEASE = "[0-9a-f]{64}"/);
   for (const asset of [
     "./apps/volatility/index.html", "./apps/volatility/styles.css",

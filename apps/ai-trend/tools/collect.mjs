@@ -1,3 +1,4 @@
+import { prepareEdition } from "./prepare.mjs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -104,7 +105,7 @@ export function buildEdition(items, sources, { now = new Date(), previous = null
     candidatePool: candidates.map(toCard), selectionPolicy: SELECTION_VERSION,
     metricHistory: nextMetricHistory(candidates, previous, now),
     repositoryMetrics: Object.fromEntries(candidates.filter(item => item.name && Number.isFinite(item.stars)).map(item => [item.name, item.stars])),
-    editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 하루 4회, 6시간마다 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
+    editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 아침·저녁 발행 전에 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
   };
 }
 export async function collect({ now = new Date(), token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN, previous = null, fetchImpl = fetch } = {}) {
@@ -220,6 +221,8 @@ async function main() {
   const candidate = await collect({ previous });
   const edition = applyAnalyses(candidate, analyses, previous);
   await publish(edition);
+  const ready = await prepareEdition(edition, ROOT);
+  console.log(`예약 준비: ${ready.map(e => e.id).join(", ")}`);
   console.log(`AI Trend ${edition.date}: ${edition.cards.length} cards; ${edition.sources.filter(s => s.status === "ok").length}/${edition.sources.length} sources`);
   for (const source of edition.sources) console.log(`  ${source.name}: ${source.status} ${source.count ?? source.detail}`);
 }

@@ -1178,6 +1178,8 @@ async function run() {
       bearConditional: document.querySelector("#bearSafeLine").textContent
     })`);
     const manualMarket = { open: 30000, high: 30100, low: 29900, current: 30050, atr5m14: 40.34778 };
+    const sessionPrices = await evaluate(client, `(["referenceOpenPrice", "referenceLowPrice", "referenceHighPrice", "referenceRangePoints"].map(id => document.getElementById(id).textContent))`);
+    assert.deepEqual(sessionPrices, ["30,000.00", "29,900.00", "30,100.00", "200.00 pt"]);
     const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const line = (direction, percent, operational = false) => {
       const scenario = calculateSafeReachScenario(manualMarket, direction, percent);
@@ -2690,7 +2692,7 @@ async function run() {
       target: "_blank",
       rel: "noopener noreferrer"
     });
-    await evaluate(client, 'localStorage.removeItem("personal-tap-ai-trend-edition-v2"); true');
+    await evaluate(client, 'localStorage.removeItem("personal-tap-ai-trend-edition-v3"); true');
     await navigate(client, `${baseUrl}/apps/ai-trend/?offline-smoke=1`);
     await waitForCondition(client, "document.body.dataset.ready === 'true'");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length >= 3"), true);

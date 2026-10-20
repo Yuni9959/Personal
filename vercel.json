@@ -3,5 +3,5 @@
   "buildCommand": "node tools/build-api.mjs",
   "outputDirectory": ".api-public",
   "framework": null,
-  "functions": { "api/market.js": { "maxDuration": 15 } }
+  "functions": { "api/market.js": { "maxDuration": 15 }, "api/ai-trend.js": { "maxDuration": 15 } }
 }

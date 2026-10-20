@@ -56,6 +56,8 @@ const els = {
   bullConditionalLabel: $("#bullConditionalLabel"), bearConditionalLabel: $("#bearConditionalLabel"),
   bullConditionalReference: $("#bullConditionalReference"), bearConditionalReference: $("#bearConditionalReference"),
   referenceOpenLabel: $("#referenceOpenLabel"), referenceOpenPrice: $("#referenceOpenPrice"),
+  referenceLowPrice: $("#referenceLowPrice"), referenceHighPrice: $("#referenceHighPrice"),
+  referenceRangePoints: $("#referenceRangePoints"), referenceLowLabel: $("#referenceLowLabel"), referenceHighLabel: $("#referenceHighLabel"),
   referenceOpenContext: $("#referenceOpenContext"), referencePeriod: $("#referencePeriod"),
   bullMeanMove: $("#bullMeanMove"), bullMeanPrice: $("#bullMeanPrice"),
   bearMeanMove: $("#bearMeanMove"), bearMeanPrice: $("#bearMeanPrice"),
@@ -384,6 +386,9 @@ const referencePriceRows = Object.freeze([
 ]);
 
 function renderReferenceContext(snapshot = null, assessment = null) {
+  const prefix = assessment?.referenceOnly ? "최근 기준" : snapshot?.mode === "manual" ? "확인" : "오늘";
+  els.referenceLowLabel.textContent = `${prefix} 저가`;
+  els.referenceHighLabel.textContent = `${prefix} 고가`;
   if (!snapshot || !assessment?.displayable) {
     els.referenceOpenLabel.textContent = "오늘 시가";
     els.referenceOpenContext.textContent = "검증된 시세 대기";
@@ -421,6 +426,7 @@ function renderReferenceContext(snapshot = null, assessment = null) {
 function renderReferencePrices(market = null) {
   if (!market) {
     els.referenceOpenPrice.textContent = "—";
+    els.referenceLowPrice.textContent = els.referenceHighPrice.textContent = els.referenceRangePoints.textContent = "—";
     for (const row of referencePriceRows) {
       row.move().textContent = "—";
       row.price().textContent = "—";
@@ -429,6 +435,9 @@ function renderReferencePrices(market = null) {
   }
 
   els.referenceOpenPrice.textContent = formatNumber(market.open);
+  els.referenceLowPrice.textContent = formatNumber(market.low);
+  els.referenceHighPrice.textContent = formatNumber(market.high);
+  els.referenceRangePoints.textContent = formatNumber(market.high - market.low, " pt");
   for (const row of referencePriceRows) {
     const scenario = calculateSafeReachScenario(market, row.direction, row.percent());
     const sign = row.direction === "bull" ? "+" : "−";

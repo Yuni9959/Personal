@@ -1,3 +1,4 @@
+import { publicationSlot } from "./schedule.js";
 export const CATEGORIES = new Set(["project", "model", "news"]);
 export function validUrl(value) {
   try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password ? u.href : null; } catch { return null; }
@@ -23,6 +24,6 @@ export function filterCards(cards, { filter = "all", topic = "all", query = "", 
   return cards.filter(card => (filter === "all" || (filter === "saved" ? saved.has(card.id) : card.category === filter)) && (topic === "all" || card.topic === topic) && (!term || `${card.title} ${card.headline || ""} ${card.summary} ${card.source} ${card.tags.join(" ")} ${card.slides.map(s => `${s.title} ${s.body}`).join(" ")}`.toLocaleLowerCase().includes(term)));
 }
 export function isOldEdition(edition, now = new Date()) {
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
-  return edition.date < today || now - new Date(edition.generatedAt) > 8 * 3600000;
+  if (edition.publication) return edition.publication.id !== publicationSlot(now).id;
+  return +now - Date.parse(edition.generatedAt) > 12 * 3600000;
 }

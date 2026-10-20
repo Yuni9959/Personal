@@ -94,11 +94,14 @@ h1 em { color: var(--mint); font-style: normal; }
 .reference-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
 .reference-header > div > span { color: #dcecea; font-size: 13px; font-weight: 900; }
 .reference-header p { margin: 3px 0 0; color: var(--muted); font-size: 9px; }
-.reference-open { flex: 0 0 auto; min-width: 126px; padding: 8px 10px; border: 1px solid rgba(98,226,189,.18); border-radius: 12px; background: rgba(5,22,27,.48); text-align: right; }
-.reference-open span, .reference-open strong, .reference-open small { display: block; }
-.reference-open span { color: var(--muted); font-size: 9px; }
-.reference-open strong { margin-top: 2px; color: #fff; font-size: 20px; letter-spacing: -.04em; }
-.reference-open small { max-width: 100%; margin-top: 2px; overflow: hidden; color: #7f9999; font-size: 7px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.session-prices { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 6px; }
+.session-price { min-width: 0; margin: 0; padding: 9px 6px; border: 1px solid rgba(98,226,189,.18); border-radius: 10px; background: rgba(5,22,27,.48); }
+.session-price span, .session-price strong { display: block; white-space: nowrap; }
+.session-price span { color: var(--muted); font-size: 9px; }
+.session-price strong { margin-top: 4px; color: #fff; font-size: clamp(12px, 2.8vw, 18px); letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.session-price.range strong { color: var(--mint); }
+.session-context { margin: 5px 0 10px; color: var(--muted); font-size: 9px; line-height: 1.4; }
+
 .reference-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
 .reference-direction { min-width: 0; padding: 11px; border: 1px solid var(--line); border-radius: 16px; background: rgba(4,19,24,.5); }
 .reference-direction h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 14px; letter-spacing: -.02em; }
@@ -355,8 +358,9 @@ footer a { color: var(--mint); text-decoration: none; }
   .reference-card { padding: 12px; border-radius: 17px; }
   .reference-header { margin-bottom: 8px; }
   .reference-header > div > span { font-size: 12px; }
-  .reference-open { min-width: 108px; padding: 6px 8px; }
-  .reference-open strong { font-size: 17px; }
+  .session-price { padding: 7px 4px; }
+  .session-price span { font-size: 8px; }
+  .session-price strong { font-size: clamp(11px, 3.2vw, 15px); }
   .reference-grid { gap: 6px; }
   .reference-direction { padding: 7px; border-radius: 13px; }
   .reference-direction h2 { margin-bottom: 6px; font-size: 12px; }

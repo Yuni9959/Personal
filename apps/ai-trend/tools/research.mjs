@@ -1,3 +1,4 @@
+import { prepareEdition } from "./prepare.mjs";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -125,7 +126,7 @@ export async function generate({ root = ROOT } = {}) {
   const pool = candidate.candidatePool || candidate.cards;
   while (attempts < 24) {
     const targets = selectDiverse(pool.filter(c => !failed.has(c.url)).map(c => ({ ...c, topic: analyses[c.url]?.topic })));
-    const card = targets.find(c => !refreshed.has(c.url) && !(analyses[c.url]?.version === EDITORIAL_VERSION && Date.now() - Date.parse(analyses[c.url].reviewedAt) < 5.5 * 3600000));
+    const card = targets.find(c => !refreshed.has(c.url) && !(analyses[c.url]?.version === EDITORIAL_VERSION && Date.now() - Date.parse(analyses[c.url].reviewedAt) < 10 * 3600000));
     if (!card) break;
     attempts++;
     try {
@@ -143,6 +144,8 @@ export async function generate({ root = ROOT } = {}) {
   await fs.writeFile(path.join(data, "analyses.json"), `${JSON.stringify(analyses, null, 2)}\n`);
   const edition = applyAnalyses(candidate, analyses, previous);
   await publish(edition, root);
-  console.log(`발행: ${edition.cards.length}개 카드, 신규 요약 대기 ${edition.pendingCount}, 이번 생성 실패 ${failures}`);
+  const ready = await prepareEdition(edition, root);
+  console.log(`예약 준비: ${ready.map(e => e.id).join(", ")}`);
+  console.log(`준비: ${edition.cards.length}개 카드, 신규 요약 대기 ${edition.pendingCount}, 이번 생성 실패 ${failures}`);
 }
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) generate().catch(e => { console.error(e); process.exitCode = 1; });

@@ -39,12 +39,14 @@
             <span id="weeklyReferenceTitle">이번 주 고정 기준</span>
             <p id="referencePeriod">이번 주 자동 계산 기준 불러오는 중</p>
           </div>
-          <p class="reference-open">
-            <span id="referenceOpenLabel">오늘 시가</span>
-            <strong id="referenceOpenPrice">—</strong>
-            <small id="referenceOpenContext">검증된 시세 대기</small>
-          </p>
         </div>
+        <div class="session-prices" aria-label="오늘 세션 시가 저가 고가 변동폭">
+          <p class="session-price"><span id="referenceOpenLabel">오늘 시가</span><strong id="referenceOpenPrice">—</strong></p>
+          <p class="session-price"><span id="referenceLowLabel">오늘 저가</span><strong id="referenceLowPrice">—</strong></p>
+          <p class="session-price"><span id="referenceHighLabel">오늘 고가</span><strong id="referenceHighPrice">—</strong></p>
+          <p class="session-price range"><span>Range · 고가−저가</span><strong id="referenceRangePoints">—</strong></p>
+        </div>
+        <p id="referenceOpenContext" class="session-context">검증된 시세 대기</p>
         <div class="reference-grid">
           <section class="reference-direction bull-reference" aria-label="상승 방향 기준">
             <h2><span>↗</span> 상승</h2>

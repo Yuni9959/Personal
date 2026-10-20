@@ -1,8 +1,10 @@
-name: AI Trend every 6 hours and weekly reference
+name: Prepare 07 and 19 KST editions
 
 on:
   schedule:
-    - cron: '17 5,11,17,23 * * *' # 02:17, 08:17, 14:17, 20:17 KST; GitHub can delay runs.
+    # Prepare twice per issue, hours ahead of publication. A delayed Actions
+    # runner does not control release time; the API enforces 07:00 / 19:00 KST.
+    - cron: '17 6,8,18,20 * * *' # 03:17/05:17 and 15:17/17:17 KST
   workflow_dispatch:
 
 permissions:
@@ -13,51 +15,73 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  collect:
+  ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+      - name: Load separately stored editorial data
+        run: node tools/ai-trend-store.mjs pull
+      - name: Collect and prepare the next issue
+        run: npm run collect:ai-trend
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Validate cards and publication boundaries
+        run: npm run test:ai-trend
+      - name: Store public data without deploying the application
+        run: node tools/ai-trend-store.mjs push
+      - name: Confirm the server can see the prepared issue
+        run: node tools/ai-trend-store.mjs verify
+
+  reference:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: write
+    outputs:
+      changed: ${{ steps.changed.outputs.value }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
-      - name: Collect six-hour AI briefing
-        id: ai
-        continue-on-error: true
-        run: npm run collect:ai-trend
-        env:
-          GH_TOKEN: ${{ github.token }}
-      - name: Refresh expired weekly reference independently
-        id: reference
-        continue-on-error: true
+      - name: Refresh weekly reference independently
         run: npm run sync:cloud-reference
-      - name: Verify application
+      - name: Detect actual reference changes
+        id: changed
+        run: |
+          if git diff --quiet -- apps/volatility/js/weekly-reference.generated.js; then
+            echo 'value=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'value=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Verify changed application reference
+        if: steps.changed.outputs.value == 'true'
         run: npm run test:release
         env:
           CHROMIUM_PATH: /usr/bin/google-chrome
-      - name: Publish only generated public data
+      - name: Publish only the changed reference module
+        if: steps.changed.outputs.value == 'true'
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- apps/ai-trend/data apps/volatility/js/weekly-reference.generated.js
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: refresh daily AI briefing and weekly reference"
-            git pull --rebase origin main
-            git push origin HEAD:main
-          fi
-      - name: Report collection failures
-        if: steps.ai.outcome == 'failure' || steps.reference.outcome == 'failure'
-        run: |
-          echo 'One collection failed; previous verified data was preserved. Check step logs.' >> "$GITHUB_STEP_SUMMARY"
+          git add -- apps/volatility/js/weekly-reference.generated.js
+          git commit -m "chore: refresh weekly volatility reference"
+          git pull --rebase origin main
+          git push origin HEAD:main
 
-  deploy:
-    needs: collect
+  deploy-reference:
+    needs: reference
+    if: needs.reference.outputs.changed == 'true'
     permissions:
       contents: read
       pages: write

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#151e23" />
   <meta name="description" content="새로 떠오르는 GitHub 프로젝트와 AI 소식을 매일 카드뉴스로 읽는 AI Trend" />
   <meta name="referrer" content="no-referrer" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://personal-tap-data-yuni14.vercel.app; img-src 'self' data:; style-src 'self'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'" />
   <title>AI Trend | Personal Tap</title>
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="icon" href="../../icons/icon-192.png" />
@@ -17,12 +17,12 @@
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="../../" aria-label="Personal Tap 홈"><span class="brand-mark">PT</span><span>Personal Tap <small>/ AI Trend</small></span></a>
-      <div class="top-actions"><span class="daily-dot">6시간마다 새 발견</span><button id="refreshBtn" class="button small" type="button">새로고침 ↗</button></div>
+      <div class="top-actions"><span class="daily-dot">매일 07:00 · 19:00</span><button id="refreshBtn" class="button small" type="button">새로고침 ↗</button></div>
     </header>
     <main>
       <section class="hero" aria-labelledby="pageTitle">
         <div class="hero-copy"><p class="eyebrow">발견에서 이해까지</p><h1 id="pageTitle">AI의 다음 흐름을,<br>오늘의 카드로.</h1><p class="hero-description">무엇을 만들었고, 어디에 쓸 수 있을까?<br>소개부터 실제 반응과 도입 조건까지, 한국어 5장으로.</p></div>
-        <div class="edition"><span class="orbit" aria-hidden="true">↗</span><p class="eyebrow">YOUR DAILY BRIEFING</p><strong id="editionDate">—</strong><span id="editionCount">오늘의 신호를 불러오고 있습니다</span><span class="edition-time">6시간마다 · 02:17 / 08:17 / 14:17 / 20:17 KST 수집 예약</span></div>
+        <div class="edition"><span class="orbit" aria-hidden="true">↗</span><p class="eyebrow">YOUR DAILY BRIEFING</p><strong id="editionDate">—</strong><span id="editionCount">오늘의 신호를 불러오고 있습니다</span><span class="edition-time">매일 아침 7시 · 저녁 7시 KST 발행</span><span id="nextPublication" class="edition-time">서버에서 최신 발행본 확인 중</span></div>
       </section>
       <div id="status" class="status" role="status" aria-live="polite">최신 발행본을 확인하고 있습니다.</div>
       <section class="briefing" aria-labelledby="feedTitle">

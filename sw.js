@@ -1,6 +1,6 @@
 const CACHE_PREFIX = "personal-tap-";
 const UNIVERSITY_ADMISSION_RELEASE = "d22a5f7e5f7ef05cd0250124236a31c789f0bf11b35888ccddd0028d2572bded";
-const CACHE_NAME = `${CACHE_PREFIX}v4.2.2-volatility-refresh.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
+const CACHE_NAME = `${CACHE_PREFIX}v4.3.0-scheduled-editions.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -44,6 +44,7 @@ const CORE_ASSETS = [
   "./apps/ai-trend/styles.css",
   "./apps/ai-trend/js/app.js",
   "./apps/ai-trend/js/model.js",
+  "./apps/ai-trend/js/schedule.js",
   "./apps/ai-trend/data/latest.json",
   "./apps/ai-trend/data/index.json"
 ];

@@ -2,18 +2,22 @@
 
 ## AI Trend·시세 API 운영
 
-- AI Trend와 주간 기준은 `daily-briefing.yml`의 하루 4회(02:17·08:17·14:17·20:17 KST), 6시간 간격 클라우드 수집을
-  사용한다. 자동 게시 허용 파일은 `apps/ai-trend/data/**`와
-  `apps/volatility/js/weekly-reference.generated.js`뿐이다.
-- 봇 push 뒤에는 재사용 Pages workflow를 직접 호출한다. GITHUB_TOKEN push만으로
-  다른 workflow가 실행된다고 가정하지 않는다.
+- AI Trend 공개 시각은 매일 07:00·19:00 KST다. `daily-briefing.yml`은
+  03:17·05:17·15:17·17:17 KST에 미리 수집한다. 준비는 공개가 아니다.
+- AI 데이터는 `ai-trend-data` 브랜치의 `apps/ai-trend/data/**`에만 게시한다.
+  `tools/ai-trend-store.mjs pull/push/verify`로 동시 변경을 거부하고 서버 확인까지
+  완료한다. 데이터 변경으로 main push나 Pages dispatch를 하지 않는다.
+- `/api/ai-trend`는 서버 시각으로 공개된 불변 발행본을 선택한다. 미래 파일을
+  최신 발행본으로 표시하거나, 수집 실패/오래된 검토를 새 내용으로 바꾸지 않는다.
+- 주간 기준은 별도 job에서 생성하며 실제 모듈 변경이 있을 때만 전체 검사·main push·
+  재사용 Pages workflow를 호출한다. GITHUB_TOKEN push의 workflow 실행을 가정하지 않는다.
 - 장중 시세는 `api/market.js`의 전용 Vercel API를 우선한다. 비밀키·PC·Drive에
   의존하지 않으며 원시 시세 파일을 Pages에 자동 게시하지 않는다.
 - 완전한 세션봉과 다른 일중 요약 H/L을 비교할 때의 범위 차이만 분리한다.
   결손봉·현재가/원천시각·종목·만료 검증을 제거해 성공으로 바꾸지 않는다.
 - AI 카드는 schema 2의 근거 연결 한국어 심층 요약 5장이다. 제작자 주장·외부 반응·
   추정 활용을 구분하며 독립 평가 부족을 숨기지 않는다. 분야는 새 이름을 허용한다.
-  클라우드 6시간 수집과 PC의 6시간 한글 생성은 별도 단계다. PC 종료·생성 실패 시
+  클라우드 사전 수집과 PC의 05:00·17:00 한글 생성은 별도 단계다. 숨김 실행·10분 간격 3회 재시도를 유지한다. PC 종료·생성 실패 시
   기존 한글을 영어로 대체하지 않고 검토 시각·대기 수를 표시한다. 로컬 인증은 업로드하지 않는다.
 - `.env*`, `.vercel/`, 로컬 거래 자료는 Git·Pages·Vercel upload에 넣지 않는다.
 - AI 선정은 `selection.mjs`의 관측 속도·신규성·반복/분야 분산 정책을 사용한다.
