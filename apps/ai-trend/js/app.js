@@ -1,17 +1,19 @@
-import { editionForRelease, resolvePublication } from "./schedule.js";
-import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261021.3";
+import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261021.3";
 const $ = selector => document.querySelector(selector);
 const STORAGE = "personal-tap-ai-trend-saved-v1";
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
 const remote = !["localhost", "127.0.0.1", ""].includes(location.hostname);
-let publicationTimer, serverOffset = 0;
+let publicationTimer, serverOffset = 0, revision = null;
 const displayTime = value => new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 function scheduleRefresh(nextAt, retry = false) {
   clearTimeout(publicationTimer);
   if ($("#editionSelect").value !== "latest") return;
-  const delay = retry ? 60000 : Math.max(250, Date.parse(nextAt) - (Date.now() + serverOffset) + 100);
-  publicationTimer = setTimeout(() => { if (document.visibilityState === "visible") load(); }, Math.min(delay, 2147483647));
+  const boundary = Date.parse(nextAt);
+  const delay = retry || !Number.isFinite(boundary) ? 60000 : Math.max(250, boundary - (Date.now() + serverOffset) + 100);
+  // Also discover manual reissues while this tab stays open.
+  publicationTimer = setTimeout(() => { if (document.visibilityState === "visible") load({ silent: true }); }, Math.min(delay, 60000));
 }
 let saved;
 try { saved = new Set(JSON.parse(localStorage.getItem(STORAGE) || "[]")); } catch { saved = new Set(); }
@@ -68,7 +70,11 @@ function renderEdition() {
   $("#topicSelect").value = topics.includes(selectedTopic) ? selectedTopic : "all";
   $("#editionDate").textContent = `${edition.date.replaceAll("-", ".")}${edition.publication ? ` · ${edition.publication.id.endsWith("07") ? "아침" : "저녁"}` : ""}`;
   $("#editionCount").textContent = `${edition.cards.length}개의 발견 · ${topics.length}개 분야${edition.candidateCount ? ` · 후보 ${edition.candidateCount}개에서 선정` : ""}`;
+  const updated = edition.publication?.reissuedAt || edition.publication?.scheduledAt;
+  $("#editionUpdated").hidden = !updated;
+  $("#editionUpdated").textContent = updated ? `${displayTime(updated)} ${edition.publication.reissuedAt ? "재발행" : "발행"} · KST` : "";
   $("#editorial").textContent = edition.editorial;
+  $("#researchStatus").textContent = edition.pendingCount ? `게시된 ${edition.cards.length}개 카드 외 추가 후보 ${edition.pendingCount}개는 심층 요약 검토 중입니다.` : "";
   const sources = Array.isArray(edition.sources) ? edition.sources : [];
   $("#sourceCount").textContent = `${sources.filter(s => s.status === "ok").length}/${sources.length} 출처 수집`;
   $("#sourceList").replaceChildren(...sources.filter(s => validUrl(s.url)).map(source => link(source.url, `${source.status === "ok" ? "●" : "○"} ${source.name} · ${source.count ?? "수집 실패"}`, "")));
@@ -95,11 +101,12 @@ async function json(url, signal) {
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   return response.json();
 }
-async function load({ selected = $("#editionSelect").value } = {}) {
+async function load({ selected = $("#editionSelect").value, silent = false } = {}) {
   clearTimeout(publicationTimer);
   pending?.abort(); const controller = new AbortController(); pending = controller;
   const timeout = setTimeout(() => controller.abort(), 12000);
-  $("#refreshBtn").disabled = true; status("발행본을 확인하고 있습니다…");
+  $("#refreshBtn").disabled = true;
+  if (!silent) status("발행본을 확인하고 있습니다…");
   try {
     let publication = null, next;
     if (remote) {
@@ -120,22 +127,25 @@ async function load({ selected = $("#editionSelect").value } = {}) {
       }
     }
     if (controller !== pending) return;
-    edition = next; renderEdition();
+    const nextRevision = publication?.entry.path || JSON.stringify(next);
+    const changed = nextRevision !== revision;
+    edition = next; revision = nextRevision;
+    if (changed) renderEdition();
     if (selected === "latest") { try { localStorage.setItem(CACHE, JSON.stringify(edition)); } catch {} }
     const errors = edition.sources?.filter(s => s.status !== "ok").length || 0;
     const old = selected === "latest" && (publication ? publication.delayed : isOldEdition(edition));
-    const pendingText = edition.pendingCount ? ` · 새 항목 ${edition.pendingCount}개 심층 요약 대기` : "";
     const oldReviews = edition.cards.filter(c => c.reviewedAt && Date.now() + serverOffset - Date.parse(c.reviewedAt) > 24 * 3600000).length;
     const reviewText = oldReviews ? ` · ${oldReviews}개 카드 내용 재검토 대기` : "";
     const legacy = edition.schemaVersion === 1 ? "이전 형식의 보관본입니다. " : "";
     const issue = edition.publication;
-    const issueText = issue ? `${displayTime(issue.scheduledAt)} 발행본${Date.parse(issue.preparedAt) > Date.parse(issue.scheduledAt) ? " · 지연 준비" : ""} · 자료 수집 ${displayTime(edition.generatedAt)}` : `${displayTime(edition.generatedAt)} KST 수집`;
-    status(`${legacy}${old ? "예정 발행본이 지연되어 마지막 검증 발행본을 표시합니다. " : ""}${issueText} · ${edition.cards.length}개 카드${errors ? ` · ${errors}개 출처 수집 실패` : ""}${pendingText}${reviewText}${edition.collectionWarning ? ` · ${edition.collectionWarning}` : ""}`, old || errors > 0 || edition.pendingCount > 0 || oldReviews > 0 || !!legacy);
+    const issueText = issue ? `${displayTime(issue.scheduledAt)} 발행본${issue.reissuedAt ? ` · ${displayTime(issue.reissuedAt)} 재발행` : Date.parse(issue.preparedAt) > Date.parse(issue.scheduledAt) ? " · 지연 준비" : ""} · 자료 수집 ${displayTime(edition.generatedAt)}` : `${displayTime(edition.generatedAt)} KST 수집`;
+    const confirmed = remote ? `서버 확인 ${displayTime(publication.serverNow)} KST. ` : "";
+    status(`${confirmed}${legacy}${old ? "예정 발행본이 지연되어 마지막 검증 발행본을 표시합니다. " : ""}${issueText} · ${edition.cards.length}개 카드${errors ? ` · ${errors}개 출처 수집 실패` : ""}${reviewText}${edition.collectionWarning ? ` · ${edition.collectionWarning}` : ""}`, old || errors > 0 || oldReviews > 0 || !!legacy);
     const select = $("#editionSelect");
     if (publication) {
       select.replaceChildren(new Option("최신 발행본", "latest"), ...publication.releases.map(e => new Option(`${e.id.slice(0, 10)} ${e.id.endsWith("07") ? "07:00 아침" : "19:00 저녁"}`, e.id)));
       select.value = selected;
-      $("#nextPublication").textContent = `다음 발행 ${displayTime(publication.nextPublishAt)} KST · 자동 갱신`;
+      $("#nextPublication").textContent = selected === "latest" ? `다음 발행 ${displayTime(publication.nextPublishAt)} KST · 1분마다 최신본 확인` : "지난 발행본을 보고 있습니다";
       if (selected === "latest") scheduleRefresh(publication.nextPublishAt, old);
     } else {
       try {
@@ -151,6 +161,7 @@ async function load({ selected = $("#editionSelect").value } = {}) {
       try { edition = validateEdition(JSON.parse(localStorage.getItem(CACHE))); renderEdition(); } catch {}
     }
     status(edition ? `새 발행본을 받지 못했습니다. ${edition.date} 발행본을 유지합니다. ${navigator.onLine ? "1분 뒤 자동으로 다시 확인합니다." : "오프라인 보관본입니다."}` : "발행본을 불러오지 못했습니다. 1분 뒤 자동으로 다시 확인합니다.", true);
+    $("#nextPublication").textContent = navigator.onLine ? "서버 연결 재확인 중" : "오프라인 · 저장된 발행본";
     if (!edition) { $("#emptyState").hidden = false; $("#emptyMessage").textContent = "인터넷 연결 후 새로고침하면 최신 카드를 받을 수 있습니다."; }
     if (selected === "latest") scheduleRefresh(null, true);
   } finally {
@@ -165,7 +176,8 @@ for (const button of document.querySelectorAll("[data-filter]")) button.onclick 
 };
 $("#searchInput").addEventListener("input", renderCards);
 $("#topicSelect").onchange = renderCards;
-$("#refreshBtn").onclick = () => load(); $("#editionSelect").onchange = () => load();
+$("#refreshBtn").onclick = () => { $("#editionSelect").value = "latest"; load({ selected: "latest" }); };
+$("#editionSelect").onchange = () => load();
 $("#closeReader").onclick = () => $("#reader").close();
 $("#previousSlide").onclick = () => moveSlide(-1); $("#nextSlide").onclick = () => moveSlide(1);
 $("#readerSave").onclick = () => toggleSaved(activeCard);

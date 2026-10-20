@@ -10,19 +10,19 @@
   <title>AI Trend | Personal Tap</title>
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="icon" href="../../icons/icon-192.png" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20261021.3" />
   <link rel="stylesheet" href="../../pwa-update.css" />
 </head>
 <body>
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="../../" aria-label="Personal Tap 홈"><span class="brand-mark">PT</span><span>Personal Tap <small>/ AI Trend</small></span></a>
-      <div class="top-actions"><span class="daily-dot">매일 07:00 · 19:00</span><button id="refreshBtn" class="button small" type="button">새로고침 ↗</button></div>
+      <div class="top-actions"><span class="daily-dot">매일 07:00 · 19:00</span><button id="refreshBtn" class="button small" type="button" aria-label="최신 발행본 새로고침">새로고침 ↗</button></div>
     </header>
     <main>
       <section class="hero" aria-labelledby="pageTitle">
         <div class="hero-copy"><p class="eyebrow">발견에서 이해까지</p><h1 id="pageTitle">AI의 다음 흐름을,<br>오늘의 카드로.</h1><p class="hero-description">무엇을 만들었고, 어디에 쓸 수 있을까?<br>소개부터 실제 반응과 도입 조건까지, 한국어 5장으로.</p></div>
-        <div class="edition"><span class="orbit" aria-hidden="true">↗</span><p class="eyebrow">YOUR DAILY BRIEFING</p><strong id="editionDate">—</strong><span id="editionCount">오늘의 신호를 불러오고 있습니다</span><span class="edition-time">매일 아침 7시 · 저녁 7시 KST 발행</span><span id="nextPublication" class="edition-time">서버에서 최신 발행본 확인 중</span></div>
+        <div class="edition"><span class="orbit" aria-hidden="true">↗</span><p class="eyebrow">YOUR DAILY BRIEFING</p><strong id="editionDate">—</strong><span id="editionUpdated" class="edition-updated" hidden></span><span id="editionCount">오늘의 신호를 불러오고 있습니다</span><span class="edition-time">매일 아침 7시 · 저녁 7시 KST 발행</span><span id="nextPublication" class="edition-time">서버에서 최신 발행본 확인 중</span></div>
       </section>
       <div id="status" class="status" role="status" aria-live="polite">최신 발행본을 확인하고 있습니다.</div>
       <section class="briefing" aria-labelledby="feedTitle">
@@ -33,12 +33,12 @@
         <div id="cardGrid" class="card-grid" aria-live="polite"></div>
         <div id="emptyState" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>아직 발견한 카드가 없어요</h3><p id="emptyMessage">다른 검색어나 분류를 선택해 보세요.</p></div>
       </section>
-      <details class="sources"><summary>어디에서, 어떻게 고르나요? <span id="sourceCount"></span></summary><p id="editorial"></p><p>프로젝트명은 원래 이름을 유지하고 설명은 AI가 한국어로 재서술합니다. 제작자의 주장과 공개 이슈·토론을 구분하며 각 장에 근거를 연결합니다. 활용 예시는 실제 도입 사례와 구분합니다. 외부 반응이 부족하면 미확인으로 표시합니다. 인기도는 품질 보증이 아닙니다. 수집·요약이 실패하면 마지막 검증 발행본과 검토 시각을 유지합니다. 예약은 실행 환경에 따라 늦어질 수 있습니다.</p><div id="sourceList" class="source-list"></div></details>
+      <details class="sources"><summary>어디에서, 어떻게 고르나요? <span id="sourceCount"></span></summary><p id="editorial"></p><p id="researchStatus"></p><p>프로젝트명은 원래 이름을 유지하고 설명은 AI가 한국어로 재서술합니다. 제작자의 주장과 공개 이슈·토론을 구분하며 각 장에 근거를 연결합니다. 활용 예시는 실제 도입 사례와 구분합니다. 외부 반응이 부족하면 미확인으로 표시합니다. 인기도는 품질 보증이 아닙니다. 수집·요약이 실패하면 마지막 검증 발행본과 검토 시각을 유지합니다. 예약은 실행 환경에 따라 늦어질 수 있습니다.</p><div id="sourceList" class="source-list"></div></details>
     </main>
     <footer><span>AI Trend <b>↗</b> Personal Tap</span><span>작은 발견이, 다음 아이디어가 되도록.</span></footer>
   </div>
   <dialog id="reader" aria-labelledby="readerTitle"><div class="reader-top"><span id="readerSource" class="eyebrow"></span><button id="closeReader" type="button" class="icon-button" aria-label="카드뉴스 닫기">✕</button></div><div id="slideContent" class="slide-content"><p id="slideEyebrow" class="eyebrow"></p><h2 id="readerTitle"></h2><p id="slideBody"></p></div><div id="slideSources" class="slide-sources" aria-label="이 장의 근거"></div><div id="slideDots" class="slide-dots" aria-label="카드 페이지"></div><div class="reader-nav"><button id="previousSlide" type="button" class="button" aria-label="이전 카드">←</button><span id="slidePosition"></span><button id="nextSlide" type="button" class="button" aria-label="다음 카드">→</button></div><div class="reader-bottom"><a id="readerLink" class="source-link" target="_blank" rel="noopener noreferrer">원문에서 더 읽기 ↗</a><button id="readerSave" class="button small" type="button">☆ 저장</button></div></dialog>
-  <script type="module" src="./js/app.js"></script>
+  <script type="module" src="./js/app.js?v=20261021.3"></script>
   <script src="../../pwa-update.js"></script>
 </body>
 </html>

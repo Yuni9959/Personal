@@ -749,9 +749,24 @@ async function run() {
       cardsPerRow: 3
     });
     await client.send("Emulation.clearDeviceMetricsOverride");
-    console.log("[smoke] AI Trend 카드·검색·저장·독서·모바일");
+    console.log("[smoke] AI Trend 이전 PWA 캐시 우회·카드·검색·저장·독서·모바일");
+    await waitForCondition(client, "navigator.serviceWorker.controller !== null", 15000);
+    // Keep stale, unversioned modules as an already-installed PWA would.
+    // The new HTML must load the new module graph without activating a worker
+    // or asking the user to erase their saved app data.
+    await evaluate(client, `(async () => {
+      const cache = await caches.open("personal-tap-ai-migration-test");
+      for (const file of ["app.js", "model.js", "schedule.js"]) {
+        await cache.put("/apps/ai-trend/js/" + file, new Response(
+          'globalThis.staleAiModuleLoaded = true;', { headers: { "Content-Type": "text/javascript" } }
+        ));
+      }
+      return true;
+    })()`);
     await navigate(client, `${baseUrl}/apps/ai-trend/`);
     await waitForCondition(client, "document.body.dataset.ready === 'true' && document.querySelectorAll('.trend-card').length >= 3");
+    assert.equal(await evaluate(client, "globalThis.staleAiModuleLoaded === undefined"), true);
+    await evaluate(client, 'caches.delete("personal-tap-ai-migration-test")');
     assert.equal(await evaluate(client, "document.title"), "AI Trend | Personal Tap");
     const trendCount = await evaluate(client, "document.querySelectorAll('.trend-card').length");
     assert.ok(await evaluate(client, "document.querySelectorAll('.selection-reasons').length") >= 3);
@@ -794,6 +809,84 @@ async function run() {
     await evaluate(client, `document.querySelector('[data-filter="saved"]').click(); true`);
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 1);
     await client.send("Emulation.clearDeviceMetricsOverride");
+    console.log("[smoke] AI Trend 재발행 자동 확인·독서 상태 유지·최신본 새로고침·실패 보존");
+    const aiFixture = JSON.parse(fs.readFileSync(path.join(projectRoot, "apps/ai-trend/data/latest.json"), "utf8"));
+    const aiRefreshScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: `(() => {
+        const NativeDate = Date;
+        class FixedDate extends NativeDate {
+          constructor(...args) { super(...(args.length ? args : ["2026-10-20T16:20:00Z"])); }
+          static now() { return NativeDate.parse("2026-10-20T16:20:00Z"); }
+        }
+        globalThis.Date = FixedDate;
+        const base = ${JSON.stringify(aiFixture)};
+        const entries = [
+          { id: "2026-10-21-07", scheduledAt: "2026-10-20T22:00:00.000Z", preparedAt: "2026-10-20T16:00:00.000Z", path: "editions/2026-10-21-07-cccccccccccccccc.json" },
+          { id: "2026-10-20-19", scheduledAt: "2026-10-20T10:00:00.000Z", preparedAt: "2026-10-20T09:00:00.000Z", path: "editions/2026-10-20-19-aaaaaaaaaaaaaaaa.json" },
+          { id: "2026-10-20-07", scheduledAt: "2026-10-19T22:00:00.000Z", preparedAt: "2026-10-19T21:00:00.000Z", path: "editions/2026-10-20-07-dddddddddddddddd.json" }
+        ];
+        globalThis.aiFixture = { calls: 0, failed: false, entries, editions: {} };
+        for (const entry of entries) {
+          aiFixture.editions[entry.path] = { ...base, date: entry.id.slice(0, 10), publication: entry };
+        }
+        const nativeFetch = fetch;
+        globalThis.fetch = async (...args) => {
+          const url = new URL(args[0], location.href);
+          if (url.pathname.includes("/apps/ai-trend/data/")) {
+            aiFixture.calls++;
+            if (aiFixture.failed) throw new TypeError("Fixture network unavailable");
+            const relative = url.pathname.split("/data/")[1];
+            return Response.json(relative === "release-manifest.json" ? { schemaVersion: 1, releases: entries } : aiFixture.editions[relative]);
+          }
+          return nativeFetch(...args);
+        };
+        const nativeTimeout = setTimeout;
+        globalThis.setTimeout = (callback, delay, ...args) => {
+          if (delay === 60000) aiFixture.poll = callback;
+          return nativeTimeout(callback, delay, ...args);
+        };
+      })();`
+    });
+    await navigate(client, `${baseUrl}/apps/ai-trend/?scheduled-preview`);
+    await waitForCondition(client, "document.body.dataset.ready === 'true' && !!aiFixture.poll");
+    assert.equal(await evaluate(client, "document.querySelector('#editionDate').textContent"), "2026.10.20 · 저녁");
+    assert.equal(await evaluate(client, "[...document.querySelector('#editionSelect').options].some(o => o.value === '2026-10-21-07')"), false);
+    await evaluate(client, `(() => {
+      document.querySelector(".trend-card").dataset.survived = "true";
+      document.querySelector(".read-button").click();
+      document.querySelector("#nextSlide").click();
+      aiFixture.poll();
+      return true;
+    })()`);
+    await waitForCondition(client, "aiFixture.calls >= 4 && !document.querySelector('#refreshBtn').disabled");
+    assert.equal(await evaluate(client, "document.querySelector('.trend-card').dataset.survived"), "true");
+    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "2 / 5");
+    await evaluate(client, `(() => {
+      const entry = aiFixture.entries[1], previous = aiFixture.editions[entry.path];
+      Object.assign(entry, { path: "editions/2026-10-20-19-bbbbbbbbbbbbbbbb.json", preparedAt: "2026-10-20T16:15:00.000Z" });
+      aiFixture.editions[entry.path] = { ...previous, publication: { ...entry, reissuedAt: entry.preparedAt } };
+      aiFixture.poll();
+      return true;
+    })()`);
+    await waitForCondition(client, "aiFixture.calls >= 6 && !document.querySelector('#refreshBtn').disabled");
+    assert.match(await evaluate(client, "document.querySelector('#editionUpdated').textContent"), /01:15 재발행/);
+    assert.equal(await evaluate(client, "document.querySelector('#reader').open"), true);
+    assert.equal(await evaluate(client, "document.querySelector('#slidePosition').textContent"), "2 / 5");
+    await evaluate(client, `(() => {
+      document.querySelector("#closeReader").click();
+      const select = document.querySelector("#editionSelect");
+      select.value = "2026-10-20-07"; select.dispatchEvent(new Event("change"));
+      return true;
+    })()`);
+    await waitForCondition(client, "document.querySelector('#editionDate').textContent.endsWith('아침') && !document.querySelector('#refreshBtn').disabled");
+    await evaluate(client, 'document.querySelector("#refreshBtn").click(); true');
+    await waitForCondition(client, "document.querySelector('#editionDate').textContent.endsWith('저녁') && !document.querySelector('#refreshBtn').disabled");
+    assert.equal(await evaluate(client, "document.querySelector('#editionSelect').value"), "latest");
+    await evaluate(client, "aiFixture.failed = true; aiFixture.poll(); true");
+    await waitForCondition(client, "document.querySelector('#status').textContent.includes('새 발행본을 받지 못했습니다')");
+    assert.match(await evaluate(client, "document.querySelector('#editionUpdated').textContent"), /01:15 재발행/);
+    assert.equal(await evaluate(client, "document.querySelector('#nextPublication').textContent"), "서버 연결 재확인 중");
+    await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: aiRefreshScript.identifier });
     const fixedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `(() => {
         const NativeDate = Date;
