@@ -21,7 +21,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
 | 자동 검증 | 2026-10-20 `npm run test:release` 성공 — Node 239/239·Chromium·AI 검색/저장/3장 독서·320/390px·오프라인·actionlint 1.7.12 통과 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.0.0-ai-trend-direct-api.1-admission-<fingerprint>` — AI Trend 오프라인 지원, 발행본은 network-first·쿼리 없는 cache key |
+| PWA 캐시 | `v4.0.0-ai-trend-direct-api.2-admission-<fingerprint>` — 하루 4회 수집 안내, AI Trend 오프라인 지원, 발행본은 network-first·쿼리 없는 cache key |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
 
 ## 2026-10-20: 전용 시세 API와 AI Trend
