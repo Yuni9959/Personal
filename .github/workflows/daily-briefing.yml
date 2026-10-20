@@ -1,8 +1,8 @@
-name: Daily AI Trend and weekly reference
+name: AI Trend every 6 hours and weekly reference
 
 on:
   schedule:
-    - cron: '17 23 * * *' # 08:17 Asia/Seoul; GitHub can delay scheduled runs.
+    - cron: '17 5,11,17,23 * * *' # 02:17, 08:17, 14:17, 20:17 KST; GitHub can delay runs.
   workflow_dispatch:
 
 permissions:
@@ -27,7 +27,7 @@ jobs:
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: 22
-      - name: Collect daily AI briefing
+      - name: Collect six-hour AI briefing
         id: ai
         continue-on-error: true
         run: npm run collect:ai-trend

@@ -102,7 +102,7 @@ export function buildEdition(items, sources, { now = new Date(), previous = null
   return {
     schemaVersion: 1, date: dayKst(now), generatedAt: now.toISOString(), cards, sources,
     repositoryMetrics: Object.fromEntries(items.filter(item => item.name && Number.isFinite(item.stars)).map(item => [item.name, item.stars])),
-    editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 매일 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
+    editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 하루 4회, 6시간마다 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
   };
 }
 export async function collect({ now = new Date(), token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN, previous = null, fetchImpl = fetch } = {}) {

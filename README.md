@@ -41,7 +41,7 @@ API는 Yahoo query1 → query2 순서로 최신 MNQ 5분봉을 확인하고, 브
 않으며 원문 언어를 보존합니다. 데이터·출처·한계·수집 명령은
 [AI Trend 운영 문서](./apps/ai-trend/README.md)에 있습니다.
 
-`.github/workflows/daily-briefing.yml`은 매일 **08:17 KST**에 GitHub Actions에서
+`.github/workflows/daily-briefing.yml`은 하루 4회 **02:17·08:17·14:17·20:17 KST**, 6시간 간격으로 GitHub Actions에서
 AI 수집과 만료된 주간 기준 재생성을 독립 실행합니다. PC가 꺼져 있어도 실행되며,
 일부 실패 시 직전 검증 파일을 보존합니다. 검증 후 생성 데이터만 commit/push하고
 재사용 Pages workflow를 호출합니다. 봇 push가 다른 workflow를 트리거하지 않는

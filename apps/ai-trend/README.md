@@ -1,6 +1,6 @@
 # AI Trend
 
-Personal Tap의 매일 AI 탐색 탭. `./apps/ai-trend/`에서 열며 API 키나 PC 상시
+Personal Tap의 6시간마다 갱신하는 AI 탐색 탭. `./apps/ai-trend/`에서 열며 API 키나 PC 상시
 실행 없이 GitHub Pages에 게시된 발행본을 읽는다.
 
 - GitHub Trending의 오늘 증가 별과 최근 45일 생성된 `llm` 저장소를 분리한다.
@@ -26,7 +26,9 @@ Personal Tap의 매일 AI 탐색 탭. `./apps/ai-trend/`에서 열며 API 키나
 않는다. 실제 최신 데이터는 `data/latest.json`, 날짜 목록은 `data/index.json`,
 과거 발행본은 `data/archive/YYYY-MM-DD.json`에 있다.
 
-`daily-briefing.yml`은 매일 23:17 UTC(08:17 KST) 예약과 수동 실행을 지원한다.
+`daily-briefing.yml`은 05:17·11:17·17:17·23:17 UTC, 즉 **02:17·08:17·14:17·20:17 KST**에
+하루 4회, 6시간 간격 예약과 수동 실행을 지원한다. 기존 08:17 수집 시각을 유지한다.
+같은 날 재수집하면 해당 날짜의 발행본을 최신 값으로 교체하며 화면에 실제 수집시각을 표시한다.
 AI와 주간 Volatility 수집을 각각 실행하고 전체 검증 후 생성 데이터만 게시한다.
 직후 재사용 Pages workflow로 배포한다. 예약 지연이나 전체 수집 실패 시 화면에
 직전 발행일을 표시한다. 외부 메시지·이메일·푸시 알림을 보내는 기능은 없다.

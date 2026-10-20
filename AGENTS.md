@@ -2,7 +2,7 @@
 
 ## AI Trend·시세 API 운영
 
-- AI Trend와 주간 기준은 `daily-briefing.yml`의 매일 08:17 KST 클라우드 수집을
+- AI Trend와 주간 기준은 `daily-briefing.yml`의 하루 4회(02:17·08:17·14:17·20:17 KST), 6시간 간격 클라우드 수집을
   사용한다. 자동 게시 허용 파일은 `apps/ai-trend/data/**`와
   `apps/volatility/js/weekly-reference.generated.js`뿐이다.
 - 봇 push 뒤에는 재사용 Pages workflow를 직접 호출한다. GITHUB_TOKEN push만으로
