@@ -20,8 +20,9 @@ Personal Tap의 한국어 AI 탐색 탭. `./apps/ai-trend/`에서 Vercel API의 
   발행본에서 자동 생성한 분야 필터에 표시한다.
 - 검색·분야/출처 분류·전체 저장 보관함·5장 슬라이드·방향키·드래그/스와이프·근거 링크를 제공한다.
   카드뉴스의 뒤로가기/닫기는 목록과 스크롤을 복원하고, 별은 목록과 독서 위치를 유지한다.
-  `personal-tap-ai-trend-library-v2`는 카드 본문·출처·발행일의 기기별 스냅샷이다.
-  기존 `personal-tap-ai-trend-saved-v1` ID는 공개 과거 호에서 복원한다. 이미 만료된
+  `personal-tap-ai-trend` IndexedDB가 카드 본문·출처·발행일의 기기별 스냅샷을 보관한다.
+  기존 localStorage `personal-tap-ai-trend-library-v2`와 `personal-tap-ai-trend-saved-v1`을
+  원자적으로 이전한다. ID만 있으면 공개 과거 호에서 복원한다. 이미 만료된
   ID의 원문은 복원하지 못할 수 있으며 기기 저장 실패는 화면에 표시한다.
   발행일 선택과 목록 하단 자동 연결로 과거 호를 읽는다. 서버는 최신 30일을 보관하지만
   새 저장의 스냅샷은 브라우저 데이터 삭제/저장 해제 전까지 유지된다.
@@ -33,8 +34,14 @@ Personal Tap의 한국어 AI 탐색 탭. `./apps/ai-trend/`에서 Vercel API의 
 ## 서버 발행과 데이터 저장
 
 2026-10-25: API `?catalog=1`은 서버가 공개한 호의 프로젝트 식별 정보만 반환한다.
-본문 응답과 별도로 읽어 첫 화면을 지연시키지 않는다. 서버는 불변 파일별 식별 정보를
-메모리에 재사용하며 매 요청의 새 manifest와 서버 시각으로 공개 범위를 제한한다.
+본문 응답과 별도로 읽어 첫 화면을 지연시키지 않는다. `prepare.mjs`가 발행 준비 시
+정규화된 `catalogs/<sha256>.json`을 생성한다. 카드 식별 정보와 호별 참조를 나눠 보관하며
+`release-manifest.json.catalogPath`가 원본과 같은 Git 게시로 확정된다. 파일은 임시 파일
+작성 후 rename하고 생성 실패 시 이전 manifest를 유지한다. API는 SHA·스키마·정확한
+본문 경로를 대조하고 매 요청의 새 manifest와 서버 시각으로 공개 범위를 제한한다.
+색인이 없거나 손상/불일치하면 기존 불변 발행본을 읽는다. API v2026-10-25.2는 카드 조회에
+필요 없는 metricHistory/exposureHistory/repositoryMetrics를 응답에서 제외하지만 원본 수집
+상태는 보존한다. 최신 동일 호의 1분 확인에서는 기기 캐시도 다시 쓰지 않는다.
 부분 실패는 complete=false와 missing으로 전달해 정확한 전체 횟수로 오인하지 않게 한다.
 `js/library.js`는 URL·프로젝트명·공식 근거를 비교하며 GitHub fork/다른 소유자 동명,
 다른 기사/모델은 합치지 않는다. 같은 호의 여러 항목이나 재발행은 1회다.
@@ -104,6 +111,26 @@ ChatGPT/Codex 이용 한도를 사용하며 새 API 키나 유료 서비스를 �
 토큰은 명령행·로그·데이터·Git에 남기지 않는다.
 
 검증: `npm run test:ai-trend`, 전체 `npm run test:release`.
+
+## 기기 보관함과 DB 이전
+
+`js/bookmarks.js`는 IndexedDB `personal-tap-ai-trend` version 1을 관리한다.
+`bookmarks`는 카드 ID를 기본키로, savedAt을 순서 색인으로 사용한다. `meta`의
+legacy-import-v1과 기존 카드/미복원 ID를 한 readwrite 트랜잭션에서 기록한다.
+이전이 실패하면 모두 취소하고 원본 localStorage는 보존한다. 완료 이후에는 기존 키를
+재수입하지 않으며 별 하나를 바꿀 때 전체 JSON을 다시 쓰지 않는다. 같은 기기의 여러
+탭은 레코드 단위로 저장하고 BroadcastChannel/탭 복귀로 상태를 확인한다.
+
+본문 복원은 아직 저장 중인 미복원 ID에만 적용해 다른 탭에서 해제한 항목을 되살리지
+않는다. 트랜잭션 완료를 기다리고 실패한 변경은 메모리에 유지하며 ‘기기에 다시 저장’을
+제공한다. DB를 사용할 수 없는 환경에서는 저장 실패를 표시한다. 기기 간 동기화는 없다.
+
+기존 데이터 색인 보강은 활성 작업의 데이터를 섞지 않는 격리 worktree에서 수행한다:
+`node tools/ai-trend-store.mjs pull` → `index` → `push` → `verify`.
+push는 본문과 생성 색인의 일치까지 검증하고 verify는 서버의 catalogPath를 대조한다.
+명령의 `index`는 발행 내용·시각을 바꾸지 않는다. `prepareEdition`이 이후 생성 호에도
+색인을 자동 유지한다. 단위/브라우저 검사는 legacy 호환, 해시 불일치 복구, 데이터 이전
+원자성, quota 실패, 재시도, 동시 저장과 삭제 복원 방지를 포함한다.
 
 ## 주제·트렌드 선정 정책: momentum-v1
 

@@ -10,7 +10,7 @@
   <title>AI Trend | Personal Tap</title>
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="icon" href="../../icons/icon-192.png" />
-  <link rel="stylesheet" href="./styles.css?v=20261025.1" />
+  <link rel="stylesheet" href="./styles.css?v=20261025.2" />
   <link rel="stylesheet" href="../../pwa-update.css" />
 </head>
 <body>
@@ -31,6 +31,7 @@
           <button class="filter active" type="button" data-filter="all" aria-pressed="true">전체</button><button class="filter" type="button" data-filter="project" aria-pressed="false">GitHub</button><button class="filter" type="button" data-filter="model" aria-pressed="false">모델</button><button class="filter" type="button" data-filter="news" aria-pressed="false">AI 뉴스</button><button class="filter" type="button" data-filter="saved" aria-pressed="false">★ 저장 <span id="savedCount">0</span></button>
         </div><label class="topic-label">분야 <select id="topicSelect" aria-label="기술 분야 선택"><option value="all">모든 분야</option></select></label><label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="관심 있는 기술, 프로젝트 검색" aria-label="카드 검색" maxlength="120" /></label></div>
         <p id="libraryStatus" class="library-status" role="status" hidden></p>
+        <button id="retrySaved" class="button small" type="button" hidden>기기에 다시 저장</button>
         <div id="cardGrid" class="card-grid"></div>
         <div id="emptyState" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>아직 발견한 카드가 없어요</h3><p id="emptyMessage">다른 검색어나 분류를 선택해 보세요.</p></div>
         <div id="archiveControl" class="archive-control" hidden><p id="archiveStatus" role="status"></p><button id="loadOlder" class="button" type="button">이전 발행본 이어서 보기 ↓</button></div>
@@ -48,7 +49,7 @@
     <div id="slideSources" class="slide-sources" aria-label="이 장의 근거"></div>
     <div class="reader-bottom"><a id="readerLink" class="source-link" target="_blank" rel="noopener noreferrer">원문에서 더 읽기 ↗</a><button id="readerSave" class="button small" type="button">☆ 저장</button></div>
   </dialog>
-  <script type="module" src="./js/app.js?v=20261025.1"></script>
+  <script type="module" src="./js/app.js?v=20261025.2"></script>
   <script src="../../pwa-update.js"></script>
 </body>
 </html>

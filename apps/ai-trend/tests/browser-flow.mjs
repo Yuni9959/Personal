@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 export async function checkAiReader({ client, baseUrl, fixture, evaluate, navigate, waitForCondition, captureOptionalScreenshot }) {
   console.log("[smoke] AI Trend 뒤로가기·별 위치·모든 저장·스와이프·이전 호 연결·중복 횟수");
+  await evaluate(client, "new Promise((resolve,reject)=>{ const r=indexedDB.deleteDatabase('personal-tap-ai-trend'); r.onsuccess=()=>resolve(true); r.onerror=()=>reject(r.error); })");
   const setup = await client.send("Page.addScriptToEvaluateOnNewDocument", { source: `(() => {
     const NativeDate = Date;
     globalThis.Date = class extends NativeDate { constructor(...args) { super(...(args.length ? args : ["2026-10-21T12:00:00Z"])); } static now() { return NativeDate.parse("2026-10-21T12:00:00Z"); } };
@@ -21,6 +22,12 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
       sessionStorage.setItem("ai-reader-test-started", "1");
     }
     globalThis.readerFixture = { blockOlder: true, calls: 0, entries, editions };
+    readerFixture.bookmarkWrites = 0;
+    const originalSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function(key, value) {
+      if (['personal-tap-ai-trend-saved-v1','personal-tap-ai-trend-library-v2'].includes(key)) readerFixture.bookmarkWrites++;
+      return originalSetItem.call(this, key, value);
+    };
     const nativeFetch = fetch;
     globalThis.fetch = async (...args) => {
       const url = new URL(args[0], location.href);
@@ -78,7 +85,8 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     await waitForCondition(client, "document.querySelectorAll('.edition-divider').length >= 1");
     assert.equal(await evaluate(client, "testCard === document.querySelectorAll('.trend-card')[2]"), true);
     // The old ID-only favorite is now a durable full-card snapshot.
-    assert.equal(await evaluate(client, "JSON.parse(localStorage.getItem('personal-tap-ai-trend-library-v2')).some(r => r.card.id === 'eeeeeeeeeeeeeeee')"), true);
+    await waitForCondition(client, "document.body.dataset.saving !== 'true'");
+    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.card?.id==='eeeeeeeeeeeeeeee'); })()"), true);
     await evaluate(client, "testCard.querySelector('.save-button').click(); true");
     await evaluate(client, "document.querySelector('[data-filter=saved]').click(); true");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 2);
@@ -109,7 +117,29 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     await waitForCondition(client, "!history.state?.aiReader");
     await evaluate(client, "[...document.querySelectorAll('.save-button')].forEach(b => b.click()); true");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 0);
-    assert.deepEqual(await evaluate(client, "JSON.parse(localStorage.getItem('personal-tap-ai-trend-library-v2'))"), []);
+    await waitForCondition(client, "document.body.dataset.saving !== 'true'");
+    assert.deepEqual(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows; })()"), []);
+    assert.equal(await evaluate(client, "readerFixture.bookmarkWrites"), 0);
+    await evaluate(client, "window.realBookmarkPut=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(...args){ if(this.transaction.db.name==='personal-tap-ai-trend') throw new DOMException('quota','QuotaExceededError'); return realBookmarkPut.apply(this,args); }; document.querySelector('[data-filter=all]').click(); document.querySelector('.save-button').click(); true");
+    await waitForCondition(client, "document.body.dataset.saving !== 'true' && document.querySelector('#status').textContent.includes('기기에 저장하지 못했습니다')");
+    await evaluate(client, "document.querySelector('[data-filter=saved]').click(); true");
+    assert.equal(await evaluate(client, "document.querySelector('#retrySaved').hidden"), false);
+    await evaluate(client, "IDBObjectStore.prototype.put=realBookmarkPut; document.querySelector('#retrySaved').click(); true");
+    await waitForCondition(client, "document.querySelector('#retrySaved').hidden && document.body.dataset.saving !== 'true'");
+    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.length; })()"), 1);
+    // An automatic snapshot recovery failure must not override a later deletion.
+    const recoveryId = fixture.cards[2].id;
+    await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); await store.put({id:${JSON.stringify(recoveryId)},savedAt:new Date().toISOString()}); store.close(); return true; })()`);
+    const failRecovery = await client.send("Page.addScriptToEvaluateOnNewDocument", { source: `window.recoveryPut=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(...args){ if(this.transaction.db.name==='personal-tap-ai-trend' && args[0]?.id===${JSON.stringify(recoveryId)} && args[0]?.card) throw new DOMException('quota','QuotaExceededError'); return recoveryPut.apply(this,args); };` });
+    try {
+      await navigate(client, `${baseUrl}/apps/ai-trend/?scheduled-preview&recovery-failed`);
+      await waitForCondition(client, "document.body.dataset.ready === 'true' && document.body.dataset.saving !== 'true' && document.querySelector('#status').textContent.includes('기기에 저장하지 못했습니다')");
+      await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); await store.remove(${JSON.stringify(recoveryId)}); store.close(); IDBObjectStore.prototype.put=recoveryPut; document.querySelector('[data-filter=saved]').click(); document.querySelector('#retrySaved').click(); return true; })()`);
+      await waitForCondition(client, "document.querySelector('#retrySaved').hidden && document.body.dataset.saving !== 'true'");
+      assert.equal(await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261025.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.id===${JSON.stringify(recoveryId)}); })()`), false);
+    } finally {
+      await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: failRecovery.identifier });
+    }
   } finally {
     await evaluate(client, "sessionStorage.removeItem('ai-reader-test-started'); sessionStorage.removeItem('ai-reader-test-offline'); true");
     await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: setup.identifier });

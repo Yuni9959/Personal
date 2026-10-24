@@ -3,6 +3,7 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { validateEdition } from "../js/model.js";
 import { publicationSlot, validateManifest } from "../js/schedule.js";
+import { atomicWrite, writeCatalog } from "./catalog-store.mjs";
 
 // Preparing a file does not publish it. Only the server's clock opens a slot.
 export async function prepareEdition(edition, root, now = new Date()) {
@@ -26,14 +27,14 @@ export async function prepareEdition(edition, root, now = new Date()) {
     const encoded = `${JSON.stringify(release, null, 2)}\n`;
     const hash = createHash("sha256").update(encoded).digest("hex").slice(0, 16);
     const entry = { ...publication, path: `editions/${slot.id}-${hash}.json` };
-    await fs.writeFile(path.join(data, entry.path), encoded);
+    await atomicWrite(path.join(data, entry.path), encoded);
     manifest.releases = [...manifest.releases.filter(e => e.id !== slot.id), entry];
     prepared.push(entry);
   }
   manifest.releases = manifest.releases.filter(e => Date.parse(e.scheduledAt) > +now - 30 * 86400000)
     .sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt));
   validateManifest(manifest);
-  await fs.writeFile(file, `${JSON.stringify(manifest, null, 2)}\n`);
+  await writeCatalog(data, manifest);
   // Keep only files referenced by the manifest. Git publishes both atomically.
   const active = new Set(manifest.releases.map(e => path.basename(e.path)));
   for (const name of await fs.readdir(path.join(data, "editions"))) {

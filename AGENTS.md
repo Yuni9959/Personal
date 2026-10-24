@@ -9,6 +9,10 @@
   완료한다. 데이터 변경으로 main push나 Pages dispatch를 하지 않는다.
 - `/api/ai-trend`는 서버 시각으로 공개된 불변 발행본을 선택한다. 미래 파일을
   최신 발행본으로 표시하거나, 수집 실패/오래된 검토를 새 내용으로 바꾸지 않는다.
+- AI 발행 manifest의 `catalogPath`는 SHA-256 경로의 정규화 색인을 참조한다.
+  `prepareEdition` 또는 `ai-trend-store.mjs index`로 생성하고 본문·색인 일치를 검증한다.
+  기존 데이터의 색인 보강으로 공개 발행본을 다시 쓰지 않는다. 기기 즐겨찾기 IndexedDB
+  이전은 원본 localStorage와 트랜잭션 완료 표식을 보존하며 해제 항목을 재수입하지 않는다.
 - 주간 기준은 별도 job에서 생성하며 실제 모듈 변경이 있을 때만 전체 검사·main push·
   재사용 Pages workflow를 호출한다. GITHUB_TOKEN push의 workflow 실행을 가정하지 않는다.
 - 장중 시세는 `api/market.js`의 전용 Vercel API를 우선한다. 비밀키·PC·Drive에

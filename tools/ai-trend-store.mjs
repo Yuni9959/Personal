@@ -6,6 +6,9 @@ import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { validateManifest, editionForRelease } from "../apps/ai-trend/js/schedule.js";
 import { validateEdition } from "../apps/ai-trend/js/model.js";
+import { createCatalog, validateCatalog } from "../apps/ai-trend/js/catalog.js";
+import { writeCatalog } from "../apps/ai-trend/tools/catalog-store.mjs";
+import { createHash } from "node:crypto";
 
 // Public data has its own branch. Updating it never triggers the main-only app
 // deployment. Credentials remain in the existing local/Actions Git stores.
@@ -44,8 +47,14 @@ async function pull() {
 async function push() {
   const data = path.join(ROOT, PREFIX);
   const manifest = validateManifest(JSON.parse(await fs.readFile(path.join(data, "release-manifest.json"), "utf8")));
+  const editions = [];
   for (const entry of manifest.releases) {
-    editionForRelease(validateEdition(JSON.parse(await fs.readFile(path.join(data, entry.path), "utf8"))), entry);
+    const edition = editionForRelease(validateEdition(JSON.parse(await fs.readFile(path.join(data, entry.path), "utf8"))), entry);
+    editions.push({ entry, edition });
+  }
+  if (manifest.catalogPath) {
+    const text = await fs.readFile(path.join(data, manifest.catalogPath), "utf8");
+    if (createHash("sha256").update(text).digest("hex") !== manifest.catalogPath.slice(9, -5) || JSON.stringify(validateCatalog(JSON.parse(text))) !== JSON.stringify(createCatalog(editions))) throw new Error("Publication index does not match immutable editions");
   }
   const current = await base();
   let loaded;
@@ -83,6 +92,7 @@ async function verify() {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const status = await response.json();
       if (!status.ready?.some(e => e.id === next.id && e.preparedAt === next.preparedAt)) throw new Error("Server has not observed the prepared edition");
+      if (expected.catalogPath && status.catalogPath !== expected.catalogPath) throw new Error("Server has not observed the publication index");
       console.log(`Server confirmed ${next.id}, prepared ${next.preparedAt}. Release remains gated by server time.`);
       return;
     } catch (error) { failure = error.message; }
@@ -90,6 +100,12 @@ async function verify() {
   }
   throw new Error(`Server readiness verification failed: ${failure}`);
 }
-const commands = { pull, push, verify };
-if (!commands[process.argv[2]]) throw new Error("Expected pull, push, or verify");
+async function index() {
+  const data = path.join(ROOT, PREFIX);
+  const manifest = JSON.parse(await fs.readFile(path.join(data, "release-manifest.json"), "utf8"));
+  const indexed = await writeCatalog(data, manifest);
+  console.log(`Indexed ${indexed.releases.length} editions at ${indexed.catalogPath}; published bodies unchanged.`);
+}
+const commands = { pull, index, push, verify };
+if (!commands[process.argv[2]]) throw new Error("Expected pull, index, push, or verify");
 await commands[process.argv[2]]();

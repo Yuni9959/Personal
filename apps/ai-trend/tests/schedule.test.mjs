@@ -102,7 +102,7 @@ test("중복 색인은 공개된 호만 포함하고 손상·누락은 부분 �
   let fail = false;
   const fetchImpl = async url => {
     const relative = new URL(url).pathname.split("/apps/ai-trend/data/")[1];
-    if (fail && relative.startsWith("editions/2026-10-20")) throw new Error("unavailable");
+    if (fail && (relative.startsWith("catalogs/") || relative.startsWith("editions/2026-10-20"))) throw new Error("unavailable");
     return { ok: true, text: () => fs.readFile(path.join(root, "data", relative), "utf8") };
   };
   const before = await readPublication({ now: new Date("2026-10-20T21:59:59Z"), fetchImpl, catalogOnly: true });

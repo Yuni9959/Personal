@@ -1,9 +1,8 @@
-import { editionForRelease, resolvePublication } from "./schedule.js?v=20261025.1";
-import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261025.1";
-import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261025.1";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261025.2";
+import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261025.2";
+import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261025.2";
+import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261025.2";
 const $ = selector => document.querySelector(selector);
-const STORAGE = "personal-tap-ai-trend-saved-v1";
-const LIBRARY = "personal-tap-ai-trend-library-v2";
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
 const remote = !["localhost", "127.0.0.1", ""].includes(location.hostname);
@@ -17,15 +16,10 @@ function scheduleRefresh(nextAt, retry = false) {
   // Also discover manual reissues while this tab stays open.
   publicationTimer = setTimeout(() => { if (document.visibilityState === "visible") load({ silent: true }); }, Math.min(delay, 60000));
 }
-let saved;
-try { saved = new Set(JSON.parse(localStorage.getItem(STORAGE) || "[]").filter(id => /^[a-f0-9]{16}$/.test(id))); } catch { saved = new Set(); }
-const library = new Map();
-try {
-  const records = JSON.parse(localStorage.getItem(LIBRARY) || "[]");
-  if (Array.isArray(records)) for (const record of records) {
-    try { validateEdition({ ...record.edition, cards: [record.card] }); library.set(record.card.id, record); saved.add(record.card.id); } catch {}
-  }
-} catch {}
+const saved = new Set(), library = new Map(), unsavedWrites = new Map();
+let bookmarkStore = null, writeQueue = Promise.resolve(), writesInFlight = 0, bookmarkSyncPending = false;
+let bookmarksReady = false;
+const bookmarkChannel = typeof BroadcastChannel === "function" ? new BroadcastChannel("personal-tap-ai-bookmarks") : null;
 let edition = null, filter = "all", activeCard = null, slide = 0, pending = null;
 let feed = [], releases = [], catalog = [], catalogComplete = false, catalogPending = false;
 let archivePending = false, archiveFailed = false, feedGeneration = 0, localManifest = null;
@@ -39,20 +33,65 @@ function link(url, text, className) {
   const el = node("a", className, text); el.href = validUrl(url) || "#"; el.target = "_blank"; el.rel = "noopener noreferrer"; return el;
 }
 function status(text, warning = false) { $("#status").textContent = text; $("#status").dataset.warning = String(warning); }
-function persistSaved() {
-  try { localStorage.setItem(LIBRARY, JSON.stringify([...library.values()])); localStorage.setItem(STORAGE, JSON.stringify([...saved])); storageFailed = false; }
-  catch { storageFailed = true; status("저장 공간을 사용할 수 없어 이번 화면에서만 관심 항목을 유지합니다.", true); }
+function queueBookmark(id, record, recovering = false) {
+  if (!bookmarkStore) { if (!recovering) unsavedWrites.set(id, record); storageFailed = true; return; }
+  writesInFlight++; document.body.dataset.saving = "true";
+  writeQueue = writeQueue.then(async () => {
+    if (recovering) {
+      const restored = await bookmarkStore.recover(record);
+      if (!restored) bookmarkSyncPending = true;
+      else if (library.get(id) === record) library.set(id, restored);
+    } else if (record) await bookmarkStore.put(record);
+    else await bookmarkStore.remove(id);
+    unsavedWrites.delete(id); storageFailed = unsavedWrites.size > 0;
+    bookmarkChannel?.postMessage({ changed: id });
+  }).catch(() => {
+    // Recovery is not a new save. Retry it conditionally from the committed row,
+    // so a deletion in another tab cannot become an unconditional insert.
+    if (!recovering) unsavedWrites.set(id, record);
+    storageFailed = true;
+    status("기기에 저장하지 못했습니다. 현재 화면의 변경은 유지되며 저장 탭에서 다시 시도할 수 있습니다.", true);
+  }).finally(() => {
+    writesInFlight--; document.body.dataset.saving = String(writesInFlight > 0);
+    updateLibraryStatus();
+    if (!writesInFlight && bookmarkSyncPending) { bookmarkSyncPending = false; void syncBookmarks(); }
+  });
+}
+function applyBookmarks(records) {
+  saved.clear(); library.clear();
+  for (const record of records) { saved.add(record.id); if (record.card) library.set(record.id, record); }
+  // A failed local change stays visible until retried; do not silently discard it.
+  for (const [id, record] of unsavedWrites) {
+    if (record) { saved.add(id); library.set(id, record); } else { saved.delete(id); library.delete(id); }
+  }
+}
+async function syncBookmarks() {
+  if (!bookmarkStore) return;
+  if (writesInFlight) { bookmarkSyncPending = true; return; }
+  try {
+    const records = await bookmarkStore.list();
+    if (writesInFlight) return;
+    applyBookmarks(records); updateSavedButtons(); updateReaderSaved();
+    if (filter === "saved") { updateTopics(); renderCards(); }
+    updateLibraryStatus();
+  } catch { storageFailed = true; updateLibraryStatus(); }
 }
 function rememberEdition(value) {
   editionCache.set(editionKey(value), value);
-  for (const card of value.cards) if (saved.has(card.id) && !library.has(card.id)) library.set(card.id, { card, edition: editionInfo(value), savedAt: new Date().toISOString() });
-  persistSaved();
+  for (const card of value.cards) if (saved.has(card.id) && !library.has(card.id)) {
+    const record = { id: card.id, card, edition: editionInfo(value), savedAt: new Date().toISOString() };
+    library.set(card.id, record); queueBookmark(card.id, record, true);
+  }
 }
 function editionInfo(value) { return { schemaVersion: value.schemaVersion, date: value.date, generatedAt: value.generatedAt, publication: value.publication }; }
 function toggleSaved(card, owner = activeEdition) {
   if (saved.has(card.id)) { saved.delete(card.id); library.delete(card.id); }
-  else { saved.add(card.id); library.set(card.id, { card, edition: editionInfo(owner), savedAt: new Date().toISOString() }); }
-  persistSaved();
+  else { saved.add(card.id); library.set(card.id, { id: card.id, card, edition: editionInfo(owner), savedAt: new Date().toISOString() }); }
+  queueBookmark(card.id, library.get(card.id) || null);
+  updateSavedButtons(); updateLibraryStatus(); updateReaderSaved();
+  if (filter === "saved") { const y = scrollY; renderCards(); window.scrollTo(0, y); }
+}
+function updateSavedButtons() {
   // Updating a star must not replace the list, move focus, or reset the reader.
   for (const article of cardNodes.values()) {
     const button = article.querySelector(".save-button"); if (!button) continue;
@@ -60,14 +99,13 @@ function toggleSaved(card, owner = activeEdition) {
     button.textContent = on ? "★" : "☆"; button.setAttribute("aria-pressed", String(on));
     button.setAttribute("aria-label", `${button.dataset.title} ${on ? "저장 해제" : "저장"}`);
   }
-  updateLibraryStatus(); updateReaderSaved();
-  if (filter === "saved") { const y = scrollY; renderCards(); window.scrollTo(0, y); }
 }
 function updateLibraryStatus() {
   $("#savedCount").textContent = saved.size;
   const missing = [...saved].filter(id => !library.has(id)).length;
   $("#libraryStatus").hidden = filter !== "saved";
-  $("#libraryStatus").textContent = `모든 발행본에서 저장한 카드 ${library.size}개 · ${storageFailed ? "저장 공간을 사용할 수 없어 이번 화면에서만 유지됩니다." : "이 기기에 보관됩니다."}${missing ? ` 이전 저장 ${missing}개는 보관 발행본에서 확인 중입니다. 보관 기간이 지난 원문은 복원되지 않을 수 있습니다.` : ""}`;
+  $("#libraryStatus").textContent = `모든 발행본에서 저장한 카드 ${library.size}개 · ${storageFailed ? "저장 공간을 사용할 수 없어 이번 화면에서만 유지됩니다." : writesInFlight ? "기기에 저장 중입니다…" : "이 기기에 보관됩니다."}${missing ? ` 이전 저장 ${missing}개는 보관 발행본에서 확인 중입니다. 보관 기간이 지난 원문은 복원되지 않을 수 있습니다.` : ""}`;
+  $("#retrySaved").hidden = filter !== "saved" || !storageFailed;
 }
 function updateTopics() {
   const cards = filter === "saved" ? [...library.values()].map(r => r.card) : feed.flatMap(e => e.cards);
@@ -295,6 +333,7 @@ async function json(url, signal) {
   return response.json();
 }
 async function load({ selected = $("#editionSelect").value, silent = false } = {}) {
+  if (!bookmarksReady) return;
   clearTimeout(publicationTimer);
   pending?.abort(); const controller = new AbortController(); pending = controller;
   const timeout = setTimeout(() => controller.abort(), 12000);
@@ -325,7 +364,7 @@ async function load({ selected = $("#editionSelect").value, silent = false } = {
     const changed = nextRevision !== revision;
     edition = next; revision = nextRevision;
     if (changed) { resetFeed(edition); renderEdition(); }
-    if (selected === "latest") { try { localStorage.setItem(CACHE, JSON.stringify(edition)); } catch {} }
+    if (selected === "latest" && changed) { try { localStorage.setItem(CACHE, JSON.stringify(edition)); } catch {} }
     const errors = edition.sources?.filter(s => s.status !== "ok").length || 0;
     const old = selected === "latest" && (publication ? publication.delayed : isOldEdition(edition));
     const oldReviews = edition.cards.filter(c => c.reviewedAt && Date.now() + serverOffset - Date.parse(c.reviewedAt) > 24 * 3600000).length;
@@ -424,4 +463,22 @@ const observer = new IntersectionObserver(entries => {
 observer.observe($("#archiveControl"));
 window.addEventListener("online", () => load());
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("#editionSelect").value === "latest") load(); });
-updateLibraryStatus(); load();
+$("#retrySaved").onclick = async () => {
+  if (writesInFlight) return;
+  try {
+    bookmarkStore?.close(); bookmarkStore = null;
+    bookmarkStore = await openBookmarks(); applyBookmarks(await bookmarkStore.list());
+    storageFailed = unsavedWrites.size > 0;
+    for (const value of editionCache.values()) rememberEdition(value);
+    for (const [id, record] of unsavedWrites) queueBookmark(id, record);
+    updateSavedButtons(); updateReaderSaved(); updateTopics(); renderCards();
+  } catch {
+    storageFailed = true; updateLibraryStatus();
+    status("기기 저장소를 아직 사용할 수 없습니다. 다른 탭을 닫거나 저장 공간을 확인해 주세요.", true);
+  }
+};
+bookmarkChannel?.addEventListener("message", () => syncBookmarks());
+window.addEventListener("focus", () => syncBookmarks());
+try { bookmarkStore = await openBookmarks(); applyBookmarks(await bookmarkStore.list()); }
+catch { storageFailed = true; try { applyBookmarks(legacyBookmarks(localStorage)); } catch {} }
+bookmarksReady = true; updateLibraryStatus(); load();

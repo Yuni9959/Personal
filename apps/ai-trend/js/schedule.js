@@ -10,6 +10,7 @@ export function publicationSlot(now = new Date(), next = false) {
 }
 export function validateManifest(value) {
   if (value?.schemaVersion !== 1 || !Array.isArray(value.releases) || value.releases.length > 64) throw new Error("발행 색인 오류");
+  if (value.catalogPath != null && !/^catalogs\/[a-f0-9]{64}\.json$/.test(value.catalogPath)) throw new Error("프로젝트 색인 경로 오류");
   const ids = new Set();
   for (const entry of value.releases) {
     if (!/^\d{4}-\d{2}-\d{2}-(07|19)$/.test(entry.id) || ids.has(entry.id) ||
