@@ -1,4 +1,4 @@
-import { publicationSlot } from "./schedule.js?v=20261021.3";
+import { publicationSlot } from "./schedule.js?v=20261025.1";
 export const CATEGORIES = new Set(["project", "model", "news"]);
 export function validUrl(value) {
   try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password ? u.href : null; } catch { return null; }

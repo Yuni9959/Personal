@@ -6,6 +6,7 @@ import net from "node:net";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { checkAiReader } from "../../ai-trend/tests/browser-flow.mjs";
 import {
   WEEKLY_VOLATILITY_REFERENCE,
   calculateSafeReachScenario
@@ -887,6 +888,7 @@ async function run() {
     assert.match(await evaluate(client, "document.querySelector('#editionUpdated').textContent"), /01:15 재발행/);
     assert.equal(await evaluate(client, "document.querySelector('#nextPublication').textContent"), "서버 연결 재확인 중");
     await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: aiRefreshScript.identifier });
+    await checkAiReader({ client, baseUrl, fixture: aiFixture, evaluate, navigate, waitForCondition, captureOptionalScreenshot });
     const fixedTimeScript = await client.send("Page.addScriptToEvaluateOnNewDocument", {
       source: `(() => {
         const NativeDate = Date;

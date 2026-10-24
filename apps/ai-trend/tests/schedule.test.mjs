@@ -96,3 +96,24 @@ test("서버 응답은 CDN에 저장되지 않고 허용하지 않은 Origin을 
   assert.equal(headers["Cache-Control"], "no-store, max-age=0");
   assert.equal(headers["Vercel-CDN-Cache-Control"], "no-store");
 });
+
+test("중복 색인은 공개된 호만 포함하고 손상·누락은 부분 확인으로 명시한다", async () => prepared(async root => {
+  await prepareEdition(fixture("2026-10-20T20:00:00Z"), root, new Date("2026-10-20T20:10:00Z"));
+  let fail = false;
+  const fetchImpl = async url => {
+    const relative = new URL(url).pathname.split("/apps/ai-trend/data/")[1];
+    if (fail && relative.startsWith("editions/2026-10-20")) throw new Error("unavailable");
+    return { ok: true, text: () => fs.readFile(path.join(root, "data", relative), "utf8") };
+  };
+  const before = await readPublication({ now: new Date("2026-10-20T21:59:59Z"), fetchImpl, catalogOnly: true });
+  assert.equal(before.complete, true);
+  assert.deepEqual(before.catalog.map(e => e.id), ["2026-10-20-19"]);
+  assert.equal(before.catalog[0].cards[0].slides, undefined);
+  const after = await readPublication({ now: new Date("2026-10-20T22:00:00Z"), fetchImpl, catalogOnly: true });
+  assert.equal(after.catalog.length, 2);
+  fail = true;
+  const partial = await readPublication({ now: new Date("2026-10-20T22:00:00Z"), fetchImpl, catalogOnly: true });
+  assert.equal(partial.complete, false);
+  assert.deepEqual(partial.missing, ["2026-10-20-19"]);
+  assert.equal(partial.catalog.length, 1);
+}));

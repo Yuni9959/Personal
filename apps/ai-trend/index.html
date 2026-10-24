@@ -10,7 +10,7 @@
   <title>AI Trend | Personal Tap</title>
   <link rel="manifest" href="../../manifest.webmanifest" />
   <link rel="icon" href="../../icons/icon-192.png" />
-  <link rel="stylesheet" href="./styles.css?v=20261021.3" />
+  <link rel="stylesheet" href="./styles.css?v=20261025.1" />
   <link rel="stylesheet" href="../../pwa-update.css" />
 </head>
 <body>
@@ -26,19 +26,29 @@
       </section>
       <div id="status" class="status" role="status" aria-live="polite">최신 발행본을 확인하고 있습니다.</div>
       <section class="briefing" aria-labelledby="feedTitle">
-        <div class="section-heading"><div><p class="eyebrow">CURATED SIGNALS</p><h2 id="feedTitle">오늘의 발견 <span id="resultCount"></span></h2></div><label class="date-label">발행일 <select id="editionSelect" aria-label="발행일 선택"><option value="latest">최신 발행본</option></select></label></div>
+        <div class="section-heading"><div><p class="eyebrow">CURATED SIGNALS</p><h2 id="feedTitle"><span id="feedLabel">오늘의 발견</span> <span id="resultCount"></span></h2></div><label class="date-label">발행일 <select id="editionSelect" aria-label="발행일 선택"><option value="latest">최신 발행본</option></select></label></div>
         <div class="toolbar"><div class="filters" role="group" aria-label="카드 분류">
-          <button class="filter active" type="button" data-filter="all" aria-pressed="true">전체</button><button class="filter" type="button" data-filter="project" aria-pressed="false">GitHub</button><button class="filter" type="button" data-filter="model" aria-pressed="false">모델</button><button class="filter" type="button" data-filter="news" aria-pressed="false">AI 뉴스</button><button class="filter" type="button" data-filter="saved" aria-pressed="false">☆ 저장</button>
+          <button class="filter active" type="button" data-filter="all" aria-pressed="true">전체</button><button class="filter" type="button" data-filter="project" aria-pressed="false">GitHub</button><button class="filter" type="button" data-filter="model" aria-pressed="false">모델</button><button class="filter" type="button" data-filter="news" aria-pressed="false">AI 뉴스</button><button class="filter" type="button" data-filter="saved" aria-pressed="false">★ 저장 <span id="savedCount">0</span></button>
         </div><label class="topic-label">분야 <select id="topicSelect" aria-label="기술 분야 선택"><option value="all">모든 분야</option></select></label><label class="search"><span aria-hidden="true">⌕</span><input id="searchInput" type="search" placeholder="관심 있는 기술, 프로젝트 검색" aria-label="카드 검색" maxlength="120" /></label></div>
-        <div id="cardGrid" class="card-grid" aria-live="polite"></div>
+        <p id="libraryStatus" class="library-status" role="status" hidden></p>
+        <div id="cardGrid" class="card-grid"></div>
         <div id="emptyState" class="empty-state" hidden><span aria-hidden="true">⌕</span><h3>아직 발견한 카드가 없어요</h3><p id="emptyMessage">다른 검색어나 분류를 선택해 보세요.</p></div>
+        <div id="archiveControl" class="archive-control" hidden><p id="archiveStatus" role="status"></p><button id="loadOlder" class="button" type="button">이전 발행본 이어서 보기 ↓</button></div>
       </section>
       <details class="sources"><summary>어디에서, 어떻게 고르나요? <span id="sourceCount"></span></summary><p id="editorial"></p><p id="researchStatus"></p><p>프로젝트명은 원래 이름을 유지하고 설명은 AI가 한국어로 재서술합니다. 제작자의 주장과 공개 이슈·토론을 구분하며 각 장에 근거를 연결합니다. 활용 예시는 실제 도입 사례와 구분합니다. 외부 반응이 부족하면 미확인으로 표시합니다. 인기도는 품질 보증이 아닙니다. 수집·요약이 실패하면 마지막 검증 발행본과 검토 시각을 유지합니다. 예약은 실행 환경에 따라 늦어질 수 있습니다.</p><div id="sourceList" class="source-list"></div></details>
     </main>
     <footer><span>AI Trend <b>↗</b> Personal Tap</span><span>작은 발견이, 다음 아이디어가 되도록.</span></footer>
   </div>
-  <dialog id="reader" aria-labelledby="readerTitle"><div class="reader-top"><span id="readerSource" class="eyebrow"></span><button id="closeReader" type="button" class="icon-button" aria-label="카드뉴스 닫기">✕</button></div><div id="slideContent" class="slide-content"><p id="slideEyebrow" class="eyebrow"></p><h2 id="readerTitle"></h2><p id="slideBody"></p></div><div id="slideSources" class="slide-sources" aria-label="이 장의 근거"></div><div id="slideDots" class="slide-dots" aria-label="카드 페이지"></div><div class="reader-nav"><button id="previousSlide" type="button" class="button" aria-label="이전 카드">←</button><span id="slidePosition"></span><button id="nextSlide" type="button" class="button" aria-label="다음 카드">→</button></div><div class="reader-bottom"><a id="readerLink" class="source-link" target="_blank" rel="noopener noreferrer">원문에서 더 읽기 ↗</a><button id="readerSave" class="button small" type="button">☆ 저장</button></div></dialog>
-  <script type="module" src="./js/app.js?v=20261021.3"></script>
+  <dialog id="reader" aria-labelledby="readerProject">
+    <div class="reader-top"><button id="closeReader" type="button" class="icon-button" aria-label="카드뉴스 닫기, 목록으로 돌아가기">←</button><div class="reader-identity"><span id="readerSource" class="eyebrow"></span><strong id="readerProject"></strong><span id="readerEdition"></span></div><span class="reader-mark" aria-hidden="true">AI<br>TREND</span></div>
+    <span id="readerRepeat" class="repeat-badge" hidden></span>
+    <div id="slideContent" class="slide-content" role="region" aria-roledescription="carousel" aria-label="좌우로 넘기는 카드뉴스"><div id="slideTrack" class="slide-track"></div></div>
+    <div class="reader-nav"><button id="previousSlide" type="button" class="button" aria-label="이전 카드">←</button><div><div id="slideDots" class="slide-dots" aria-label="카드 페이지"></div><span id="slidePosition" role="status" aria-live="polite"></span></div><button id="nextSlide" type="button" class="button" aria-label="다음 카드">→</button></div>
+    <p class="swipe-hint">좌우로 넘겨 읽기 · 긴 본문은 위아래로 스크롤</p>
+    <div id="slideSources" class="slide-sources" aria-label="이 장의 근거"></div>
+    <div class="reader-bottom"><a id="readerLink" class="source-link" target="_blank" rel="noopener noreferrer">원문에서 더 읽기 ↗</a><button id="readerSave" class="button small" type="button">☆ 저장</button></div>
+  </dialog>
+  <script type="module" src="./js/app.js?v=20261025.1"></script>
   <script src="../../pwa-update.js"></script>
 </body>
 </html>
