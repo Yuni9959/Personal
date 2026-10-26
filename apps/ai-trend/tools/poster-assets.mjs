@@ -2,10 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { deflateSync, inflateSync } from "node:zlib";
-import { POSTER_PALETTE } from "../js/model.js";
+import { POSTER_THEMES } from "../js/model.js";
 
 const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-const palette = Buffer.from(POSTER_PALETTE.join("").replaceAll("#", ""), "hex");
+function paletteFor(theme) {
+  if (!Object.hasOwn(POSTER_THEMES, theme)) throw new Error("Unknown poster theme");
+  return Buffer.from(POSTER_THEMES[theme].join("").replaceAll("#", ""), "hex");
+}
 function crc32(bytes) {
   let crc = 0xffffffff;
   for (const byte of bytes) {
@@ -19,7 +22,8 @@ function chunk(type, data) {
   size.writeUInt32BE(data.length); crc.writeUInt32BE(crc32(Buffer.concat([name, data])));
   return Buffer.concat([size, name, data, crc]);
 }
-export function encodePoster(indices) {
+export function encodePoster(indices, theme = "adobe-theme-2") {
+  const palette = paletteFor(theme);
   if (indices.length !== 1080 * 1350 || indices.some(n => n > 4)) throw new Error("Invalid poster pixels");
   const header = Buffer.alloc(13); header.writeUInt32BE(1080); header.writeUInt32BE(1350, 4); header[8] = 8; header[9] = 3;
   const rows = Buffer.alloc(1081 * 1350);
@@ -27,7 +31,8 @@ export function encodePoster(indices) {
   return Buffer.concat([signature, chunk("IHDR", header), chunk("PLTE", palette), chunk("IDAT", deflateSync(rows, { level: 9 })), chunk("IEND", Buffer.alloc(0))]);
 }
 // Our renderer emits a deliberately narrow indexed PNG format: exactly five opaque colors.
-export function validatePoster(bytes, expectedHash) {
+export function validatePoster(bytes, expectedHash, theme = "adobe-theme-2") {
+  const palette = paletteFor(theme);
   if (bytes.length > 4 * 1024 * 1024 || !bytes.subarray(0, 8).equals(signature) || createHash("sha256").update(bytes).digest("hex") !== expectedHash) throw new Error("Poster hash/signature mismatch");
   const chunks = []; let offset = 8;
   while (offset < bytes.length) {
@@ -50,10 +55,14 @@ export function validatePoster(bytes, expectedHash) {
   return { width: 1080, height: 1350, colors: 5, bytes: bytes.length };
 }
 export async function validatePosterAssets(data, editions) {
-  const paths = new Set(editions.flatMap(e => e.cards.flatMap(c => c.slides.flatMap(s => s.image ? [s.image.path] : []))));
-  for (const name of paths) {
+  const images = editions.flatMap(e => e.cards.flatMap(c => c.slides.flatMap(s => s.image ? [s.image] : [])));
+  const checked = new Set();
+  for (const image of images) {
+    const name = image.path, key = `${name}:${image.theme}`;
+    if (checked.has(key)) continue;
     if (!/^images\/[a-f0-9]{64}\.png$/.test(name)) throw new Error("Invalid poster path");
-    validatePoster(await fs.readFile(path.join(data, name)), name.slice(7, -4));
+    validatePoster(await fs.readFile(path.join(data, name)), name.slice(7, -4), image.theme);
+    checked.add(key);
   }
-  return paths.size;
+  return new Set(images.map(image => image.path)).size;
 }

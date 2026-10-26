@@ -86,7 +86,7 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     assert.equal(await evaluate(client, "testCard === document.querySelectorAll('.trend-card')[2]"), true);
     // The old ID-only favorite is now a durable full-card snapshot.
     await waitForCondition(client, "document.body.dataset.saving !== 'true'");
-    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.card?.id==='eeeeeeeeeeeeeeee'); })()"), true);
+    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.card?.id==='eeeeeeeeeeeeeeee'); })()"), true);
     await evaluate(client, "testCard.querySelector('.save-button').click(); true");
     await evaluate(client, "document.querySelector('[data-filter=saved]').click(); true");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 2);
@@ -118,7 +118,7 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     await evaluate(client, "[...document.querySelectorAll('.save-button')].forEach(b => b.click()); true");
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 0);
     await waitForCondition(client, "document.body.dataset.saving !== 'true'");
-    assert.deepEqual(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows; })()"), []);
+    assert.deepEqual(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows; })()"), []);
     assert.equal(await evaluate(client, "readerFixture.bookmarkWrites"), 0);
     await evaluate(client, "window.realBookmarkPut=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(...args){ if(this.transaction.db.name==='personal-tap-ai-trend') throw new DOMException('quota','QuotaExceededError'); return realBookmarkPut.apply(this,args); }; document.querySelector('[data-filter=all]').click(); document.querySelector('.save-button').click(); true");
     await waitForCondition(client, "document.body.dataset.saving !== 'true' && document.querySelector('#status').textContent.includes('기기에 저장하지 못했습니다')");
@@ -126,17 +126,17 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     assert.equal(await evaluate(client, "document.querySelector('#retrySaved').hidden"), false);
     await evaluate(client, "IDBObjectStore.prototype.put=realBookmarkPut; document.querySelector('#retrySaved').click(); true");
     await waitForCondition(client, "document.querySelector('#retrySaved').hidden && document.body.dataset.saving !== 'true'");
-    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.length; })()"), 1);
+    assert.equal(await evaluate(client, "(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.length; })()"), 1);
     // An automatic snapshot recovery failure must not override a later deletion.
     const recoveryId = fixture.cards[2].id;
-    await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); await store.put({id:${JSON.stringify(recoveryId)},savedAt:new Date().toISOString()}); store.close(); return true; })()`);
+    await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); await store.put({id:${JSON.stringify(recoveryId)},savedAt:new Date().toISOString()}); store.close(); return true; })()`);
     const failRecovery = await client.send("Page.addScriptToEvaluateOnNewDocument", { source: `window.recoveryPut=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(...args){ if(this.transaction.db.name==='personal-tap-ai-trend' && args[0]?.id===${JSON.stringify(recoveryId)} && args[0]?.card) throw new DOMException('quota','QuotaExceededError'); return recoveryPut.apply(this,args); };` });
     try {
       await navigate(client, `${baseUrl}/apps/ai-trend/?scheduled-preview&recovery-failed`);
       await waitForCondition(client, "document.body.dataset.ready === 'true' && document.body.dataset.saving !== 'true' && document.querySelector('#status').textContent.includes('기기에 저장하지 못했습니다')");
-      await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); await store.remove(${JSON.stringify(recoveryId)}); store.close(); IDBObjectStore.prototype.put=recoveryPut; document.querySelector('[data-filter=saved]').click(); document.querySelector('#retrySaved').click(); return true; })()`);
+      await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); await store.remove(${JSON.stringify(recoveryId)}); store.close(); IDBObjectStore.prototype.put=recoveryPut; document.querySelector('[data-filter=saved]').click(); document.querySelector('#retrySaved').click(); return true; })()`);
       await waitForCondition(client, "document.querySelector('#retrySaved').hidden && document.body.dataset.saving !== 'true'");
-      assert.equal(await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.2'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.id===${JSON.stringify(recoveryId)}); })()`), false);
+      assert.equal(await evaluate(client, `(async()=>{ const {openBookmarks}=await import('./js/bookmarks.js?v=20261026.3'); const store=await openBookmarks(); const rows=await store.list(); store.close(); return rows.some(r=>r.id===${JSON.stringify(recoveryId)}); })()`), false);
     } finally {
       await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: failRecovery.identifier });
     }
@@ -145,7 +145,7 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
       const entry={id:'2026-10-21-210000000',kind:'extra',scheduledAt:'2026-10-21T12:00:00.000Z',preparedAt:'2026-10-21T12:00:00.000Z',path:'editions/2026-10-21-210000000-ffffffffffffffff.json'};
       const value=structuredClone(readerFixture.editions[readerFixture.entries[1].path]);
       value.publication=entry; value.cards[0].channel='research'; value.cards[0].sourceKind='paper';
-      value.cards[0].slides[0].image={path:'images/'+ '0'.repeat(64)+'.png',width:1080,height:1350,theme:'adobe-theme-2',alt:'이미지를 읽지 못해도 본문으로 확인할 수 있는 카드입니다.'};
+      value.cards[0].slides[0].image={path:'images/'+ '0'.repeat(64)+'.png',width:1080,height:1350,theme:'neutral-white',alt:'이미지를 읽지 못해도 본문으로 확인할 수 있는 카드입니다.'};
       readerFixture.entries.push(entry); readerFixture.editions[entry.path]=value;
       document.querySelector('#refreshBtn').click(); return true;
     })()`);
@@ -154,6 +154,7 @@ export async function checkAiReader({ client, baseUrl, fixture, evaluate, naviga
     assert.equal(await evaluate(client, "document.querySelectorAll('.trend-card').length"), 1);
     assert.match(await evaluate(client, "document.querySelector('.cover-category').textContent"), /논문·연구/);
     await evaluate(client, "document.querySelector('.read-button').click(); document.querySelector('.poster-image').dispatchEvent(new Event('error')); true");
+    assert.equal(await evaluate(client, "getComputedStyle(document.querySelector('.poster-panel')).backgroundColor"), "rgb(255, 255, 255)");
     assert.equal(await evaluate(client, "document.querySelector('.poster-image').hidden && document.querySelector('.poster-text').open && document.querySelector('.slide-body').textContent.length >= 100"), true);
     await evaluate(client, "document.querySelector('#closeReader').click(); true");
     await waitForCondition(client, "!history.state?.aiReader");

@@ -1,4 +1,4 @@
-import { validateEdition } from "./model.js?v=20261026.2";
+import { validateEdition } from "./model.js?v=20261026.3";
 
 export const BOOKMARK_DB = "personal-tap-ai-trend";
 const IDS = "personal-tap-ai-trend-saved-v1", SNAPSHOTS = "personal-tap-ai-trend-library-v2";

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 export async function checkAiStorage({ client, fixture, evaluate }) {
   console.log("[smoke] AI Trend IndexedDB 이전 원자성·재시도·동시 저장·삭제 복원 방지");
   const result = await evaluate(client, `(async () => {
-    const { openBookmarks } = await import('./js/bookmarks.js?v=20261026.2');
+    const { openBookmarks } = await import('./js/bookmarks.js?v=20261026.3');
     const fixture = ${JSON.stringify(fixture)};
     const name = 'personal-tap-ai-db-test-' + crypto.randomUUID();
     const record = card => ({id:card.id, card, edition:{schemaVersion:fixture.schemaVersion,date:fixture.date,generatedAt:fixture.generatedAt}, savedAt:new Date().toISOString()});

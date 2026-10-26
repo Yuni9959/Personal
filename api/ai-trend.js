@@ -4,7 +4,7 @@ import { identityCard } from "../apps/ai-trend/js/library.js";
 import { validateCatalog, catalogCards, publicEdition } from "../apps/ai-trend/js/catalog.js";
 import { createHash } from "node:crypto";
 
-export const VERSION = "2026-10-26.2";
+export const VERSION = "2026-10-26.3";
 const ROOT = "https://raw.githubusercontent.com/Yuni9959/Personal/ai-trend-data/apps/ai-trend/data/";
 const ORIGINS = new Set(["https://yuni9959.github.io", "http://localhost:8080", "http://127.0.0.1:8080"]);
 // Cache only identity summaries of immutable files, never publication visibility.

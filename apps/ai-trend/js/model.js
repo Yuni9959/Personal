@@ -1,7 +1,11 @@
-import { publicationSlot } from "./schedule.js?v=20261026.2";
+import { publicationSlot } from "./schedule.js?v=20261026.3";
 export const POSTER_PALETTE = ["#FFDA7D", "#CCBA8D", "#999488", "#665E48", "#332C1A"];
+export const POSTER_THEMES = {
+  "adobe-theme-2": POSTER_PALETTE,
+  "neutral-white": ["#FFFFFF", "#EDF1F5", "#94A0B0", "#5B6678", "#263244"]
+};
 export function posterUrl(image) {
-  if (!image || !/^images\/[a-f0-9]{64}\.png$/.test(image.path) || image.width !== 1080 || image.height !== 1350 || image.theme !== "adobe-theme-2" || typeof image.alt !== "string" || image.alt.length < 10 || image.alt.length > 500 || !/[가-힣]/.test(image.alt)) throw new Error("카드 이미지 형식 오류");
+  if (!image || !/^images\/[a-f0-9]{64}\.png$/.test(image.path) || image.width !== 1080 || image.height !== 1350 || !Object.hasOwn(POSTER_THEMES, image.theme) || typeof image.alt !== "string" || image.alt.length < 10 || image.alt.length > 500 || !/[가-힣]/.test(image.alt)) throw new Error("카드 이미지 형식 오류");
   return `https://raw.githubusercontent.com/Yuni9959/Personal/ai-trend-data/apps/ai-trend/data/${image.path}`;
 }
 export const CATEGORIES = new Set(["project", "model", "news"]);

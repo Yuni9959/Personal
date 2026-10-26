@@ -1,7 +1,7 @@
-import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.2";
-import { filterCards, isOldEdition, validateEdition, validUrl, posterUrl } from "./model.js?v=20261026.2";
-import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.2";
-import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.2";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.3";
+import { filterCards, isOldEdition, validateEdition, validUrl, posterUrl } from "./model.js?v=20261026.3";
+import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.3";
+import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.3";
 const $ = selector => document.querySelector(selector);
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
@@ -136,7 +136,7 @@ function updateRepeatBadges() {
 }
 function createCard(card, owner) {
     const article = node("article", "trend-card"); article.dataset.category = card.category; article.dataset.cardId = card.id; article.dataset.editionId = editionKey(owner);
-    if (card.slides[0]?.image) article.classList.add("has-poster");
+    if (card.slides[0]?.image) { article.classList.add("has-poster"); article.dataset.posterTheme = card.slides[0].image.theme; }
     const cover = node("div", "card-cover"); const top = node("div", "cover-top");
     top.append(node("span", "topic-badge", card.topic || card.tags[0]));
     const save = node("button", "save-button", saved.has(card.id) ? "★" : "☆"); save.type = "button"; save.dataset.cardId = card.id; save.dataset.title = card.title; save.setAttribute("aria-label", `${card.title} ${saved.has(card.id) ? "저장 해제" : "저장"}`); save.setAttribute("aria-pressed", String(saved.has(card.id))); save.onclick = () => toggleSaved(card, owner); top.append(save);
@@ -305,7 +305,7 @@ function openReader(card, owner, trigger, fromHistory = false, initialSlide = 0)
     const panel = node("section", "slide-panel"); panel.setAttribute("aria-label", `${index + 1} / ${card.slides.length}`);
     const text = [node("p", "eyebrow", page.eyebrow || `${index + 1} / ${card.slides.length}`), node("h2", "", page.title), node("p", "slide-body", page.body)];
     if (page.image) {
-      panel.classList.add("poster-panel");
+      panel.classList.add("poster-panel"); panel.dataset.posterTheme = page.image.theme;
       const full = node("details", "poster-text"), image = node("img", "poster-image");
       full.append(node("summary", "", "상세 본문 읽기"), ...text);
       image.alt = page.image.alt; image.width = page.image.width; image.height = page.image.height;

@@ -28,6 +28,18 @@ test("PNG의 픽셀·다섯 색·해시·CRC를 확인하고 손상과 다른 �
   assert.throws(() => validatePoster(oneColor, hash(oneColor)), /five/);
   const bad = Buffer.from(pixels); bad[5000] = 5; assert.throws(() => encodePoster(bad), /pixels/);
 });
+test("흰색 테마는 기존 테마와 함께 읽고 다른 테마로 위장한 PNG를 거부한다", () => {
+  const white = encodePoster(pixels, "neutral-white");
+  assert.equal(validatePoster(white, hash(white), "neutral-white").colors, 5);
+  assert.ok(posterUrl({ ...image, theme: "neutral-white" }));
+  assert.throws(() => validatePoster(white, hash(white)), /palette/);
+  assert.throws(() => validatePoster(png, hash(png), "neutral-white"), /palette/);
+  assert.throws(() => encodePoster(pixels, "toString"), /theme/);
+  assert.throws(() => posterUrl({ ...image, theme: "toString" }));
+  assert.ok(white.subarray(41, 44).equals(Buffer.from([255, 255, 255])));
+  // Color changes leave the compressed pixel positions intact.
+  assert.ok(png.subarray(60).equals(white.subarray(60)));
+});
 test("발행 전 이미지 누락·내용 변경을 거부하며 구형 텍스트 호는 허용한다", async () => {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), "pt-poster-test-"));
   try {
