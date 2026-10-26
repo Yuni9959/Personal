@@ -26,6 +26,22 @@ test("한글 본문·출처 연결·다섯 장 검증 후에만 발행하며 새
   const unsafeSignal = structuredClone(edition); unsafeSignal.cards[0].selection = { score: 10, badge: "관측", signals: [{ label: "근거", url: "javascript:alert(1)" }] };
   assert.throws(() => validateEdition(unsafeSignal), /선정 근거/);
 });
+test("텍스트 요약은 검색되며 기존 본문·근거 검증과 공존한다", () => {
+  const candidate = fixture();
+  const edition = applyAnalyses(candidate, Object.fromEntries(candidate.cards.map(c => [c.url, structuredClone(analysis)])));
+  const brief = { title: "색채 요약 제목", key: "선택 가능한 핵심 문장", bullets: ["제작자의 주장과 검증된 결과를 구분해 읽습니다.", "추정 활용과 실제 도입 사례도 구분해야 합니다."] };
+  edition.cards[0].slides[0].brief = brief;
+  assert.equal(validateEdition(edition), edition);
+  assert.equal(filterCards(edition.cards, { query: "색채 요약" }).length, 1);
+  for (const value of [null, { ...brief, bullets: ["짧음"] }, { ...brief, key: "x".repeat(101) }]) {
+    const bad = structuredClone(edition); bad.cards[0].slides[0].brief = value;
+    assert.throws(() => validateEdition(bad), /텍스트 요약/);
+  }
+  const short = structuredClone(edition); short.cards[0].slides[0].body = "본문 부족";
+  assert.throws(() => validateEdition(short), /근거/);
+  const mixed = structuredClone(edition); mixed.cards[0].slides[0].image = { path: `images/${"a".repeat(64)}.png`, width: 1080, height: 1350, theme: "neutral-white", alt: "같은 장에 이미지를 중복해서 붙이지 않습니다." };
+  assert.throws(() => validateEdition(mixed), /텍스트 요약/);
+});
 test("새 항목 생성 실패는 검증된 한글 발행본의 날짜·내용을 보존한다", () => {
   const candidate = fixture();
   const previous = applyAnalyses(candidate, Object.fromEntries(candidate.cards.map(c => [c.url, structuredClone(analysis)])));

@@ -1,6 +1,6 @@
 const CACHE_PREFIX = "personal-tap-";
 const UNIVERSITY_ADMISSION_RELEASE = "db4ae4cff3e264503abfee904ad5a5f9913f62723962a312dbe6501af5e078e0";
-const CACHE_NAME = `${CACHE_PREFIX}v4.6.0-ai-posters.2-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
+const CACHE_NAME = `${CACHE_PREFIX}v4.7.0-ai-text.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -43,12 +43,12 @@ const CORE_ASSETS = [
   "./apps/ai-trend/index.html",
   // Match the versioned HTML/module graph even while an older cache-first
   // worker controls the page. Bump these URLs with AI client code changes.
-  "./apps/ai-trend/styles.css?v=20261026.3",
-  "./apps/ai-trend/js/app.js?v=20261026.3",
-  "./apps/ai-trend/js/model.js?v=20261026.3",
-  "./apps/ai-trend/js/schedule.js?v=20261026.3",
-  "./apps/ai-trend/js/library.js?v=20261026.3",
-  "./apps/ai-trend/js/bookmarks.js?v=20261026.3",
+  "./apps/ai-trend/styles.css?v=20261026.4",
+  "./apps/ai-trend/js/app.js?v=20261026.4",
+  "./apps/ai-trend/js/model.js?v=20261026.4",
+  "./apps/ai-trend/js/schedule.js?v=20261026.4",
+  "./apps/ai-trend/js/library.js?v=20261026.4",
+  "./apps/ai-trend/js/bookmarks.js?v=20261026.4",
   "./apps/ai-trend/data/latest.json",
   "./apps/ai-trend/data/index.json"
 ];

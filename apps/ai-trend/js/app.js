@@ -1,7 +1,7 @@
-import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.3";
-import { filterCards, isOldEdition, validateEdition, validUrl, posterUrl } from "./model.js?v=20261026.3";
-import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.3";
-import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.3";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.4";
+import { filterCards, isOldEdition, validateEdition, validUrl, posterUrl } from "./model.js?v=20261026.4";
+import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.4";
+import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.4";
 const $ = selector => document.querySelector(selector);
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
@@ -137,6 +137,7 @@ function updateRepeatBadges() {
 function createCard(card, owner) {
     const article = node("article", "trend-card"); article.dataset.category = card.category; article.dataset.cardId = card.id; article.dataset.editionId = editionKey(owner);
     if (card.slides[0]?.image) { article.classList.add("has-poster"); article.dataset.posterTheme = card.slides[0].image.theme; }
+    if (card.slides[0]?.brief) article.classList.add("has-brief");
     const cover = node("div", "card-cover"); const top = node("div", "cover-top");
     top.append(node("span", "topic-badge", card.topic || card.tags[0]));
     const save = node("button", "save-button", saved.has(card.id) ? "★" : "☆"); save.type = "button"; save.dataset.cardId = card.id; save.dataset.title = card.title; save.setAttribute("aria-label", `${card.title} ${saved.has(card.id) ? "저장 해제" : "저장"}`); save.setAttribute("aria-pressed", String(saved.has(card.id))); save.onclick = () => toggleSaved(card, owner); top.append(save);
@@ -157,7 +158,7 @@ function createCard(card, owner) {
     const stats = node("div", "stats");
     for (const stat of card.stats) { const el = node("span", "stat"); el.append(node("strong", "", `${number(stat.value)}${(stat.suffix || "").replace("stars", "별").replace("forks", "포크")}`), document.createTextNode(({ Stars: "별", Downloads: "다운로드", Likes: "좋아요" })[stat.label] || stat.label)); stats.append(el); }
     if (card.publishedAt) { const date = new Date(card.publishedAt); if (Number.isFinite(date.getTime())) stats.append(node("span", "stat", `공개 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "short", day: "numeric" }).format(date)}`)); }
-    const bottom = node("div", "card-bottom"); const read = node("button", "read-button", card.slides[0]?.image ? "이미지 카드뉴스 읽기" : "카드뉴스 읽기"); read.type = "button"; read.append(node("span", "", `${card.slides.length}장 ↗`)); read.onclick = () => openReader(card, owner, read);
+    const bottom = node("div", "card-bottom"); const read = node("button", "read-button", card.slides[0]?.brief ? "요약 읽기" : card.slides[0]?.image ? "이미지 카드뉴스 읽기" : "카드뉴스 읽기"); read.type = "button"; read.append(node("span", "", `${card.slides.length}장 ↗`)); read.onclick = () => openReader(card, owner, read);
     bottom.append(read, link(card.url, "원문 ↗", "source-link")); body.append(stats, bottom); article.append(cover, body); return article;
 }
 function renderCards() {
@@ -301,10 +302,17 @@ function openReader(card, owner, trigger, fromHistory = false, initialSlide = 0)
   activeCard = card; activeEdition = owner; slide = initialSlide;
   returnFocus = trigger || document.activeElement; returnScroll = scrollY;
   $("#reader").dataset.category = card.category;
+  $("#reader").dataset.format = card.slides[0]?.brief ? "text" : "standard";
   $("#slideTrack").replaceChildren(...card.slides.map((page, index) => {
     const panel = node("section", "slide-panel"); panel.setAttribute("aria-label", `${index + 1} / ${card.slides.length}`);
     const text = [node("p", "eyebrow", page.eyebrow || `${index + 1} / ${card.slides.length}`), node("h2", "", page.title), node("p", "slide-body", page.body)];
-    if (page.image) {
+    if (page.brief) {
+      panel.classList.add("brief-panel");
+      const points = node("ul", "brief-points"), full = node("details", "brief-details");
+      points.append(...page.brief.bullets.map(b => node("li", "", b)));
+      full.append(node("summary", "", "상세 본문 읽기"), node("h3", "", page.title), node("p", "slide-body", page.body));
+      panel.append(node("p", "eyebrow", page.eyebrow || `${index + 1} / ${card.slides.length}`), node("h2", "", page.brief.title), node("p", "brief-key", page.brief.key), points, full);
+    } else if (page.image) {
       panel.classList.add("poster-panel"); panel.dataset.posterTheme = page.image.theme;
       const full = node("details", "poster-text"), image = node("img", "poster-image");
       full.append(node("summary", "", "상세 본문 읽기"), ...text);
@@ -437,6 +445,7 @@ let gesture = null;
 const viewport = $("#slideContent"), track = $("#slideTrack");
 viewport.addEventListener("pointerdown", event => {
   if (!event.isPrimary || event.button !== 0) return;
+  if (event.target.closest(".brief-panel") && (event.pointerType === "mouse" || !getSelection()?.isCollapsed)) return;
   gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, horizontal: false };
 });
 viewport.addEventListener("pointermove", event => {

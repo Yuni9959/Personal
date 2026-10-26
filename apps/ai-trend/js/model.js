@@ -1,4 +1,4 @@
-import { publicationSlot } from "./schedule.js?v=20261026.3";
+import { publicationSlot } from "./schedule.js?v=20261026.4";
 export const POSTER_PALETTE = ["#FFDA7D", "#CCBA8D", "#999488", "#665E48", "#332C1A"];
 export const POSTER_THEMES = {
   "adobe-theme-2": POSTER_PALETTE,
@@ -23,7 +23,13 @@ export function validateEdition(value) {
       const ids = new Set(card.evidence.map(e => e.id));
       if (ids.size !== card.evidence.length || card.slides.some(s => !ko(s.title) || !ko(s.body) || s.body.length < 100 || !Array.isArray(s.evidenceIds) || !s.evidenceIds.length || s.evidenceIds.some(id => !ids.has(id)))) throw new Error("본문과 근거 연결 검증 실패");
     }
-    for (const page of card.slides) if (page.image !== undefined) posterUrl(page.image);
+    for (const page of card.slides) {
+      if (page.image !== undefined) posterUrl(page.image);
+      if (page.brief !== undefined) {
+        const brief = page.brief, ko = (text, max) => typeof text === "string" && /[가-힣]/.test(text) && text.length <= max;
+        if (value.schemaVersion !== 2 || page.image !== undefined || !brief || !ko(brief.title, 80) || !ko(brief.key, 100) || !Array.isArray(brief.bullets) || brief.bullets.length !== 2 || brief.bullets.some(b => !ko(b, 240) || b.length < 10)) throw new Error("텍스트 요약 형식 오류");
+      }
+    }
     seen.add(card.id);
     if (card.selection && (!Number.isFinite(card.selection.score) || typeof card.selection.badge !== "string" || !Array.isArray(card.selection.signals) || !card.selection.signals.length || card.selection.signals.some(s => typeof s.label !== "string" || !validUrl(s.url)))) throw new Error("선정 근거 형식 오류");
   }
@@ -31,7 +37,7 @@ export function validateEdition(value) {
 }
 export function filterCards(cards, { filter = "all", topic = "all", query = "", saved = new Set() } = {}) {
   const term = query.trim().toLocaleLowerCase();
-  return cards.filter(card => (filter === "all" || (filter === "saved" ? saved.has(card.id) : filter === "research" ? card.channel === "research" : card.category === filter && (filter !== "news" || card.channel !== "research"))) && (topic === "all" || card.topic === topic) && (!term || `${card.title} ${card.headline || ""} ${card.summary} ${card.source} ${card.tags.join(" ")} ${card.slides.map(s => `${s.title} ${s.body}`).join(" ")}`.toLocaleLowerCase().includes(term)));
+  return cards.filter(card => (filter === "all" || (filter === "saved" ? saved.has(card.id) : filter === "research" ? card.channel === "research" : card.category === filter && (filter !== "news" || card.channel !== "research"))) && (topic === "all" || card.topic === topic) && (!term || `${card.title} ${card.headline || ""} ${card.summary} ${card.source} ${card.tags.join(" ")} ${card.slides.map(s => `${s.title} ${s.body} ${s.brief?.title || ""} ${s.brief?.key || ""} ${(s.brief?.bullets || []).join(" ")}`).join(" ")}`.toLocaleLowerCase().includes(term)));
 }
 export function isOldEdition(edition, now = new Date()) {
   if (edition.publication) return Date.parse(edition.publication.scheduledAt) < Date.parse(publicationSlot(now).scheduledAt);
