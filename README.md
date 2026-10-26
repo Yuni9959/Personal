@@ -11,7 +11,7 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 
 | 항목 | 상태 |
 | --- | --- |
-| 확인일 | 2026-10-25 (Asia/Seoul) |
+| 확인일 | 2026-10-26 (Asia/Seoul) |
 | 문제은행 | `2026.08.10-content.4`, 59개 유형·990문제·6,298개 보기 |
 | 신규 범위 | Mensa Norway 35개 원형 기반 독자 생성 `S01`~`S35`, 350문제 |
 | 오늘의 훈련 | 전략 v3, 최근 6회 큐 기반 유형 순환·하루 10개 고유 유형 |
@@ -19,10 +19,50 @@ GitHub Pages에 그대로 올릴 수 있는 **빌드 과정 없는 Vanilla HTML 
 | 신규 앱 | `AI Trend` — 한국어 5장 슬라이드, 뒤로가기·읽던 위치 복원, 모든 저장 카드 보관함, 이전 호 연속 탐색, 복합 식별 기반 반복 선정 횟수·중요도 표시 |
 | Volatility 시세·기준 | 전용 API v2026-10-20.4: Yahoo 직접 조회 + 결손/요약 불일치 시 TradingView MNQ 세션 O/H/L 교차검증. 실제 조회 시도·결과와 원천 가격시각 분리 |
 | Volatility 포지션 분석 | 현재 손익·포인트·ATR·보유시간을 우선 표시하고 손절/목표 계획은 입력 시, 상세 체크리스트는 경계 이상일 때 감지된 항목만 표시 |
-| 자동 검증 | 2026-10-25 전체 검증 통과: Node 274/274·Chromium·DB 이전/실패 복구/동시 저장·독서/보관함/지난 호·모바일·오프라인 |
+| 자동 검증 | 2026-10-26 전체 검증 통과: Node 282/282·Chromium·신규 소스/추가호/연구 필터·DB 이전/실패 복구/동시 저장·모바일·오프라인 |
 | 배포 공급망 | GitHub Actions 5개를 검증된 전체 커밋 SHA로 고정; Dependabot 주간 업데이트 제안; Linux CI Chrome 경로 고정 |
-| PWA 캐시 | `v4.4.1-ai-storage.1-admission-<fingerprint>` — AI 자산 `v=20261025.2`, 기존 설치 앱의 옛 코드 우회 |
+| PWA 캐시 | `v4.5.0-ai-sources.1-admission-<fingerprint>` — AI 자산 `v=20261026.1`, 기존 설치 앱의 옛 코드 우회 |
 | Volatility 데이터 자동화 | Drive 미연결과 저장소 작업 변경을 서로 격리; `quant` 수집 뒤 임시 worktree에서 생성·전체 검사·허용 파일만 commit/push하고 실행별 로그 보존 |
+
+## 2026-10-26: AI Trend 소스 확장과 추가호
+
+SNS·정보와 논문·연구를 구분해 수집한다. 기존 GitHub·Hugging Face·공식 블로그에
+10개 수집 경로를 더하고, Hacker News는 Show HN과 독립적인 소식 후보까지 확장했다.
+설정과 선정/후보 상태는 `apps/ai-trend/tools/sources.mjs`에서 관리한다.
+
+| 구분 | 활성 수집 경로 |
+| --- | --- |
+| 선정 소스 | Hacker News · Show HN, Reddit r/LocalLLaMA, Product Hunt, Techmeme, arXiv |
+| 추가 검증 후 활성화한 후보 | alphaXiv, Google Workspace Updates, Anthropic Engineering, Gemini 변경 기록, AI News / Latent Space, GeekNews |
+| 기존 유지 | GitHub Trending·신규 AI 저장소, Hugging Face 모델·블로그, OpenAI·Google AI 공식 소식 |
+
+AI News는 현재 `latent.space/feeds/news.xml`을 읽는다. 종전 `news.smol.ai/rss.xml`은
+오래된 글만 반환하는 것을 확인했다. RSS/Atom의 게시일과 변경일을 구분하고 최근 7일만
+선정하며, Anthropic·Gemini의 날짜만 있는 항목은 정확한 게시 시각 미제공으로 표시한다.
+최근 글 0개는 수집 실패와 구분한다. Techmeme의 매체 홈페이지 대신 실제 기사 링크를
+조사하고 발견 경로를 함께 남긴다. 외부 원문은 HTTPS·공개 DNS 주소·리디렉션·크기를
+검증하며 GitHub 토큰은 GitHub API 호스트에만 전달한다.
+
+arXiv는 cs.AI·cs.LG·cs.CL·cs.CV의 신규 발표를 수집한다. alphaXiv는 공개 인기 목록의
+실제 arXiv 논문과 조회·좋아요를 관측한다. 논문은 전체 14개 중 최대 2개이며 화면의
+**논문·연구** 필터로 모아 볼 수 있다. 등록·인기·저자 실험·독립 평가를 구분한다.
+본문 근거 1,000자 이상과 근거 연결 한국어 5장 기준은 유지하며, 차단·본문 부족은
+후순위의 검증된 후보로 보충한다. Reddit은 피드 성공 후 게시글 원문에서 403이 날 수 있다.
+
+X 공식·개인 계정, OpenRouter Rankings, OpenReview, r/StableDiffusion·r/ComfyUI,
+프롬왓은 비활성 후보로 기록했다. 계정·접근 방식·학회 범위를 확인하지 않은 채
+수집 중이라고 표시하지 않는다. 공식 계정 소식은 연결된 공식 블로그·변경 기록을 먼저 읽는다.
+
+정시 발행은 07:00·19:00 KST를 유지한다. 명시적인 즉시 발행 요청에는 격리된 작업본에서
+`ai-trend-store.mjs pull → research.mjs --publish-now → ai-trend-store.mjs push → verify`로
+추가호 **1개**를 게시한다. `YYYY-MM-DD-HHmmssSSS` ID와 `kind: extra`를 사용하고
+기존 정시 발행본을 보존한다. API v2026-10-26.1은 추가호의 공개 시각·선택·색인·저장을
+지원한다. 추가호 14개 카드 준비 시 기존 공개 12개 호의 파일 SHA-256 일치를 확인했다.
+
+검증: Node 282개와 Chromium 전체 릴리스 검사 통과. 피드 날짜/원문 링크·중복 논문 출처·
+관심 지표·외부 주소 차단·추가호 중복 거부/기존 호 보존·미래 호 제외·연구 필터·저장·
+320/390/1280px·오프라인을 포함한다. 다음 운영 확인은 정시 수집의 원문 접근률과 후보
+계정/학회 범위 확정이다.
 
 ## 2026-10-25: AI Trend 데이터 저장·조회 리팩토링
 

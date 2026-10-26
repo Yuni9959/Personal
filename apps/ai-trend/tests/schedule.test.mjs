@@ -7,6 +7,8 @@ import { publicationSlot, resolvePublication, validateManifest } from "../js/sch
 import { isOldEdition } from "../js/model.js";
 import { prepareEdition } from "../tools/prepare.mjs";
 import handler, { readPublication } from "../../../api/ai-trend.js";
+import { validBookmark } from "../js/bookmarks.js";
+import { editionLabel, occurrenceFor } from "../js/library.js";
 
 const original = JSON.parse(await fs.readFile(new URL("../data/latest.json", import.meta.url), "utf8"));
 function fixture(at) {
@@ -20,6 +22,29 @@ async function prepared(run) {
   try { await run(root); } finally { await fs.rm(root, { recursive: true }); }
 }
 const readManifest = async root => JSON.parse(await fs.readFile(path.join(root, "data/release-manifest.json"), "utf8"));
+
+test("추가 발행은 기존 공개 호를 보존하고 정확히 한 호만 추가하며 조회·저장·순서를 유지한다", async () => prepared(async root => {
+  const at = new Date("2026-10-26T04:30:12.123Z");
+  await prepareEdition(fixture("2026-10-25T20:00:00Z"), root, new Date("2026-10-25T20:10:00Z"));
+  const before = await readManifest(root);
+  const originalBytes = await Promise.all(before.releases.map(e => fs.readFile(path.join(root, "data", e.path), "utf8")));
+  const added = await prepareEdition(fixture(at.toISOString()), root, at, { manual: true });
+  assert.equal(added.length, 1); assert.equal(added[0].id, "2026-10-26-133012123");
+  const after = await readManifest(root);
+  assert.equal(after.releases.length, before.releases.length + 1);
+  assert.deepEqual(await Promise.all(before.releases.map(e => fs.readFile(path.join(root, "data", e.path), "utf8"))), originalBytes);
+  const fetchImpl = async url => ({ ok: true, text: () => fs.readFile(path.join(root, "data", new URL(url).pathname.split("/apps/ai-trend/data/")[1]), "utf8") });
+  const result = await readPublication({ now: at, fetchImpl });
+  assert.equal(result.entry.id, added[0].id); assert.equal(result.delayed, false);
+  assert.equal(result.nextPublishAt, "2026-10-26T10:00:00.000Z");
+  assert.equal(isOldEdition(result.edition, at), false); assert.match(editionLabel(result.edition), /추가호 13:30/);
+  assert.equal(validBookmark({ id: result.edition.cards[0].id, card: result.edition.cards[0], edition: result.edition, savedAt: at.toISOString() }), true);
+  await assert.rejects(readPublication({ now: new Date(+at - 1), selected: added[0].id, fetchImpl }));
+  const catalog = await readPublication({ now: at, fetchImpl, catalogOnly: true });
+  assert.equal(catalog.complete, true); assert.equal(catalog.catalog[0].id, added[0].id);
+  assert.equal(occurrenceFor(result.edition.cards[0], "2026-10-26-07", catalog.catalog).count, 2);
+  await assert.rejects(prepareEdition(fixture(at.toISOString()), root, at, { manual: true }), /이미 존재/);
+}));
 
 test("KST 07:00 / 19:00 직전과 정각, 자정 및 연말의 발행 경계를 지킨다", () => {
   for (const [at, id] of [

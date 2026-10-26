@@ -1,4 +1,4 @@
-import { validateEdition } from "./model.js?v=20261025.2";
+import { validateEdition } from "./model.js?v=20261026.1";
 
 export const BOOKMARK_DB = "personal-tap-ai-trend";
 const IDS = "personal-tap-ai-trend-saved-v1", SNAPSHOTS = "personal-tap-ai-trend-library-v2";
@@ -10,7 +10,7 @@ export function validBookmark(record) {
     if (record.card.id !== record.id) return false;
     validateEdition({ ...record.edition, cards: [record.card] });
     const issue = record.edition.publication;
-    return !issue || /^\d{4}-\d{2}-\d{2}-(07|19)$/.test(issue.id);
+    return !issue || /^\d{4}-\d{2}-\d{2}-(?:07|19|\d{9})$/.test(issue.id);
   } catch { return false; }
 }
 export function legacyBookmarks(storage) {

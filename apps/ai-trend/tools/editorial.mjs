@@ -21,7 +21,7 @@ export function applyAnalyses(candidate, analyses, previous = null) {
       validateAnalysis(analysis, analysis?.evidence || []);
       if (Date.parse(candidate.generatedAt) - Date.parse(analysis.reviewedAt) > 36 * 3600000) throw new Error("심층 검토 만료");
       if (!analysis.evidence.length || analysis.evidence.some(e => !validUrl(e.url) || typeof e.label !== "string")) throw new Error("근거 링크 오류");
-      cards.push({ ...card, signalLabel: card.selection?.badge || card.signalLabel, headline: analysis.headline, topic: analysis.topic, tags: [analysis.topic], summary: analysis.summary, slides: analysis.slides.map((s, i) => ({ ...s, eyebrow: `${String(i + 1).padStart(2, "0")} / ${["무엇인가요", "제작자의 설명", "어디에 쓰나요", "평가와 반응", "도입 전 확인"][i]}` })), evidence: analysis.evidence, reviewedAt: analysis.reviewedAt, summaryMethod: "원문·공개 반응 근거를 사용한 AI 한국어 요약" });
+      cards.push({ ...card, signalLabel: card.selection?.badge || card.signalLabel, headline: analysis.headline, topic: analysis.topic, tags: [analysis.topic], summary: analysis.summary, slides: analysis.slides.map((s, i) => ({ ...s, eyebrow: `${String(i + 1).padStart(2, "0")} / ${["무엇인가요", card.sourceKind === "paper" ? "연구자의 설명" : ["reporting", "community"].includes(card.sourceKind) ? "원문에서 밝힌 내용" : "제작자의 설명", "어디에 쓰나요", "평가와 반응", "도입 전 확인"][i]}` })), evidence: analysis.evidence, reviewedAt: analysis.reviewedAt, summaryMethod: "원문·공개 반응 근거를 사용한 AI 한국어 요약" });
     } catch { pending.push(card.url); }
   }
   // Preserve an already verified Korean edition if newly discovered items have
@@ -37,5 +37,5 @@ export function applyAnalyses(candidate, analyses, previous = null) {
     throw new Error("검증된 한글 카드가 부족하여 직전 발행본을 보존합니다.");
   }
   const { candidatePool, ...publicEdition } = candidate;
-  return validateEdition({ ...publicEdition, schemaVersion: 2, cards: selected, pendingCount: pendingTargets, candidateCount: (candidatePool || candidate.cards).length, exposureHistory: nextExposureHistory(selected, previous, new Date(candidate.generatedAt)), lastCheckedAt: candidate.generatedAt, editorial: "최근 관심 증가·공개 시점·개발 활동과 실제 커뮤니티 신호로 후보를 비교합니다. 누적 인기도의 영향은 낮추고 반복 노출·분야·제작자 쏠림을 완화합니다. GitHub 다중 주제·Hugging Face·공식 발표·Hacker News를 아침·저녁 발행 전에 확인합니다. 본문을 확보한 한글 심층 카드만 발행하며 각 카드의 ‘선정 이유’에서 관측 근거를 확인할 수 있습니다. 선정 신호는 품질 평가가 아닙니다." });
+  return validateEdition({ ...publicEdition, schemaVersion: 2, cards: selected, pendingCount: pendingTargets, candidateCount: (candidatePool || candidate.cards).length, exposureHistory: nextExposureHistory(selected, previous, new Date(candidate.generatedAt)), lastCheckedAt: candidate.generatedAt, editorial: "최근 관심 증가·공개 시점·개발 활동과 실제 커뮤니티 신호로 후보를 비교합니다. 누적 인기도의 영향은 낮추고 반복 노출·분야·제작자 쏠림을 완화합니다. GitHub·Hugging Face와 SNS·정보 소스, arXiv·alphaXiv 연구 채널을 확인합니다. 공식 발표·제품 소개·커뮤니티 글·보도·논문을 구분하며 논문 등록은 동료심사 통과를 뜻하지 않습니다. 본문을 확보한 한글 심층 카드만 발행하며 각 카드의 ‘선정 이유’에서 관측 근거를 확인할 수 있습니다. 선정 신호는 품질 평가가 아닙니다." });
 }

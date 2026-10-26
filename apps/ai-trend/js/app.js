@@ -1,7 +1,7 @@
-import { editionForRelease, resolvePublication } from "./schedule.js?v=20261025.2";
-import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261025.2";
-import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261025.2";
-import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261025.2";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.1";
+import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261026.1";
+import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.1";
+import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.1";
 const $ = selector => document.querySelector(selector);
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
@@ -139,7 +139,7 @@ function createCard(card, owner) {
     const cover = node("div", "card-cover"); const top = node("div", "cover-top");
     top.append(node("span", "topic-badge", card.topic || card.tags[0]));
     const save = node("button", "save-button", saved.has(card.id) ? "★" : "☆"); save.type = "button"; save.dataset.cardId = card.id; save.dataset.title = card.title; save.setAttribute("aria-label", `${card.title} ${saved.has(card.id) ? "저장 해제" : "저장"}`); save.setAttribute("aria-pressed", String(saved.has(card.id))); save.onclick = () => toggleSaved(card, owner); top.append(save);
-    cover.append(top, node("h3", "cover-title", card.category === "news" && card.headline ? card.headline : card.title), node("span", "cover-category", `${card.source} · ${{ project: "오픈소스 프로젝트", model: "AI 모델", news: "AI 소식" }[card.category]}`));
+    cover.append(top, node("h3", "cover-title", card.category === "news" && card.headline ? card.headline : card.title), node("span", "cover-category", `${card.source} · ${card.channel === "research" ? "논문·연구" : { project: "오픈소스 프로젝트", model: "AI 모델", news: "AI 소식" }[card.category]}`));
     const body = node("div", "card-body");
     body.append(node("p", "card-edition", `${editionLabel(owner)} 발행`), repeatBadge(card, owner));
     if (card.headline && card.category !== "news") body.append(node("h4", "card-headline", card.headline));
@@ -253,7 +253,7 @@ function resetFeed(value) {
 function renderEdition() {
   updateTopics();
   const topics = [...new Set(edition.cards.map(c => c.topic || c.tags[0]))];
-  $("#editionDate").textContent = `${edition.date.replaceAll("-", ".")}${edition.publication ? ` · ${edition.publication.id.endsWith("07") ? "아침" : "저녁"}` : ""}`;
+  $("#editionDate").textContent = editionLabel(edition).replaceAll("-", ".");
   $("#editionCount").textContent = `${edition.cards.length}개의 발견 · ${topics.length}개 분야${edition.candidateCount ? ` · 후보 ${edition.candidateCount}개에서 선정` : ""}`;
   const updated = edition.publication?.reissuedAt || edition.publication?.scheduledAt;
   $("#editionUpdated").hidden = !updated;
@@ -377,7 +377,7 @@ async function load({ selected = $("#editionSelect").value, silent = false } = {
     const select = $("#editionSelect");
     if (publication) {
       releases = publication.releases;
-      select.replaceChildren(new Option("최신 발행본", "latest"), ...publication.releases.map(e => new Option(`${e.id.slice(0, 10)} ${e.id.endsWith("07") ? "07:00 아침" : "19:00 저녁"}`, e.id)));
+      select.replaceChildren(new Option("최신 발행본", "latest"), ...publication.releases.map(e => new Option(editionLabel({ date: e.id.slice(0, 10), publication: e }), e.id)));
       select.value = selected;
       $("#nextPublication").textContent = selected === "latest" ? `다음 발행 ${displayTime(publication.nextPublishAt)} KST · 1분마다 최신본 확인` : "지난 발행본을 보고 있습니다";
       if (selected === "latest") scheduleRefresh(publication.nextPublishAt, old);

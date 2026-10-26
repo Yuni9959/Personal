@@ -49,4 +49,4 @@ export function occurrenceFor(card, editionId, catalog) {
   return { count: ids.size, repeats: ids.size - 1, first: [...ids].sort()[0] };
 }
 export const editionKey = edition => edition.publication?.id || edition.date;
-export const editionLabel = edition => `${edition.date}${edition.publication ? ` · ${edition.publication.id.endsWith("07") ? "아침" : "저녁"}` : ""}`;
+export const editionLabel = edition => `${edition.date}${edition.publication ? ` · ${edition.publication.kind === "extra" ? `추가호 ${new Date(edition.publication.scheduledAt).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false })}` : edition.publication.id.endsWith("07") ? "아침" : "저녁"}` : ""}`;

@@ -1,4 +1,5 @@
 import { identityCard } from "./library.js";
+import { validReleaseId } from "./schedule.js";
 
 export function createCatalog(editions) {
   const cards = [], keys = new Map();
@@ -20,7 +21,7 @@ export function validateCatalog(value) {
   }
   const seen = new Set();
   for (const entry of value.releases) {
-    if (!/^\d{4}-\d{2}-\d{2}-(07|19)$/.test(entry?.id) || seen.has(entry.id) || !new RegExp(`^editions/${entry.id}-[a-f0-9]{16}\\.json$`).test(entry.path) || !Array.isArray(entry.cardIndexes) || !entry.cardIndexes.length || entry.cardIndexes.length > 30 || new Set(entry.cardIndexes).size !== entry.cardIndexes.length || entry.cardIndexes.some(index => !Number.isInteger(index) || index < 0 || index >= value.cards.length)) throw new Error("프로젝트 색인 연결 오류");
+    if (!validReleaseId(entry?.id) || seen.has(entry.id) || !new RegExp(`^editions/${entry.id}-[a-f0-9]{16}\\.json$`).test(entry.path) || !Array.isArray(entry.cardIndexes) || !entry.cardIndexes.length || entry.cardIndexes.length > 30 || new Set(entry.cardIndexes).size !== entry.cardIndexes.length || entry.cardIndexes.some(index => !Number.isInteger(index) || index < 0 || index >= value.cards.length)) throw new Error("프로젝트 색인 연결 오류");
     seen.add(entry.id);
   }
   return value;

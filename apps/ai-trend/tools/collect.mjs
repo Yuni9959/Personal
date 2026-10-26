@@ -4,20 +4,12 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import crypto from "node:crypto";
 import { canonicalUrl, rankCandidates, selectDiverse, nextMetricHistory, SELECTION_VERSION } from "./selection.mjs";
+import { plain, safeUrl, parseFeed, SOURCES, sourceRows, AI_TOPIC } from "./sources.mjs";
+export { plain, safeUrl, parseFeed } from "./sources.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const AI = /\b(?:ai|llm|agents?|machine.learning|deep.learning|diffusion|transformer|inference|generative|rag|mcp|language.model|neural|tts|text.to.speech)\b|人工智能|大模型/i;
+const AI = AI_TOPIC;
 export const dayKst = (now = new Date()) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
-export function plain(value, limit = 700) {
-  return String(value || "").replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, " ").replace(/<[^>]*>/g, " ")
-    .replace(/&#(x[\da-f]+|\d+);/gi, (_, code) => { const n = code[0].toLowerCase() === "x" ? parseInt(code.slice(1), 16) : Number(code); return n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : ""; })
-    .replace(/&(?:amp|lt|gt|quot|apos|nbsp);/g, entity => ({ "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&apos;": "'", "&nbsp;": " " }[entity]))
-    .replace(/\s+/g, " ").trim().slice(0, limit);
-}
-export function safeUrl(value) {
-  try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password ? u.href : null; } catch { return null; }
-}
 export function markdownSummary(markdown) {
   const text = String(markdown).replace(/^---[\s\S]*?\n---\s*\n/, "")
     .replace(/```[\s\S]*?```/g, "").replace(/!\[[^\]]*\]\([^)]*\)/g, "")
@@ -41,15 +33,6 @@ export function parseTrending(html) {
     const daily = block.match(/([\d,]+)\s+stars today/);
     return { name, description: plain(block.match(/<p\b[^>]*>([\s\S]*?)<\/p>/)?.[1]), dailyStars: daily ? Number(daily[1].replaceAll(",", "")) : null };
   }).filter(row => row.name && AI.test(`${row.name} ${row.description}`));
-}
-export function parseFeed(xml, source, now = new Date()) {
-  const field = (block, tag) => plain(block.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`, "i"))?.[1], tag === "description" ? 500 : 300);
-  return [...xml.matchAll(/<item(?:\s[^>]*)?>([\s\S]*?)<\/item>/gi)].map(([, block]) => {
-    const rawLink = block.match(/<link(?:\s[^>]*)?>([\s\S]*?)<\/link>/i)?.[1];
-    const url = safeUrl(plain(rawLink));
-    const publishedAt = new Date(field(block, "pubDate"));
-    return { title: field(block, "title"), description: field(block, "description"), url, source, publishedAt: Number.isFinite(publishedAt.getTime()) ? publishedAt.toISOString() : null, category: "news" };
-  }).filter(row => row.url && row.title && row.publishedAt && new Date(row.publishedAt) <= now && now - new Date(row.publishedAt) <= 7 * 86400000);
 }
 async function request(url, { token, fetchImpl = fetch } = {}) {
   const headers = { Accept: "*/*", "User-Agent": "PersonalTap-AI-Trend/1.0" };
@@ -76,6 +59,8 @@ export function makeCard(item, now = new Date()) {
       : "원문에서 공개 일정과 직접 사용할 수 있는 기능을 확인하세요. 발표 수치의 평가 조건과 실제 제공 범위를 함께 읽어 보세요.";
   return {
     id: idFor(url), category: item.category, title: plain(item.title, 160), source: item.source,
+    sourceKind: item.sourceKind || "official", channel: item.channel || "information", discoveryUrl: item.discoveryUrl || null,
+    primaryUrl: item.primaryUrl || null, releaseDate: item.releaseDate || null, datePrecision: item.datePrecision || null,
     selection: item.selection || null, name: item.name || null, topics: item.topics || [], discoveryTopic: item.discoveryTopic || null,
     pipelineTag: item.pipelineTag || null, pushedAt: item.pushedAt || null, stars: item.stars ?? null, likes: item.likes ?? null,
     url, publishedAt: item.publishedAt || null, discoveredAt: now.toISOString(),
@@ -105,7 +90,7 @@ export function buildEdition(items, sources, { now = new Date(), previous = null
     candidatePool: candidates.map(toCard), selectionPolicy: SELECTION_VERSION,
     metricHistory: nextMetricHistory(candidates, previous, now),
     repositoryMetrics: Object.fromEntries(candidates.filter(item => item.name && Number.isFinite(item.stars)).map(item => [item.name, item.stars])),
-    editorial: "GitHub 당일 Trending·최근 45일 신규 저장소, Hugging Face 트렌딩 모델, 최근 7일 공식 발표를 아침·저녁 발행 전에 수집합니다. 요약은 원문 발췌이며 한국어 안내는 관측 지표 기반입니다."
+    editorial: "GitHub·Hugging Face와 공개 뉴스·커뮤니티·제품·논문 채널을 수집합니다. 발견 경로와 원문, 커뮤니티 관심과 품질 평가를 구분합니다."
   };
 }
 export async function collect({ now = new Date(), token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN, previous = null, fetchImpl = fetch } = {}) {
@@ -159,21 +144,20 @@ export async function collect({ now = new Date(), token = process.env.GH_TOKEN |
         stats: [{ label: "Downloads", value: row.downloads || 0 }, { label: "Likes", value: row.likes || 0 }]
       }));
     }),
-    ...[
-      ["OpenAI", "https://openai.com/news/rss.xml"],
-      ["Google AI", "https://blog.google/technology/ai/rss/"],
-      ["Hugging Face Blog", "https://huggingface.co/blog/feed.xml"]
-    ].map(([name, url]) => source(name, url, async () => parseFeed(await get(url), name, now).slice(0, 8))),
-    source("Hacker News AI", "https://news.ycombinator.com/", async () => {
+    ...SOURCES.filter(s => s.enabled).map(config => source(config.name, config.url, async () => sourceRows(await get(config.url), config, now))),
+    source("Hacker News · Show HN", "https://news.ycombinator.com/", async () => {
       const after = Math.floor(+now / 1000) - 3 * 86400;
-      const data = JSON.parse(await get(`https://hn.algolia.com/api/v1/search_by_date?query=AI&tags=story&numericFilters=created_at_i%3E${after}%2Cpoints%3E20&hitsPerPage=30`));
-      return (data.hits || []).filter(h => AI.test(`${h.title} ${h.story_text || ""}`) && h.url && h.created_at_i <= +now / 1000).map(h => ({ url: canonicalUrl(h.url), title: h.title, points: h.points, comments: h.num_comments || 0, storyUrl: `https://news.ycombinator.com/item?id=${h.objectID}` }));
+      const batches = await Promise.all(["story", "show_hn"].map(async tag => JSON.parse(await get(`https://hn.algolia.com/api/v1/search_by_date?query=AI&tags=${tag}&numericFilters=created_at_i%3E${after}%2Cpoints%3E${tag === "story" ? 20 : 2}&hitsPerPage=30`))));
+      return [...new Map(batches.flatMap(data => data.hits || []).map(h => [h.objectID, h])).values()]
+        .filter(h => AI.test(`${h.title} ${h.story_text || ""}`) && safeUrl(h.url) && h.created_at_i <= +now / 1000)
+        .map(h => ({ url: canonicalUrl(h.url), title: h.title, description: plain(h.story_text || h.title), publishedAt: new Date(h.created_at_i * 1000).toISOString(), points: h.points, comments: h.num_comments || 0, storyUrl: `https://news.ycombinator.com/item?id=${h.objectID}` }));
     })
   ]);
   const groups = results.map(result => result.status === "fulfilled" ? result.value : []);
   const projects = [...groups[0], ...groups[1]];
-  const news = groups.slice(3, 6).flat();
-  const community = groups[6] || [];
+  const news = groups.slice(3, -1).flat();
+  const community = groups.at(-1) || [];
+  news.push(...community.filter(h => !/^https:\/\/(?:github\.com|huggingface\.co)\//.test(h.url || "")).map(h => ({ ...h, category: "news", source: "Hacker News · Show HN", sourceKind: "community", channel: "information", discoveryUrl: h.storyUrl, discovery: ["hacker-news"] })));
   // Only an exact canonical URL match is a cross-platform confirmation. Shared
   // words or multiple GitHub topic searches are not independent confirmations.
   for (const hit of community.filter(h => /^https:\/\/github\.com\/[^/]+\/[^/?]+$/.test(h.url || "")).slice(0, 4)) {

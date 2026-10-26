@@ -1,5 +1,5 @@
 // Scores describe observed attention, never model quality or investment value.
-export const SELECTION_VERSION = "momentum-v1";
+export const SELECTION_VERSION = "momentum-v2";
 export const LIMITS = { project: 6, news: 5, model: 3 };
 const HOUR = 3600000;
 const finite = n => typeof n === "number" && Number.isFinite(n) && n >= 0;
@@ -60,7 +60,9 @@ export function rankCandidates(items, { now = new Date(), previous = null } = {}
     const discovery = [...(old?.discovery || []), ...(item.discovery || [])];
     // Keep the best native rank and daily measurement when a search also found
     // the same repository; searches are not independent community confirmations.
-    deduped.set(url, { ...old, ...item, url, dailyStars: Math.max(old?.dailyStars || 0, item.dailyStars || 0) || null, trendRank: Math.min(old?.trendRank || Infinity, item.trendRank || Infinity), hn: (old?.hn?.points || 0) > (item.hn?.points || 0) ? old.hn : item.hn || old?.hn, discovery });
+    const papers = [old, item].filter(row => row?.sourceKind === "paper");
+    const paper = papers.find(row => row.paperRank) || papers[0];
+    deduped.set(url, { ...old, ...item, ...(paper ? { sourceKind: "paper", channel: "research", source: paper.source, paperRank: paper.paperRank, publishedAt: paper.publishedAt, discoveryUrl: paper.discoveryUrl, stats: paper.stats } : {}), url, dailyStars: Math.max(old?.dailyStars || 0, item.dailyStars || 0) || null, trendRank: Math.min(old?.trendRank || Infinity, item.trendRank || Infinity), hn: (old?.hn?.points || 0) > (item.hn?.points || 0) ? old.hn : item.hn || old?.hn, discovery });
   }
   return [...deduped.values()].map(card => {
     const growth = measuredGrowth(card, previous, now), age = ageHours(card.publishedAt, now), pushed = ageHours(card.pushedAt, now);
@@ -90,7 +92,14 @@ export function rankCandidates(items, { now = new Date(), previous = null } = {}
       // Downloads is a rolling window, so subtraction is NOT growth.
     } else {
       components.freshness = age == null ? 0 : 72 * Math.exp(-age / 72);
-      add(`공식 발표 ${Math.max(1, Math.ceil(age))}시간 경과`);
+      const label = { paper: "연구 논문", community: "커뮤니티 게시", reporting: "보도·종합 소식", product: "제품 소개" }[card.sourceKind] || "공식 발표";
+      add(card.datePrecision === "day" ? `${label} ${card.publishedAt.slice(0, 10)} · 정확한 게시 시각 미제공` : `${label} ${Math.max(1, Math.ceil(age))}시간 경과`);
+      if (card.paperRank) {
+        components.researchAttention = 16 / Math.sqrt(card.paperRank);
+        add(`alphaXiv 공개 인기 목록 ${card.paperRank}위 관측 · 조회·반응은 연구 품질 평가가 아님`, card.discoveryUrl);
+      }
+      if (card.sourceKind === "paper") add("논문 등록은 동료심사 통과를 뜻하지 않음");
+      if (card.discoveryUrl && card.discoveryUrl !== card.url) add(`${card.source} 발견 경로`, card.discoveryUrl);
     }
     components.communityAttention = card.hn ? log(card.hn.points, 500, 16) + log(card.hn.comments, 100, 4) : 0;
     if (card.hn) add(`Hacker News ${card.hn.points}점 · 댓글 ${card.hn.comments}개`, card.hn.url);
@@ -98,7 +107,8 @@ export function rankCandidates(items, { now = new Date(), previous = null } = {}
     const since = ageHours(exposure?.lastFeaturedAt, now);
     components.repeatPenalty = since != null && since < 36 ? -18 * Math.exp(-since / 24) : 0;
     const score = round(Object.values(components).reduce((a, b) => a + b, 0));
-    const badge = card.category === "news" ? (age <= 48 ? "새 공식 발표" : "공식 발표 추적") : growth?.delta > 0 ? "단기 관심 증가" : card.dailyStars > 0 ? "오늘 급상승" : card.hn ? "커뮤니티 주목" : card.category === "model" ? "모델 트렌딩" : "새로운 발견";
+    const newsBadge = { paper: "논문·연구", community: "커뮤니티 소식", reporting: "보도·종합 소식", product: "새 제품 소개" }[card.sourceKind] || (age <= 48 ? "새 공식 발표" : "공식 발표 추적");
+    const badge = card.category === "news" ? newsBadge : growth?.delta > 0 ? "단기 관심 증가" : card.dailyStars > 0 ? "오늘 급상승" : card.hn ? "커뮤니티 주목" : card.category === "model" ? "모델 트렌딩" : "새로운 발견";
     if (!reasons.length) add("AI 주제 탐색에서 발견 · 단기 성장량 미측정");
     return { ...card, selection: { version: SELECTION_VERSION, score, components: Object.fromEntries(Object.entries(components).map(([k, v]) => [k, round(v)])), badge, reasons, signals, growth, family: topicFamily(card), owner: ownerOf(card), repeated: since != null && since < 36, independentCommunity: !!card.hn } };
   }).sort((a, b) => b.selection.score - a.selection.score || a.url.localeCompare(b.url));
@@ -109,6 +119,7 @@ export function selectDiverse(ranked, { limits = LIMITS } = {}) {
     let best = -1, bestValue = -Infinity;
     for (let i = 0; i < remaining.length; i++) {
       const card = remaining[i], ownerKey = `${card.category}:${ownerOf(card)}`;
+      if (card.channel === "research" && picked.filter(c => c.channel === "research").length >= 2) continue;
       if (card.category === "news" && card.selection.score < 0) continue;
       if ((categories.get(card.category) || 0) >= (limits[card.category] || 0) || (owners.get(ownerKey) || 0) >= (card.category === "news" ? 2 : 1)) continue;
       const familyCount = families.get(topicFamily(card)) || 0;

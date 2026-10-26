@@ -2,11 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import { validateEdition } from "../js/model.js";
-import { publicationSlot, validateManifest } from "../js/schedule.js";
+import { publicationSlot, additionalPublication, validateManifest } from "../js/schedule.js";
 import { atomicWrite, writeCatalog } from "./catalog-store.mjs";
 
 // Preparing a file does not publish it. Only the server's clock opens a slot.
-export async function prepareEdition(edition, root, now = new Date()) {
+export async function prepareEdition(edition, root, now = new Date(), { manual = false } = {}) {
   validateEdition(edition);
   if (edition.schemaVersion !== 2 || edition.collectionWarning ||
     +now - Date.parse(edition.generatedAt) > 12 * 3600000 ||
@@ -18,8 +18,9 @@ export async function prepareEdition(edition, root, now = new Date()) {
   catch (e) { if (e.code !== "ENOENT") throw e; }
   await fs.mkdir(path.join(data, "editions"), { recursive: true });
   const prepared = [];
-  for (const slot of [publicationSlot(now), publicationSlot(now, true)]) {
+  for (const slot of manual ? [additionalPublication(now)] : [publicationSlot(now), publicationSlot(now, true)]) {
     const existing = manifest.releases.find(e => e.id === slot.id);
+    if (existing && manual) throw new Error("동일 추가호가 이미 존재합니다.");
     // Published editions are immutable; a late first edition is marked as late.
     if (existing && Date.parse(slot.scheduledAt) <= +now) continue;
     const publication = { ...slot, preparedAt: now.toISOString() };
@@ -38,7 +39,7 @@ export async function prepareEdition(edition, root, now = new Date()) {
   // Keep only files referenced by the manifest. Git publishes both atomically.
   const active = new Set(manifest.releases.map(e => path.basename(e.path)));
   for (const name of await fs.readdir(path.join(data, "editions"))) {
-    if (/^\d{4}-\d{2}-\d{2}-(07|19)-[a-f0-9]{16}\.json$/.test(name) && !active.has(name)) await fs.unlink(path.join(data, "editions", name));
+    if (/^\d{4}-\d{2}-\d{2}-(?:07|19|\d{9})-[a-f0-9]{16}\.json$/.test(name) && !active.has(name)) await fs.unlink(path.join(data, "editions", name));
   }
   return prepared;
 }

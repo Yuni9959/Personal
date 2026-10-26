@@ -1,4 +1,4 @@
-import { publicationSlot } from "./schedule.js?v=20261025.2";
+import { publicationSlot } from "./schedule.js?v=20261026.1";
 export const CATEGORIES = new Set(["project", "model", "news"]);
 export function validUrl(value) {
   try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password ? u.href : null; } catch { return null; }
@@ -21,9 +21,9 @@ export function validateEdition(value) {
 }
 export function filterCards(cards, { filter = "all", topic = "all", query = "", saved = new Set() } = {}) {
   const term = query.trim().toLocaleLowerCase();
-  return cards.filter(card => (filter === "all" || (filter === "saved" ? saved.has(card.id) : card.category === filter)) && (topic === "all" || card.topic === topic) && (!term || `${card.title} ${card.headline || ""} ${card.summary} ${card.source} ${card.tags.join(" ")} ${card.slides.map(s => `${s.title} ${s.body}`).join(" ")}`.toLocaleLowerCase().includes(term)));
+  return cards.filter(card => (filter === "all" || (filter === "saved" ? saved.has(card.id) : filter === "research" ? card.channel === "research" : card.category === filter && (filter !== "news" || card.channel !== "research"))) && (topic === "all" || card.topic === topic) && (!term || `${card.title} ${card.headline || ""} ${card.summary} ${card.source} ${card.tags.join(" ")} ${card.slides.map(s => `${s.title} ${s.body}`).join(" ")}`.toLocaleLowerCase().includes(term)));
 }
 export function isOldEdition(edition, now = new Date()) {
-  if (edition.publication) return edition.publication.id !== publicationSlot(now).id;
+  if (edition.publication) return Date.parse(edition.publication.scheduledAt) < Date.parse(publicationSlot(now).scheduledAt);
   return +now - Date.parse(edition.generatedAt) > 12 * 3600000;
 }

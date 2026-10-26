@@ -1,17 +1,17 @@
 import { validateEdition } from "../apps/ai-trend/js/model.js";
-import { editionForRelease, resolvePublication, validateManifest } from "../apps/ai-trend/js/schedule.js";
+import { editionForRelease, resolvePublication, validateManifest, validReleaseId } from "../apps/ai-trend/js/schedule.js";
 import { identityCard } from "../apps/ai-trend/js/library.js";
 import { validateCatalog, catalogCards, publicEdition } from "../apps/ai-trend/js/catalog.js";
 import { createHash } from "node:crypto";
 
-export const VERSION = "2026-10-25.2";
+export const VERSION = "2026-10-26.1";
 const ROOT = "https://raw.githubusercontent.com/Yuni9959/Personal/ai-trend-data/apps/ai-trend/data/";
 const ORIGINS = new Set(["https://yuni9959.github.io", "http://localhost:8080", "http://127.0.0.1:8080"]);
 // Cache only identity summaries of immutable files, never publication visibility.
 const identityCache = new Map();
 const indexCache = new Map();
 export async function readPublication({ now = new Date(), selected = "latest", statusOnly = false, catalogOnly = false, fetchImpl = fetch } = {}) {
-  if (selected !== "latest" && !/^\d{4}-\d{2}-\d{2}-(07|19)$/.test(selected)) throw new Error("Invalid edition");
+  if (selected !== "latest" && !validReleaseId(selected)) throw new Error("Invalid edition");
   const signal = AbortSignal.timeout(8000);
   async function read(relative) {
     const response = await fetchImpl(`${ROOT}${relative}?t=${+now}`, { cache: "no-store", signal, headers: { Accept: "application/json" }, redirect: "error" });

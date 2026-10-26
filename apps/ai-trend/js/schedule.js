@@ -1,6 +1,13 @@
 // KST has no daylight-saving time. Publication slots are 07:00 and 19:00 KST.
 export const INTERVAL = 12 * 3600000;
 const ANCHOR = Date.parse("2026-01-01T22:00:00Z");
+export const validReleaseId = id => /^\d{4}-\d{2}-\d{2}-(?:07|19|\d{9})$/.test(id);
+export function additionalPublication(now = new Date()) {
+  const scheduledAt = new Date(now).toISOString();
+  const local = new Date(+new Date(now) + 9 * 3600000).toISOString();
+  // Numeric local time keeps IDs chronologically sortable beside 07/19 slots.
+  return { id: `${local.slice(0, 10)}-${local.slice(11, 23).replace(/[:.]/g, "")}`, scheduledAt, kind: "extra" };
+}
 export function publicationSlot(now = new Date(), next = false) {
   const time = +new Date(now);
   if (!Number.isFinite(time)) throw new Error("Invalid publication clock");
@@ -13,9 +20,8 @@ export function validateManifest(value) {
   if (value.catalogPath != null && !/^catalogs\/[a-f0-9]{64}\.json$/.test(value.catalogPath)) throw new Error("프로젝트 색인 경로 오류");
   const ids = new Set();
   for (const entry of value.releases) {
-    if (!/^\d{4}-\d{2}-\d{2}-(07|19)$/.test(entry.id) || ids.has(entry.id) ||
-      publicationSlot(entry.scheduledAt).id !== entry.id ||
-      publicationSlot(entry.scheduledAt).scheduledAt !== entry.scheduledAt ||
+    const slot = entry.kind === "extra" ? additionalPublication(entry.scheduledAt) : publicationSlot(entry.scheduledAt);
+    if (!validReleaseId(entry.id) || ids.has(entry.id) || slot.id !== entry.id || slot.scheduledAt !== entry.scheduledAt ||
       !Number.isFinite(Date.parse(entry.preparedAt)) ||
       !new RegExp(`^editions/${entry.id}-[a-f0-9]{16}\\.json$`).test(entry.path)) throw new Error("발행 일정 검증 실패");
     ids.add(entry.id);
@@ -31,8 +37,8 @@ export function resolvePublication(manifest, now = new Date(), selected = "lates
   const expected = publicationSlot(now), next = publicationSlot(now, true);
   const entry = selected === "latest" ? releases[0] : releases.find(e => e.id === selected);
   return { serverNow: new Date(now).toISOString(), expected, nextPublishAt: next.scheduledAt,
-    delayed: !releases.length || releases[0].id !== expected.id, entry: entry || null,
-    releases: releases.map(({ id, scheduledAt, preparedAt }) => ({ id, scheduledAt, preparedAt })) };
+    delayed: !releases.length || Date.parse(releases[0].scheduledAt) < Date.parse(expected.scheduledAt), entry: entry || null,
+    releases: releases.map(({ id, scheduledAt, preparedAt, kind }) => ({ id, scheduledAt, preparedAt, ...(kind ? { kind } : {}) })) };
 }
 export function editionForRelease(edition, entry) {
   if (edition.publication?.id !== entry.id || edition.publication?.scheduledAt !== entry.scheduledAt ||
