@@ -23,3 +23,7 @@ html{scrollbar-gutter:stable}body.reader-open{overflow:hidden}.save-button{min-w
 @media(max-width:350px){#reader{padding:11px}.slide-panel{padding:22px 17px}#reader .slide-panel h2{font-size:21px}.reader-mark{display:none}.filter{padding:9px 10px}.section-heading{flex-wrap:wrap}.date-label select{max-width:180px}}
 @media(prefers-reduced-motion:reduce){.slide-track{transition:none!important}#reader .slide-dot:after{transition:none}}
 .slide-panel{touch-action:pan-y pinch-zoom}
+
+.slide-panel.poster-panel{padding:0;background:#CCBA8D}.poster-image{display:block;width:min(100%,408px);height:auto;margin:auto}.poster-image[hidden]{display:none}.poster-text{padding:20px 24px;color:#332C1A}.poster-text summary{cursor:pointer;font-weight:700;padding:8px 0}.poster-text[open] summary{margin-bottom:20px}
+
+.trend-card.has-poster .card-cover{background:#FFDA7D;color:#332C1A}.trend-card.has-poster .card-cover:after{color:#CCBA8D}.trend-card.has-poster .cover-category{color:#665E48}

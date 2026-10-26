@@ -1,4 +1,9 @@
-import { publicationSlot } from "./schedule.js?v=20261026.1";
+import { publicationSlot } from "./schedule.js?v=20261026.2";
+export const POSTER_PALETTE = ["#FFDA7D", "#CCBA8D", "#999488", "#665E48", "#332C1A"];
+export function posterUrl(image) {
+  if (!image || !/^images\/[a-f0-9]{64}\.png$/.test(image.path) || image.width !== 1080 || image.height !== 1350 || image.theme !== "adobe-theme-2" || typeof image.alt !== "string" || image.alt.length < 10 || image.alt.length > 500 || !/[가-힣]/.test(image.alt)) throw new Error("카드 이미지 형식 오류");
+  return `https://raw.githubusercontent.com/Yuni9959/Personal/ai-trend-data/apps/ai-trend/data/${image.path}`;
+}
 export const CATEGORIES = new Set(["project", "model", "news"]);
 export function validUrl(value) {
   try { const u = new URL(value); return u.protocol === "https:" && !u.username && !u.password ? u.href : null; } catch { return null; }
@@ -14,6 +19,7 @@ export function validateEdition(value) {
       const ids = new Set(card.evidence.map(e => e.id));
       if (ids.size !== card.evidence.length || card.slides.some(s => !ko(s.title) || !ko(s.body) || s.body.length < 100 || !Array.isArray(s.evidenceIds) || !s.evidenceIds.length || s.evidenceIds.some(id => !ids.has(id)))) throw new Error("본문과 근거 연결 검증 실패");
     }
+    for (const page of card.slides) if (page.image !== undefined) posterUrl(page.image);
     seen.add(card.id);
     if (card.selection && (!Number.isFinite(card.selection.score) || typeof card.selection.badge !== "string" || !Array.isArray(card.selection.signals) || !card.selection.signals.length || card.selection.signals.some(s => typeof s.label !== "string" || !validUrl(s.url)))) throw new Error("선정 근거 형식 오류");
   }

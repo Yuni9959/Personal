@@ -8,6 +8,7 @@ import { validateManifest, editionForRelease } from "../apps/ai-trend/js/schedul
 import { validateEdition } from "../apps/ai-trend/js/model.js";
 import { createCatalog, validateCatalog } from "../apps/ai-trend/js/catalog.js";
 import { writeCatalog } from "../apps/ai-trend/tools/catalog-store.mjs";
+import { validatePosterAssets } from "../apps/ai-trend/tools/poster-assets.mjs";
 import { createHash } from "node:crypto";
 
 // Public data has its own branch. Updating it never triggers the main-only app
@@ -17,7 +18,7 @@ const PREFIX = "apps/ai-trend/data/";
 const BRANCH = "ai-trend-data";
 const BASE_FILE = path.join(ROOT, ".tmp/ai-trend-store-base.json");
 const exec = promisify(execFile);
-const allowed = name => name.startsWith(PREFIX) && /^[a-zA-Z0-9/_.-]+\.json$/.test(name) && !name.split("/").includes("..");
+const allowed = name => name.startsWith(PREFIX) && (/^[a-zA-Z0-9/_.-]+\.json$/.test(name) || /^images\/[a-f0-9]{64}\.png$/.test(name.slice(PREFIX.length))) && !name.split("/").includes("..");
 async function git(args, cwd = ROOT, encoding = "utf8") {
   return (await exec("git", ["-c", `safe.directory=${cwd.replaceAll("\\", "/")}`, ...args], { cwd, windowsHide: true, encoding, maxBuffer: 16 * 1024 * 1024, timeout: 120000 })).stdout;
 }
@@ -52,6 +53,7 @@ async function push() {
     const edition = editionForRelease(validateEdition(JSON.parse(await fs.readFile(path.join(data, entry.path), "utf8"))), entry);
     editions.push({ entry, edition });
   }
+  await validatePosterAssets(data, editions.map(e => e.edition));
   if (manifest.catalogPath) {
     const text = await fs.readFile(path.join(data, manifest.catalogPath), "utf8");
     if (createHash("sha256").update(text).digest("hex") !== manifest.catalogPath.slice(9, -5) || JSON.stringify(validateCatalog(JSON.parse(text))) !== JSON.stringify(createCatalog(editions))) throw new Error("Publication index does not match immutable editions");

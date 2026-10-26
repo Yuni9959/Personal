@@ -1,7 +1,7 @@
-import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.1";
-import { filterCards, isOldEdition, validateEdition, validUrl } from "./model.js?v=20261026.1";
-import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.1";
-import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.1";
+import { editionForRelease, resolvePublication } from "./schedule.js?v=20261026.2";
+import { filterCards, isOldEdition, validateEdition, validUrl, posterUrl } from "./model.js?v=20261026.2";
+import { editionKey, editionLabel, identityCard, occurrenceFor } from "./library.js?v=20261026.2";
+import { openBookmarks, legacyBookmarks } from "./bookmarks.js?v=20261026.2";
 const $ = selector => document.querySelector(selector);
 const CACHE = "personal-tap-ai-trend-edition-v3";
 const API = "https://personal-tap-data-yuni14.vercel.app/api/ai-trend";
@@ -136,6 +136,7 @@ function updateRepeatBadges() {
 }
 function createCard(card, owner) {
     const article = node("article", "trend-card"); article.dataset.category = card.category; article.dataset.cardId = card.id; article.dataset.editionId = editionKey(owner);
+    if (card.slides[0]?.image) article.classList.add("has-poster");
     const cover = node("div", "card-cover"); const top = node("div", "cover-top");
     top.append(node("span", "topic-badge", card.topic || card.tags[0]));
     const save = node("button", "save-button", saved.has(card.id) ? "★" : "☆"); save.type = "button"; save.dataset.cardId = card.id; save.dataset.title = card.title; save.setAttribute("aria-label", `${card.title} ${saved.has(card.id) ? "저장 해제" : "저장"}`); save.setAttribute("aria-pressed", String(saved.has(card.id))); save.onclick = () => toggleSaved(card, owner); top.append(save);
@@ -156,7 +157,7 @@ function createCard(card, owner) {
     const stats = node("div", "stats");
     for (const stat of card.stats) { const el = node("span", "stat"); el.append(node("strong", "", `${number(stat.value)}${(stat.suffix || "").replace("stars", "별").replace("forks", "포크")}`), document.createTextNode(({ Stars: "별", Downloads: "다운로드", Likes: "좋아요" })[stat.label] || stat.label)); stats.append(el); }
     if (card.publishedAt) { const date = new Date(card.publishedAt); if (Number.isFinite(date.getTime())) stats.append(node("span", "stat", `공개 ${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "short", day: "numeric" }).format(date)}`)); }
-    const bottom = node("div", "card-bottom"); const read = node("button", "read-button", "카드뉴스 읽기"); read.type = "button"; read.append(node("span", "", `${card.slides.length}장 ↗`)); read.onclick = () => openReader(card, owner, read);
+    const bottom = node("div", "card-bottom"); const read = node("button", "read-button", card.slides[0]?.image ? "이미지 카드뉴스 읽기" : "카드뉴스 읽기"); read.type = "button"; read.append(node("span", "", `${card.slides.length}장 ↗`)); read.onclick = () => openReader(card, owner, read);
     bottom.append(read, link(card.url, "원문 ↗", "source-link")); body.append(stats, bottom); article.append(cover, body); return article;
 }
 function renderCards() {
@@ -302,7 +303,18 @@ function openReader(card, owner, trigger, fromHistory = false, initialSlide = 0)
   $("#reader").dataset.category = card.category;
   $("#slideTrack").replaceChildren(...card.slides.map((page, index) => {
     const panel = node("section", "slide-panel"); panel.setAttribute("aria-label", `${index + 1} / ${card.slides.length}`);
-    panel.append(node("p", "eyebrow", page.eyebrow || `${index + 1} / ${card.slides.length}`), node("h2", "", page.title), node("p", "slide-body", page.body)); return panel;
+    const text = [node("p", "eyebrow", page.eyebrow || `${index + 1} / ${card.slides.length}`), node("h2", "", page.title), node("p", "slide-body", page.body)];
+    if (page.image) {
+      panel.classList.add("poster-panel");
+      const full = node("details", "poster-text"), image = node("img", "poster-image");
+      full.append(node("summary", "", "상세 본문 읽기"), ...text);
+      image.alt = page.image.alt; image.width = page.image.width; image.height = page.image.height;
+      image.decoding = "async"; image.draggable = false;
+      image.addEventListener("error", () => { image.hidden = true; full.open = true; }, { once: true });
+      image.src = posterUrl(page.image);
+      panel.append(image, full);
+    } else panel.append(...text);
+    return panel;
   }));
   $("#slideTrack").classList.add("no-motion"); renderSlide();
   document.body.classList.add("reader-open"); $("#reader").showModal();
