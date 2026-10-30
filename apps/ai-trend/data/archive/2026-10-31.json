@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "date": "2026-10-31",
-  "generatedAt": "2026-10-30T20:00:15.640Z",
+  "generatedAt": "2026-10-30T22:16:24.313Z",
   "cards": [
     {
       "id": "55737272f83db8f2",
@@ -16,21 +16,21 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 87.2,
+        "score": 69.2,
         "components": {
-          "freshness": 68,
-          "communityAttention": 19.2,
-          "repeatPenalty": 0
+          "freshness": 65.9,
+          "communityAttention": 19.7,
+          "repeatPenalty": -16.4
         },
         "badge": "커뮤니티 소식",
         "reasons": [
-          "커뮤니티 게시 5시간 경과",
+          "커뮤니티 게시 7시간 경과",
           "Hacker News · Show HN 발견 경로",
-          "Hacker News 362점 · 댓글 283개"
+          "Hacker News 441점 · 댓글 327개"
         ],
         "signals": [
           {
-            "label": "커뮤니티 게시 5시간 경과",
+            "label": "커뮤니티 게시 7시간 경과",
             "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling"
           },
           {
@@ -38,14 +38,14 @@
             "url": "https://news.ycombinator.com/item?id=50305693"
           },
           {
-            "label": "Hacker News 362점 · 댓글 283개",
+            "label": "Hacker News 441점 · 댓글 327개",
             "url": "https://news.ycombinator.com/item?id=50305693"
           }
         ],
         "growth": null,
         "family": "SRE 역량 유지",
         "owner": "Hacker News · Show HN",
-        "repeated": false,
+        "repeated": true,
         "independentCommunity": true
       },
       "name": null,
@@ -57,7 +57,7 @@
       "likes": null,
       "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling",
       "publishedAt": "2026-10-30T15:52:18.000Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
+      "discoveredAt": "2026-10-30T22:16:24.313Z",
       "summary": "SigNoz 뉴스레터가 AI 장애 대응 자동화로 SRE의 실전 역량과 주니어의 학습 기회가 줄어들 수 있다고 주장합니다. 제품 출시 안내나 SRE 대상 실증 연구가 아니라 자동화의 위험을 논하는 글로, 운영 책임자와 교육 담당자에게 인간의 판단·훈련을 남기는 도입 원칙을 제안합니다.",
       "tags": [
         "SRE 역량 유지"
@@ -139,21 +139,21 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 87.2,
+        "score": 69.1,
         "components": {
-          "freshness": 69.5,
-          "communityAttention": 17.7,
-          "repeatPenalty": 0
+          "freshness": 67.3,
+          "communityAttention": 18.1,
+          "repeatPenalty": -16.4
         },
         "badge": "커뮤니티 소식",
         "reasons": [
-          "커뮤니티 게시 3시간 경과",
+          "커뮤니티 게시 5시간 경과",
           "Hacker News · Show HN 발견 경로",
-          "Hacker News 206점 · 댓글 175개"
+          "Hacker News 241점 · 댓글 201개"
         ],
         "signals": [
           {
-            "label": "커뮤니티 게시 3시간 경과",
+            "label": "커뮤니티 게시 5시간 경과",
             "url": "https://www.404media.co/protons-ceo-cancels-ai-re-interviews"
           },
           {
@@ -161,14 +161,14 @@
             "url": "https://news.ycombinator.com/item?id=50307183"
           },
           {
-            "label": "Hacker News 206점 · 댓글 175개",
+            "label": "Hacker News 241점 · 댓글 201개",
             "url": "https://news.ycombinator.com/item?id=50307183"
           }
         ],
         "growth": null,
         "family": "기업 AI 도입과 인사 평가",
         "owner": "Hacker News · Show HN",
-        "repeated": false,
+        "repeated": true,
         "independentCommunity": true
       },
       "name": null,
@@ -180,7 +180,7 @@
       "likes": null,
       "url": "https://www.404media.co/protons-ceo-cancels-ai-re-interviews",
       "publishedAt": "2026-10-30T17:24:45.000Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
+      "discoveredAt": "2026-10-30T22:16:24.313Z",
       "summary": "404 Media에 따르면 Proton은 직원들의 AI 활용을 점검하려던 재면접을 취소했지만, AI 도입 추진은 유지했습니다. 직원 반응과 보안 우려를 함께 다룬 이번 보도는 AI 활용을 인사 평가에 연결하려는 경영진과 개발 조직에 도입 방식과 검증 절차를 돌아볼 근거를 제공합니다.",
       "tags": [
         "기업 AI 도입과 인사 평가"
@@ -250,112 +250,6 @@
       "reviewedAt": "2026-10-30T20:01:28.003Z"
     },
     {
-      "id": "a3988ff6e2f31db4",
-      "category": "news",
-      "title": "Edit entire presentations with Gemini in Google Slides",
-      "source": "Google Workspace Updates",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
-      "primaryUrl": "https://support.google.com/docs/answer/17111393",
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 70.9,
-        "components": {
-          "freshness": 70.9,
-          "communityAttention": 0,
-          "repeatPenalty": 0
-        },
-        "badge": "새 공식 발표",
-        "reasons": [
-          "공식 발표 2시간 경과"
-        ],
-        "signals": [
-          {
-            "label": "공식 발표 2시간 경과",
-            "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html"
-          }
-        ],
-        "growth": null,
-        "family": "프레젠테이션 편집",
-        "owner": "Google Workspace Updates",
-        "repeated": false,
-        "independentCommunity": false
-      },
-      "name": null,
-      "topics": [],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": null,
-      "stars": null,
-      "likes": null,
-      "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
-      "publishedAt": "2026-10-30T18:54:03.258Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
-      "summary": "Google Slides의 Gemini가 한 번의 요청으로 여러 슬라이드나 발표 자료 전체를 수정합니다. Google Drive 파일을 바탕으로 내용을 보강하고 서식을 통일하며, 결과를 편집 가능한 슬라이드에 직접 반영합니다. 기존 자료를 반복해서 갱신하는 업무에 유용하지만, 출시 시점에는 영어만 지원합니다.",
-      "tags": [
-        "프레젠테이션 편집"
-      ],
-      "stats": [],
-      "signalLabel": "새 공식 발표",
-      "slides": [
-        {
-          "title": "1. 한 장씩 고치던 발표 자료를 일괄 수정",
-          "body": "Google Slides 측면 패널에서 Gemini에 요청하면 여러 슬라이드나 발표 자료 전체를 한꺼번에 수정할 수 있습니다. Gemini가 변경할 슬라이드를 판단해 내용과 디자인을 기존 슬라이드에 직접 반영하는 방식입니다. 별도의 결과물을 옮기는 과정 없이 편집 가능한 상태로 남아 후속 수정도 가능합니다. 발표 자료 전체의 서식을 맞추거나 여러 장에 흩어진 내용을 갱신하는 반복 작업을 줄이는 데 초점을 둡니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "2. Google이 강조한 내용·디자인 동시 편집",
-          "body": "Google은 글꼴·배경·색상 체계를 일괄 변경하고, 다른 프레젠테이션의 스타일을 참고해 전체 디자인을 맞출 수 있다고 설명합니다. Google Drive의 참고 파일을 바탕으로 내용을 보강하거나 초점을 바꾸고, 여러 장을 한 장으로 압축하거나 새 슬라이드를 추가하는 기능도 소개했습니다. 작업 후에는 측면 패널에 변경 요약이 표시되며 실행 취소와 버전 기록으로 되돌릴 수 있다고 안내합니다. 이는 공식 기능 설명이며, 별도의 속도·정확도 검증 결과는 제공되지 않았습니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "3. 보고서 갱신과 발표 분량 조절에 활용",
-          "body": "활용 예시 ① 정기 보고 담당자가 기존 발표 자료와 Google Drive의 참고 파일을 준비하고, 해당 파일의 세부 내용을 추가해 달라고 요청합니다. Gemini가 관련 슬라이드를 수정하면 담당자는 편집 가능한 결과와 변경 요약을 검토할 수 있습니다. 활용 예시 ② 발표자가 분량을 줄이기 위해 5~7번 슬라이드를 한 장으로 요약해 달라고 요청합니다. 여러 장의 내용을 압축한 뒤 직접 다듬는 흐름입니다. 두 예시는 공식 안내의 요청 방식을 업무 상황에 적용한 것으로, 실제 사용자 실증 사례는 아닙니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "4. 사용자 반응과 품질 검증은 아직 부족",
-          "body": "제공 자료는 2026년 10월 30일 Google의 공식 발표 한 건입니다. 실제 사용자 댓글이나 토론, 이슈의 열림·해결 상태를 확인할 자료가 없어 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 편집 가능한 슬라이드에 직접 반영되고 변경을 되돌릴 수 있다는 점은 제작자가 소개한 기능입니다. 긴 발표 자료에서 수정 누락이나 서식 오류가 얼마나 발생하는지 판단할 외부 평가와 공식 벤치마크 수치도 이 자료에는 없습니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "5. 영어 지원과 대상 요금제부터 확인",
-          "body": "실행 환경은 Google Slides의 Gemini 측면 패널이며 출시 시점 지원 언어는 영어입니다. 대상은 Business Standard·Plus, Enterprise Standard·Plus, Google AI Pro·Ultra, Google AI Pro for Education입니다. 2026년 10월 29일부터 배포가 시작됐으며 표시까지 15일 넘게 걸릴 수 있습니다. 최소 12월 1일까지 다중 슬라이드 생성의 높은 사용 한도를 판촉 제공한다고 안내했지만, 이후 한도와 정확한 비용·별도 API 요금·라이선스 조건은 미확인입니다. 대상 요금제를 쓰며 영어 요청으로 기존 자료를 자주 갱신하는 사용자에게 적합합니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Gemini로 Google Slides 전체를 한 번에 편집",
-      "topic": "프레젠테이션 편집",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "발표 원문",
-          "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
-          "kind": "creator"
-        }
-      ],
-      "reviewedAt": "2026-10-30T20:02:02.328Z"
-    },
-    {
       "id": "cac24968e5aa0d5b",
       "category": "model",
       "title": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
@@ -368,19 +262,19 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 55.9,
+        "score": 52.7,
         "components": {
           "nativeTrend": 42,
-          "freshness": 6.8,
-          "measuredVelocity": 16.6,
+          "freshness": 6.7,
+          "measuredVelocity": 16.5,
           "totalAttention": 3.9,
           "communityAttention": 0,
-          "repeatPenalty": -13.4
+          "repeatPenalty": -16.4
         },
         "badge": "단기 관심 증가",
         "reasons": [
           "Hugging Face 트렌딩 1위 관측",
-          "좋아요 +45개 / 7.2시간",
+          "좋아요 +58개 / 9.4시간",
           "공개 14일 이내 모델"
         ],
         "signals": [
@@ -389,7 +283,7 @@
             "url": "https://huggingface.co/models?sort=trending"
           },
           {
-            "label": "좋아요 +45개 / 7.2시간",
+            "label": "좋아요 +58개 / 9.4시간",
             "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017"
           },
           {
@@ -400,12 +294,12 @@
         "growth": {
           "metric": "likes",
           "baselineAt": "2026-10-30T12:50:52.078Z",
-          "observedAt": "2026-10-30T20:00:15.640Z",
+          "observedAt": "2026-10-30T22:16:24.313Z",
           "baseline": 3942,
-          "current": 3987,
-          "delta": 45,
-          "hours": 7.2,
-          "perHour": 6.3
+          "current": 4000,
+          "delta": 58,
+          "hours": 9.4,
+          "perHour": 6.2
         },
         "family": "비전·멀티모달",
         "owner": "deepseek-ai",
@@ -431,10 +325,10 @@
       "pipelineTag": "image-text-to-text",
       "pushedAt": null,
       "stars": null,
-      "likes": 3987,
+      "likes": 4000,
       "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017",
       "publishedAt": "2026-10-17T02:40:38.000Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
+      "discoveredAt": "2026-10-30T22:16:24.313Z",
       "summary": "DeepSeek-V4.1-Flash-1017은 텍스트와 이미지를 입력받고 코딩·추론·도구 호출에 활용하는 모델입니다. 제작자는 이전 버전보다 작업 시간과 출력 길이를 줄였다고 설명합니다. 자체 에이전트를 구축하는 개발자에게 유용하지만, 추론 환경과 도구 실행은 별도로 구성해야 합니다.",
       "tags": [
         "멀티모달 에이전트 모델"
@@ -446,7 +340,7 @@
         },
         {
           "label": "Likes",
-          "value": 3987
+          "value": 4000
         }
       ],
       "signalLabel": "단기 관심 증가",
@@ -540,416 +434,37 @@
       "reviewedAt": "2026-10-30T08:04:11.831Z"
     },
     {
-      "id": "ec673bd7694d3a65",
-      "category": "project",
-      "title": "pbakaus/impeccable",
-      "source": "GitHub",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 50.9,
-        "components": {
-          "dailyAttention": 27.3,
-          "measuredVelocity": 25.1,
-          "freshness": 0,
-          "activity": 7.9,
-          "earlyDiscovery": 0,
-          "totalAttention": 4,
-          "curationPenalty": 0,
-          "communityAttention": 0,
-          "repeatPenalty": -13.4
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "GitHub 오늘 별 +2,299개",
-          "별 +443개 / 7.2시간 · 시간당 61.9개",
-          "최근 7일 내 코드 변경 관측"
-        ],
-        "signals": [
-          {
-            "label": "GitHub 오늘 별 +2,299개",
-            "url": "https://github.com/trending?since=daily"
-          },
-          {
-            "label": "별 +443개 / 7.2시간 · 시간당 61.9개",
-            "url": "https://github.com/pbakaus/impeccable"
-          },
-          {
-            "label": "최근 7일 내 코드 변경 관측",
-            "url": "https://github.com/pbakaus/impeccable"
-          }
-        ],
-        "growth": {
-          "metric": "stars",
-          "baselineAt": "2026-10-30T12:50:52.078Z",
-          "observedAt": "2026-10-30T20:00:15.640Z",
-          "baseline": 96414,
-          "current": 96857,
-          "delta": 443,
-          "hours": 7.2,
-          "perHour": 61.9
-        },
-        "family": "에이전트·개발",
-        "owner": "pbakaus",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": "pbakaus/impeccable",
-      "topics": [
-        "agent-skills",
-        "ai",
-        "anti-slop",
-        "design",
-        "slop"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": "2026-10-30T17:36:40Z",
-      "stars": 96857,
-      "likes": null,
-      "url": "https://github.com/pbakaus/impeccable",
-      "publishedAt": "2025-11-16T01:52:04Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
-      "summary": "Impeccable은 코딩 에이전트에 구체적인 디자인 명령과 UI 점검 기능을 더하는 도구입니다. 제품·디자인 맥락을 파일로 기록하고, 화면 수정과 규칙 기반 검사를 연결합니다. 기존 웹 화면의 시각적 완성도와 접근성 문제를 반복적으로 다듬으려는 개발자에게 유용하며, 공개 이슈에는 검사 오탐과 검토 범위의 한계도 보고돼 있습니다.",
-      "tags": [
-        "코딩 에이전트 UI 디자인"
-      ],
-      "stats": [
-        {
-          "label": "오늘",
-          "value": 2299,
-          "suffix": " stars"
-        },
-        {
-          "label": "전체",
-          "value": 96857,
-          "suffix": " stars"
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "1. 막연한 디자인 요청을 구체적인 작업으로",
-          "body": "Impeccable은 Paul Bakaus가 만든 코딩 에이전트용 디자인 도구입니다. ‘더 보기 좋게’라는 요청을 polish, bolder, critique 같은 작업별 명령으로 구체화합니다. init은 코드와 사용자 답변을 바탕으로 PRODUCT.md를 만들고, document는 기존 시각 체계를 DESIGN.md에 기록합니다. 이후 명령이 이 맥락을 읽는 구조입니다. 코드 생성만 수행하는 방식에 디자인 검토와 규칙 기반 탐지를 결합하며, README는 특히 기존 화면이나 구성요소를 좁게 지정해 개선하는 작업에 강점이 있다고 설명합니다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "2. 제작자가 강조하는 명령과 자동 검사",
-          "body": "제작자는 디자인 조정·검토·마무리 등을 위한 명령 24개와 결정론적 탐지 규칙 62개를 제공한다고 설명합니다. critique는 사용성 평가와 수정 우선순위를, audit은 접근성·성능·테마·반응형 문제를 P0~P3로 정리한다고 소개합니다. 탐지기는 LLM이나 API 키 없이 작동한다는 설명입니다. 같은 Fable 5.1과 같은 숙소 소개 과제로 만든 전후 화면도 제시하지만, 이는 제작자의 비교 시연이며 독립적인 성능 검증은 아닙니다. 명령 수에는 사용 중단된 별칭 craft도 포함됩니다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "3. 요금 카드 검토와 브라우저 내 수정",
-          "body": "활용 예시 ① 기존 서비스 개발자가 요금 카드 코드를 준비하고 `/impeccable critique the pricing cards`를 입력하면, 해당 구성요소의 사용성을 검토하고 수정 우선순위를 받는 흐름을 구성할 수 있습니다. ② Vite 등으로 개발 중인 화면에서 `/impeccable live`를 실행하면 브라우저에서 요소와 수정 방향을 선택하고 여러 변형을 비교한 뒤, 선택한 결과를 소스에 반영할 수 있습니다. 두 예시는 README의 명령과 기능을 바탕으로 구성한 활용 예시이며, 외부 사용자의 도입 성과를 확인한 사례는 아닙니다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "4. 공개 이슈에서 드러난 검토 사각지대",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 외부 계정 이슈 4건은 2026년 10월 28~29일 작성됐으며, 수집 시점에 3건은 열림, 1건은 닫힘 상태입니다. #1212 작성자는 Windows x64의 engine 0.1.18에서 반투명 배경 대비 검사 오탐을 보고했고, #1216은 조건별 화면과 공통 버튼 영역의 불일치를 검토가 놓친다고 지적했습니다. #1214는 VS Code Agents window 지원 선언의 공백을 제안했으며 실행 실패 주장은 아닙니다. 참조 문서 연결 문제인 #1210은 닫혔지만 해결 내용은 제공되지 않았습니다.",
-          "evidenceIds": [
-            "s3",
-            "s4",
-            "s5",
-            "s6"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "5. 기존 웹 UI를 다듬는 팀에 적합",
-          "body": "라이선스는 Apache-2.0입니다. 프로젝트 루트에서 `npx impeccable install`로 설치하고 도구를 다시 불러온 뒤 초기화하며, Codex에서는 `$impeccable init`을 사용합니다. Node는 npx 실행에 필요하고 엔진은 별도 바이너리로 제공됩니다. URL 검사는 설치된 Chrome 또는 Edge를 사용하며, live 모드는 로컬 체크아웃에서만 사용하도록 안내합니다. 탐지기는 API 키가 필요 없지만 에이전트·모델 이용료는 미확인입니다. Codex의 자동 검사 훅은 별도 승인이 필요하며, 검사 결과를 렌더링 화면과 대조할 수 있는 개발팀에 적합합니다.",
-          "evidenceIds": [
-            "s1",
-            "s2",
-            "s5"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "코딩 에이전트에 디자인 지시와 UI 점검을 더하다",
-      "topic": "코딩 에이전트 UI 디자인",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "저장소 공식 정보",
-          "url": "https://github.com/pbakaus/impeccable",
-          "kind": "official"
-        },
-        {
-          "id": "s2",
-          "label": "제작자 README",
-          "url": "https://github.com/pbakaus/impeccable/blob/main/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s3",
-          "label": "공개 이슈 #1216",
-          "url": "https://github.com/pbakaus/impeccable/issues/1216",
-          "kind": "user-report"
-        },
-        {
-          "id": "s4",
-          "label": "공개 이슈 #1214",
-          "url": "https://github.com/pbakaus/impeccable/issues/1214",
-          "kind": "user-report"
-        },
-        {
-          "id": "s5",
-          "label": "공개 이슈 #1212",
-          "url": "https://github.com/pbakaus/impeccable/issues/1212",
-          "kind": "user-report"
-        },
-        {
-          "id": "s6",
-          "label": "공개 이슈 #1210",
-          "url": "https://github.com/pbakaus/impeccable/issues/1210",
-          "kind": "user-report"
-        }
-      ],
-      "reviewedAt": "2026-10-29T08:09:26.216Z"
-    },
-    {
-      "id": "653d82f9a2953196",
-      "category": "model",
-      "title": "Nanbeige/Nanbeige4.3-33B",
-      "source": "Hugging Face",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 34.5,
-        "components": {
-          "nativeTrend": 29.7,
-          "freshness": 11.1,
-          "measuredVelocity": 3.9,
-          "totalAttention": 3.1,
-          "communityAttention": 0,
-          "repeatPenalty": -13.4
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "Hugging Face 트렌딩 2위 관측",
-          "좋아요 +4개 / 7.2시간",
-          "공개 7일 이내 모델"
-        ],
-        "signals": [
-          {
-            "label": "Hugging Face 트렌딩 2위 관측",
-            "url": "https://huggingface.co/models?sort=trending"
-          },
-          {
-            "label": "좋아요 +4개 / 7.2시간",
-            "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B"
-          },
-          {
-            "label": "공개 7일 이내 모델",
-            "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B"
-          }
-        ],
-        "growth": {
-          "metric": "likes",
-          "baselineAt": "2026-10-30T12:50:52.078Z",
-          "observedAt": "2026-10-30T20:00:15.640Z",
-          "baseline": 790,
-          "current": 794,
-          "delta": 4,
-          "hours": 7.2,
-          "perHour": 0.6
-        },
-        "family": "추론·인프라",
-        "owner": "nanbeige",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": null,
-      "topics": [
-        "transformers",
-        "safetensors",
-        "llama",
-        "text-generation",
-        "llm",
-        "nanbeige",
-        "conversational",
-        "en",
-        "zh",
-        "base_model:Nanbeige/Nanbeige4.3-33B-Base",
-        "base_model:finetune:Nanbeige/Nanbeige4.3-33B-Base",
-        "license:apache-2.0",
-        "eval-results",
-        "text-generation-inference",
-        "endpoints_compatible",
-        "region:us"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": "text-generation",
-      "pushedAt": null,
-      "stars": null,
-      "likes": 794,
-      "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B",
-      "publishedAt": "2026-10-24T02:49:18.000Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
-      "summary": "Nanbeige4.3-33B는 복잡한 코딩과 업무 수행을 목표로 공개된 330억 매개변수 언어 모델입니다. 추론과 도구 호출, 긴 문맥 처리를 지원해 자체 에이전트를 구축하는 개발팀에 유용할 수 있습니다. 제작자 벤치마크와 별개로, 제공된 사용자 토론에는 반복 출력과 코딩 실패를 지적하는 제목이 있어 도입 전 검증이 필요합니다.",
-      "tags": [
-        "에이전트 언어 모델"
-      ],
-      "stats": [
-        {
-          "label": "Downloads",
-          "value": 12178
-        },
-        {
-          "label": "Likes",
-          "value": 794
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "1. 코딩과 업무 에이전트의 기반 모델",
-          "body": "Nanbeige4.3-33B는 코딩과 전문 업무를 여러 단계로 수행하는 에이전트의 기반이 되는 텍스트 생성 모델입니다. 완성된 업무 앱보다는 개발자가 실행 도구와 연결해 사용하는 구성요소에 가깝습니다. 대화 템플릿에서 현재 응답의 추론 여부와 이전 추론의 보존 여부를 조절하고, 도구 호출 형식도 선택할 수 있습니다. 제작자는 이 모델을 향후 소형 모델에 에이전트 능력을 증류하기 위한 교사 모델로도 소개합니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "2. 제작자가 강조하는 성능과 설정",
-          "body": "제작자는 최대 524,288토큰의 문맥과 XML·JSON 도구 호출을 지원한다고 설명합니다. 여러 차례 도구를 쓰는 작업에서는 이전 추론을 보존하는 설정을 권장합니다. 자체 비교에서 Terminal-Bench 2.1은 80.9, DeepSWE는 65.5를 기록했다고 제시하지만, SWE-Bench Pro에서는 Qwen3.8-27B보다 낮은 점수도 공개했습니다. 모델별 최고 추론 강도와 벤치마크별 동일 실행 조건을 사용했다는 설명이며, 이 수치는 독립 검증 결과가 아닙니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "3. 개발팀이 구성할 수 있는 활용 예시",
-          "body": "활용 예시 ① 개발자가 저장소와 수정 요구사항을 입력하면, 외부 실행 도구를 연결한 에이전트가 코드를 살피고 수정·검증을 반복해 변경안을 만드는 흐름입니다. README의 코딩 평가와 다중 도구 사용 설정에 근거한 예시이며 성공을 보장하지 않습니다. 활용 예시 ② 업무 자동화 개발자가 문서와 작업 지시, 사용할 도구 목록을 제공하면, 모델이 추론과 도구 호출을 이어가며 업무 결과물을 작성하도록 구성할 수 있습니다. 두 예시 모두 완성된 앱이나 실제 고객 도입 사례로 제시된 것은 아닙니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "4. 사용자 토론에는 실패 보고도 존재",
-          "body": "제공된 외부 사용자 토론 3건은 제목만 확인됩니다. UTC 기준 2026년 10월 29일 #32는 한국어 문서 질의응답 비교와 추론을 끈 temperature 0의 반복 출력을, 10월 27일 #29는 3대의 RTX 3090에서 6시간 작업 후 반복 오류와 쓸 만한 코드가 없었다는 경험을 제목에 담았습니다. 10월 28일 #31도 부정적 제목이며 세 건 모두 수집 시점에 열림 상태입니다. 본문·재현 조건이 없어 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 공식 벤치마크와 구분해야 합니다.",
-          "evidenceIds": [
-            "s1",
-            "s3",
-            "s4",
-            "s6"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "5. 자체 운영 역량이 있는 팀의 검토 대상",
-          "body": "라이선스는 Apache-2.0이며 접근 승인 제한 없이 공개되어 있습니다. 실행 안내는 Transformers·SGLang·vLLM을 제공하고, 서버 예제는 GPU 병렬도를 4로 설정합니다. 이는 최소 GPU 수나 메모리 요구량을 확정하는 근거는 아닙니다. 필요한 VRAM, 처리 속도, 운영비와 호스팅 API 가격은 자료에서 미확인입니다. 언어 표기는 영어·중국어이며 한국어 품질은 확정할 수 없습니다. 자체 추론 환경과 도구 실행 체계를 갖추고, 실제 업무에서 오류·반복 출력을 평가할 수 있는 개발팀에 적합한 검토 대상입니다.",
-          "evidenceIds": [
-            "s1",
-            "s2",
-            "s3",
-            "s6"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "코딩과 업무 도구 활용을 겨냥한 Nanbeige4.3-33B",
-      "topic": "에이전트 언어 모델",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "모델 제작자 설명",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/blob/main/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s2",
-          "label": "모델 공개 정보",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B",
-          "kind": "official"
-        },
-        {
-          "id": "s3",
-          "label": "모델 토론 #32",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/32",
-          "kind": "user-report"
-        },
-        {
-          "id": "s4",
-          "label": "모델 토론 #31",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/31",
-          "kind": "user-report"
-        },
-        {
-          "id": "s5",
-          "label": "모델 토론 #30",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/30",
-          "kind": "user-report"
-        },
-        {
-          "id": "s6",
-          "label": "모델 토론 #29",
-          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/29",
-          "kind": "user-report"
-        }
-      ],
-      "reviewedAt": "2026-10-29T08:07:24.423Z"
-    },
-    {
-      "id": "a1a23e154cf4eaa8",
+      "id": "a3988ff6e2f31db4",
       "category": "news",
-      "title": "[AINews] Gemini 4 Carbon tops leaderboards, launches for cyber defenders",
-      "source": "AI News / Latent Space",
-      "sourceKind": "reporting",
+      "title": "Edit entire presentations with Gemini in Google Slides",
+      "source": "Google Workspace Updates",
+      "sourceKind": "official",
       "channel": "information",
-      "discoveryUrl": "https://latent.space/p/ainews-gemini-4-carbon/",
-      "primaryUrl": null,
+      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+      "primaryUrl": "https://support.google.com/docs/answer/17111393",
       "releaseDate": null,
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 29.1,
+        "score": 52.3,
         "components": {
-          "freshness": 42.4,
+          "freshness": 68.7,
           "communityAttention": 0,
-          "repeatPenalty": -13.4
+          "repeatPenalty": -16.4
         },
-        "badge": "보도·종합 소식",
+        "badge": "새 공식 발표",
         "reasons": [
-          "보도·종합 소식 39시간 경과",
-          "AI News / Latent Space 발견 경로"
+          "공식 발표 4시간 경과"
         ],
         "signals": [
           {
-            "label": "보도·종합 소식 39시간 경과",
-            "url": "https://latent.space/p/ainews-gemini-4-carbon"
-          },
-          {
-            "label": "AI News / Latent Space 발견 경로",
-            "url": "https://latent.space/p/ainews-gemini-4-carbon/"
+            "label": "공식 발표 4시간 경과",
+            "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html"
           }
         ],
         "growth": null,
-        "family": "사이버 방어 AI",
-        "owner": "AI News / Latent Space",
+        "family": "프레젠테이션 편집",
+        "owner": "Google Workspace Updates",
         "repeated": true,
         "independentCommunity": false
       },
@@ -960,51 +475,51 @@
       "pushedAt": null,
       "stars": null,
       "likes": null,
-      "url": "https://latent.space/p/ainews-gemini-4-carbon",
-      "publishedAt": "2026-10-29T05:55:19.000Z",
-      "discoveredAt": "2026-10-30T20:00:15.640Z",
-      "summary": "Gemini 4 Carbon은 사이버 보안과 장시간 이어지는 작업을 겨냥한 Google DeepMind의 AI 모델입니다. AI News 보도에 따르면 신뢰할 수 있는 사이버 방어자에게 우선 제공됩니다. 취약점 탐지와 패치 지원을 검토하는 보안팀에 관심 대상이지만, 일반 개발자 접근과 실제 운영 성능은 별도로 살펴야 합니다.",
+      "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+      "publishedAt": "2026-10-30T18:54:03.258Z",
+      "discoveredAt": "2026-10-30T22:16:24.313Z",
+      "summary": "Google Slides의 Gemini가 한 번의 요청으로 여러 슬라이드나 발표 자료 전체를 수정합니다. Google Drive 파일을 바탕으로 내용을 보강하고 서식을 통일하며, 결과를 편집 가능한 슬라이드에 직접 반영합니다. 기존 자료를 반복해서 갱신하는 업무에 유용하지만, 출시 시점에는 영어만 지원합니다.",
       "tags": [
-        "사이버 방어 AI"
+        "프레젠테이션 편집"
       ],
       "stats": [],
-      "signalLabel": "보도·종합 소식",
+      "signalLabel": "새 공식 발표",
       "slides": [
         {
-          "title": "1. 사이버 방어 작업을 겨냥한 모델",
-          "body": "Gemini 4 Carbon은 Google DeepMind가 사이버 보안과 긴 작업 수행을 겨냥해 내놓은 모델이라고 AI News가 보도했습니다. 취약점 찾기, 공격 가능성 평가, 패치 작업이 주요 평가 대상입니다. 보도에 따르면 텍스트·이미지·영상·음성을 입력받고 텍스트를 출력합니다. 완성된 보안 제품이나 로컬 설치 도구보다는 여러 작업에 활용하는 모델로 소개됐으며, 초기 접근을 Fairwind Program의 신뢰할 수 있는 사이버 방어자로 제한하는 점이 특징입니다.",
+          "title": "1. 한 장씩 고치던 발표 자료를 일괄 수정",
+          "body": "Google Slides 측면 패널에서 Gemini에 요청하면 여러 슬라이드나 발표 자료 전체를 한꺼번에 수정할 수 있습니다. Gemini가 변경할 슬라이드를 판단해 내용과 디자인을 기존 슬라이드에 직접 반영하는 방식입니다. 별도의 결과물을 옮기는 과정 없이 편집 가능한 상태로 남아 후속 수정도 가능합니다. 발표 자료 전체의 서식을 맞추거나 여러 장에 흩어진 내용을 갱신하는 반복 작업을 줄이는 데 초점을 둡니다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "01 / 무엇인가요"
         },
         {
-          "title": "2. 제작자가 강조하는 탐지·패치 능력",
-          "body": "AI News가 전한 Google 측 발표에서, 제작자는 취약점 탐지 평가 SEC-bench Pro에서 88.2%, 공격 수행 평가 ExploitGym에서 54.8%, 패치 평가 CWE-bench에서 71.0%를 기록했다고 설명합니다. 또한 Terminal-Bench 4.0에서 부정행위 성공률이 0.0%로 낮아졌다고 주장합니다. 이는 보도가 인용한 제작자 수치입니다. Artificial Analysis 등의 외부 평가 결과와는 출처가 다르며, 실제 조직의 보안 업무에서 같은 성과가 나온다는 뜻으로 해석해서는 안 됩니다.",
+          "title": "2. Google이 강조한 내용·디자인 동시 편집",
+          "body": "Google은 글꼴·배경·색상 체계를 일괄 변경하고, 다른 프레젠테이션의 스타일을 참고해 전체 디자인을 맞출 수 있다고 설명합니다. Google Drive의 참고 파일을 바탕으로 내용을 보강하거나 초점을 바꾸고, 여러 장을 한 장으로 압축하거나 새 슬라이드를 추가하는 기능도 소개했습니다. 작업 후에는 측면 패널에 변경 요약이 표시되며 실행 취소와 버전 기록으로 되돌릴 수 있다고 안내합니다. 이는 공식 기능 설명이며, 별도의 속도·정확도 검증 결과는 제공되지 않았습니다.",
           "evidenceIds": [
             "s1"
           ],
-          "eyebrow": "02 / 원문에서 밝힌 내용"
+          "eyebrow": "02 / 제작자의 설명"
         },
         {
-          "title": "3. 보안팀이 생각해 볼 활용 예시",
-          "body": "다음은 보도된 평가 영역을 바탕으로 추론한 활용 예시이며, 실제 도입 사례는 아닙니다. 첫째, 애플리케이션 보안 담당자가 검토 대상 코드와 동작 설명을 입력하고 취약점 분석을 요청해, 의심 지점과 검증할 항목을 텍스트로 받는 흐름입니다. 둘째, 유지보수 개발자가 취약한 코드와 수정 조건을 입력하고 패치안을 요청해, 변경 제안과 설명을 받는 흐름입니다. 자료에는 저장소 자동 연결이나 패치 배포 기능이 확인되지 않으므로, 결과 검토와 적용은 별도 과정으로 두어야 합니다.",
+          "title": "3. 보고서 갱신과 발표 분량 조절에 활용",
+          "body": "활용 예시 ① 정기 보고 담당자가 기존 발표 자료와 Google Drive의 참고 파일을 준비하고, 해당 파일의 세부 내용을 추가해 달라고 요청합니다. Gemini가 관련 슬라이드를 수정하면 담당자는 편집 가능한 결과와 변경 요약을 검토할 수 있습니다. 활용 예시 ② 발표자가 분량을 줄이기 위해 5~7번 슬라이드를 한 장으로 요약해 달라고 요청합니다. 여러 장의 내용을 압축한 뒤 직접 다듬는 흐름입니다. 두 예시는 공식 안내의 요청 방식을 업무 상황에 적용한 것으로, 실제 사용자 실증 사례는 아닙니다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "03 / 어디에 쓰나요"
         },
         {
-          "title": "4. 외부 평가 성적과 사용자 반응의 차이",
-          "body": "2026년 10월 27~28일 소식을 모은 이 보도는 Artificial Analysis Intelligence Index v5에서 Carbon이 59점으로 1위였다고 전합니다. 반면 Coding Agent Index에서는 59점으로 Opus 5.5 조합의 62점보다 낮았습니다. 보도가 소개한 반응에는 @scaling01의 사이버 업무 환각 우려와 @Yuchenj_UW의 다른 실행 도구에서는 결과가 미검증이라는 지적이 있습니다. 댓글 전체 표본이나 이슈의 열림·해결 상태는 제공되지 않았습니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
+          "title": "4. 사용자 반응과 품질 검증은 아직 부족",
+          "body": "제공 자료는 2026년 10월 30일 Google의 공식 발표 한 건입니다. 실제 사용자 댓글이나 토론, 이슈의 열림·해결 상태를 확인할 자료가 없어 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 편집 가능한 슬라이드에 직접 반영되고 변경을 되돌릴 수 있다는 점은 제작자가 소개한 기능입니다. 긴 발표 자료에서 수정 누락이나 서식 오류가 얼마나 발생하는지 판단할 외부 평가와 공식 벤치마크 수치도 이 자료에는 없습니다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "04 / 평가와 반응"
         },
         {
-          "title": "5. 접근 자격과 비용부터 따져볼 단계",
-          "body": "보도 시점에는 Fairwind Program을 통한 제한적 제공이 우선이며, 일반 개발자 접근 일정은 확정되지 않았습니다. 보도는 Artificial Analysis를 인용해 입력·출력 100만 토큰당 표준 가격을 각각 4달러·20달러, 종료일 미정의 출시 할인을 50%로 소개합니다. 캐시 입력은 100만 토큰당 0.20달러입니다. 로컬 설치 방법, 필요한 하드웨어, 라이선스 조건은 자료에서 미확인입니다. 초기 접근 자격이 있고 생성 결과를 검증할 수 있는 보안팀의 평가 후보로 적합하며, 공개 도입을 전제로 한 계획에는 접근 제한이 걸림돌입니다.",
+          "title": "5. 영어 지원과 대상 요금제부터 확인",
+          "body": "실행 환경은 Google Slides의 Gemini 측면 패널이며 출시 시점 지원 언어는 영어입니다. 대상은 Business Standard·Plus, Enterprise Standard·Plus, Google AI Pro·Ultra, Google AI Pro for Education입니다. 2026년 10월 29일부터 배포가 시작됐으며 표시까지 15일 넘게 걸릴 수 있습니다. 최소 12월 1일까지 다중 슬라이드 생성의 높은 사용 한도를 판촉 제공한다고 안내했지만, 이후 한도와 정확한 비용·별도 API 요금·라이선스 조건은 미확인입니다. 대상 요금제를 쓰며 영어 요청으로 기존 자료를 자주 갱신하는 사용자에게 적합합니다.",
           "evidenceIds": [
             "s1"
           ],
@@ -1012,153 +527,143 @@
         }
       ],
       "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "취약점 탐지·패치를 돕는 Gemini 4 Carbon",
-      "topic": "사이버 방어 AI",
+      "headline": "Gemini로 Google Slides 전체를 한 번에 편집",
+      "topic": "프레젠테이션 편집",
       "evidence": [
         {
           "id": "s1",
-          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
-          "url": "https://latent.space/p/ainews-gemini-4-carbon",
-          "kind": "reporting"
-        },
-        {
-          "id": "s2",
-          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
-          "url": "https://latent.space/p/ainews-gemini-4-carbon/",
-          "kind": "community"
+          "label": "발표 원문",
+          "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+          "kind": "creator"
         }
       ],
-      "reviewedAt": "2026-10-29T08:03:09.846Z"
+      "reviewedAt": "2026-10-30T20:02:02.328Z"
     }
   ],
   "sources": [
-    {
-      "name": "Product Hunt",
-      "url": "https://www.producthunt.com/feed",
-      "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "OpenAI",
-      "url": "https://openai.com/news/rss.xml",
-      "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
     {
       "name": "Hugging Face Models",
       "url": "https://huggingface.co/models?sort=trending",
       "status": "ok",
       "count": 12,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "Reddit r/LocalLLaMA",
+      "url": "https://www.reddit.com/r/LocalLLaMA/new/.rss?limit=30",
+      "status": "error",
+      "detail": "HTTP 403",
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "Hugging Face Blog",
       "url": "https://huggingface.co/blog/feed.xml",
       "status": "ok",
       "count": 7,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
-      "name": "arXiv",
-      "url": "https://rss.arxiv.org/atom/cs.AI+cs.LG+cs.CL+cs.CV",
-      "status": "error",
-      "detail": "response too large",
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "Techmeme",
-      "url": "https://www.techmeme.com/feed.xml",
+      "name": "Product Hunt",
+      "url": "https://www.producthunt.com/feed",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
-      "name": "Gemini 변경 기록",
-      "url": "https://gemini.google/release-notes/",
+      "name": "OpenAI",
+      "url": "https://openai.com/news/rss.xml",
       "status": "ok",
-      "count": 0,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "count": 8,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "Google AI",
       "url": "https://blog.google/technology/ai/rss/",
       "status": "ok",
       "count": 1,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "Reddit r/LocalLLaMA",
-      "url": "https://www.reddit.com/r/LocalLLaMA/new/.rss?limit=30",
-      "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "alphaXiv",
-      "url": "https://www.alphaxiv.org/",
-      "status": "ok",
-      "count": 10,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "Google Workspace Updates",
-      "url": "https://feeds.feedburner.com/GoogleAppsUpdates",
-      "status": "ok",
-      "count": 5,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
-    },
-    {
-      "name": "GeekNews",
-      "url": "https://news.hada.io/rss/news",
-      "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "Anthropic Engineering",
       "url": "https://www.anthropic.com/engineering",
       "status": "ok",
       "count": 0,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "Gemini 변경 기록",
+      "url": "https://gemini.google/release-notes/",
+      "status": "ok",
+      "count": 0,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "Google Workspace Updates",
+      "url": "https://feeds.feedburner.com/GoogleAppsUpdates",
+      "status": "ok",
+      "count": 5,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "alphaXiv",
+      "url": "https://www.alphaxiv.org/",
+      "status": "ok",
+      "count": 10,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "arXiv",
+      "url": "https://rss.arxiv.org/atom/cs.AI+cs.LG+cs.CL+cs.CV",
+      "status": "error",
+      "detail": "response too large",
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "Techmeme",
+      "url": "https://www.techmeme.com/feed.xml",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
+    },
+    {
+      "name": "GeekNews",
+      "url": "https://news.hada.io/rss/news",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "AI News / Latent Space",
       "url": "https://latent.space/feeds/news.xml",
       "status": "ok",
       "count": 5,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "Hacker News · Show HN",
       "url": "https://news.ycombinator.com/",
       "status": "ok",
       "count": 47,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "GitHub New AI",
       "url": "https://github.com/topics/llm",
       "status": "ok",
       "count": 72,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     },
     {
       "name": "GitHub Trending",
       "url": "https://github.com/trending?since=daily",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-10-30T20:00:15.640Z"
+      "checkedAt": "2026-10-30T22:16:24.313Z"
     }
   ],
   "selectionPolicy": "momentum-v2",
   "metricHistory": {
     "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 3517
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 3532
@@ -1190,13 +695,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 3987
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 4000
       }
     ],
     "https://huggingface.co/black-forest-labs/flux-3-image-klein-comfy": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 1942
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 1949
@@ -1228,13 +733,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 2104
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 2111
       }
     ],
     "https://github.com/tangency-labs/solidcraft": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 11598
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 11637
@@ -1258,6 +763,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 12337
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 12359
       }
     ],
     "https://github.com/arcfluxresearch/dudes": [
@@ -1267,10 +776,6 @@
       }
     ],
     "https://github.com/dicklesworthstone/franken_accounting": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 28
-      },
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 28
@@ -1282,13 +787,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
       }
     ],
     "https://github.com/tedix-hq/tedix": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 31
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 31
@@ -1300,13 +805,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 32
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 32
       }
     ],
     "https://huggingface.co/abenzerps/Qwen-Image-2.1-Uncensored-Quantized": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 5243
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 5254
@@ -1322,6 +827,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 5363
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 5369
       }
     ],
     "https://github.com/oleost/visionstate": [
@@ -1348,13 +857,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 182
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 182
       }
     ],
     "https://huggingface.co/Lightricks/LTX-2.5": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 9688
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 9710
@@ -1386,6 +895,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 9943
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 9952
       }
     ],
     "https://github.com/sallyn0225/eidolon-sc": [
@@ -1408,6 +921,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 337
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 338
       }
     ],
     "https://github.com/seykoooooo/xeno-json-response-inspector": [
@@ -1433,6 +950,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 70
       }
     ],
@@ -1478,10 +999,6 @@
     ],
     "https://github.com/yashsindya2014-hash/frame-trace-mcp": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 68
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 68
       },
@@ -1511,15 +1028,15 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 68
       }
     ],
     "https://github.com/abdulsinsn/scaler-2-music-theory-engine": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 70
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 70
       },
@@ -1549,6 +1066,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 70
       }
     ],
@@ -1572,10 +1093,6 @@
     ],
     "https://github.com/ayush-6/ai-studio-setup": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 57
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 57
       },
@@ -1594,10 +1111,6 @@
     ],
     "https://github.com/fh6312/kubeflow-pipeline-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 53
-      },
-      {
         "at": "2026-10-29T08:00:15.806Z",
         "stars": 53
       },
@@ -1615,6 +1128,10 @@
       },
       {
         "at": "2026-10-30T12:50:52.078Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 53
       }
     ],
@@ -1642,10 +1159,6 @@
     ],
     "https://github.com/martinguirado95-ux/untangling-ml-complexity": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
-      {
         "at": "2026-10-29T08:00:15.806Z",
         "stars": 56
       },
@@ -1667,15 +1180,15 @@
       },
       {
         "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 56
       }
     ],
     "https://github.com/seandavedalaguit-ui/edge-vision-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 56
       },
@@ -1705,15 +1218,15 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 56
       }
     ],
     "https://github.com/sujit273-cpu/rep-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 56
       },
@@ -1743,6 +1256,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 56
       }
     ],
@@ -1770,13 +1287,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
       }
     ],
     "https://github.com/duke6290/formai-coach": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 56
@@ -1807,6 +1324,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 56
       }
     ],
@@ -1834,13 +1355,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 53
       }
     ],
     "https://github.com/olamideayanlami2-blip/theme-song-face-recognition": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 53
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 53
@@ -1872,13 +1393,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 53
       }
     ],
     "https://github.com/asepochs/ai-digital-teacher": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 13
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 13
@@ -1904,13 +1425,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 88
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 88
       }
     ],
     "https://github.com/yetone/magpie": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 24537
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 24551
@@ -1938,13 +1459,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 26216
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 26236
       }
     ],
     "https://github.com/erolilhan/dataforge-lua": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 68
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 68
@@ -1963,15 +1484,15 @@
       },
       {
         "at": "2026-10-30T12:50:52.078Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 68
       }
     ],
     "https://github.com/avri22222/ts-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 54
-      },
-      {
         "at": "2026-10-29T12:57:28.921Z",
         "stars": 54
       },
@@ -1985,15 +1506,15 @@
       },
       {
         "at": "2026-10-30T12:50:52.078Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 54
       }
     ],
     "https://github.com/gabrielnicolas10/haiku-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
-      {
         "at": "2026-10-29T12:57:28.921Z",
         "stars": 56
       },
@@ -2007,28 +1528,28 @@
       },
       {
         "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 56
       }
     ],
     "https://github.com/shafikhan24/aniruddhha-profile-forge": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 54
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 54
       },
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 54
       }
     ],
     "https://github.com/stof-dorof/fretwise-listener": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 56
@@ -2040,13 +1561,13 @@
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
       }
     ],
     "https://github.com/vinsmoke2110/coreml-live-vision-showcase": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 56
-      },
       {
         "at": "2026-10-29T12:57:28.921Z",
         "stars": 56
@@ -2062,13 +1583,13 @@
       {
         "at": "2026-10-30T12:50:52.078Z",
         "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
       }
     ],
     "https://github.com/shikasar7/cicatavern": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 44
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 44
@@ -2084,6 +1605,10 @@
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 46
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 48
       }
     ],
     "https://github.com/ahmadluthfan421-star/lithicsoft-trainer-forge": [
@@ -2154,13 +1679,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 149
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 149
       }
     ],
     "https://github.com/flisk-sh/flisk": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 27
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 27
@@ -2168,13 +1693,13 @@
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
       }
     ],
     "https://github.com/georgeguimaraes/transmuter": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 20
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 20
@@ -2206,13 +1731,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 21
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 21
       }
     ],
     "https://huggingface.co/RecursiveSI/flint": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 1145
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 1151
@@ -2244,13 +1769,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 1255
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 1256
       }
     ],
     "https://github.com/kobaltgit/photocraft-companion": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 20
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 20
@@ -2269,6 +1794,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 24
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 24
       }
     ],
@@ -2302,10 +1831,6 @@
     ],
     "https://huggingface.co/XHToken/Spark-X2.6-4B": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 845
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 851
       },
@@ -2336,13 +1861,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 919
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 922
       }
     ],
     "https://huggingface.co/Qwen/Qwen3.8-27B": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 18606
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 18612
@@ -2363,10 +1888,6 @@
       }
     ],
     "https://github.com/pbakaus/impeccable": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 92338
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 92493
@@ -2398,13 +1919,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 96857
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 96953
       }
     ],
     "https://github.com/makecindy/cindy": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 7980
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 8039
@@ -2416,10 +1937,6 @@
     ],
     "https://github.com/nutlope/hallmark": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 40507
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 40622
       },
@@ -2429,10 +1946,6 @@
       }
     ],
     "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 446
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 450
@@ -2460,10 +1973,6 @@
     ],
     "https://github.com/qwdwqfwq/topconf-paper-figure-gallery": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 1229
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 1229
       },
@@ -2477,6 +1986,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 1274
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 1274
       }
     ],
@@ -2496,13 +2009,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 207
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 207
       }
     ],
     "https://github.com/zlhad/openvideoharness": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 23
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 23
@@ -2517,10 +2030,6 @@
       }
     ],
     "https://huggingface.co/Nanbeige/Nanbeige4.3-33B": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 712
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 719
@@ -2552,13 +2061,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 794
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 796
       }
     ],
     "https://huggingface.co/ISTA-DASLab/DeepSeek-V4.1-Flash-1017-GSQ-RCO-GGUF": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 430
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 431
@@ -2590,13 +2099,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 503
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 506
       }
     ],
     "https://github.com/software-mansion/runntime": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 102
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 102
@@ -2619,10 +2128,6 @@
       }
     ],
     "https://github.com/deibler/openskycam": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 65
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 65
@@ -2650,23 +2155,23 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 71
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 72
       }
     ],
     "https://github.com/thelastoxygen/mafdet": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
+        "at": "2026-10-29T08:00:15.806Z",
         "stars": 74
       },
       {
-        "at": "2026-10-29T08:00:15.806Z",
-        "stars": 74
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 76
       }
     ],
     "https://github.com/nightly-labs/openbot": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 3132
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 3188
@@ -2720,6 +2225,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 15
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 15
       }
     ],
     "https://github.com/modelplan/modelplan": [
@@ -2736,17 +2245,7 @@
         "stars": 41
       }
     ],
-    "https://github.com/water-run/ft": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 26
-      }
-    ],
     "https://github.com/ww-w-ai/super-video-agent": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 18
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 18
@@ -2754,6 +2253,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 18
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 19
       }
     ],
     "https://github.com/midagedev/bloomery": [
@@ -2775,6 +2278,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 54
       }
     ],
@@ -2802,10 +2309,6 @@
     ],
     "https://github.com/respanai/respan-gateway": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 369
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 371
       },
@@ -2815,10 +2318,6 @@
       }
     ],
     "https://github.com/alexays/lilo": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 25
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 26
@@ -2850,13 +2349,13 @@
       {
         "at": "2026-10-30T12:50:52.078Z",
         "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
       }
     ],
     "https://github.com/dvchd/vifasttts": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 50
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 50
@@ -2912,10 +2411,6 @@
     ],
     "https://github.com/elayadesign/ai-design-skills": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 10960
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 11029
       },
@@ -2956,12 +2451,6 @@
       {
         "at": "2026-10-29T20:00:15.150Z",
         "stars": 17
-      }
-    ],
-    "https://github.com/victorgassuncao21/piper-morgan-assistant": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 58
       }
     ],
     "https://github.com/01men/ybkkasi": [
@@ -3014,10 +2503,6 @@
     ],
     "https://github.com/expo/skills": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 3506
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 3539
       },
@@ -3032,13 +2517,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 3849
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 3869
       }
     ],
     "https://github.com/macro-inc/macro": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 5337
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 5383
@@ -3054,13 +2539,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 5817
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 5837
       }
     ],
     "https://github.com/ker0el/starryvt": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 11
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 11
@@ -3096,17 +2581,7 @@
         "stars": 17
       }
     ],
-    "https://github.com/jmanico/grim-prompter": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 48
-      }
-    ],
     "https://github.com/egma-ai/homi": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 3
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 3
@@ -3121,10 +2596,6 @@
       }
     ],
     "https://huggingface.co/LiquidAI/LFM3-1.7B": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 354
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 373
@@ -3156,31 +2627,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 547
-      }
-    ],
-    "https://github.com/eljot19/runic": [
+      },
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 58
-      }
-    ],
-    "https://github.com/dolev31/lasagna": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 23
-      }
-    ],
-    "https://github.com/gangfun/gang-launchpad": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 19
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 556
       }
     ],
     "https://huggingface.co/tencent/Hy-SimulMT-30B-A3B-FP8": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "likes": 309
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "likes": 334
@@ -3195,10 +2648,6 @@
       }
     ],
     "https://github.com/thomasunise/casecite": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 53
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 55
@@ -3228,17 +2677,7 @@
         "stars": 136
       }
     ],
-    "https://github.com/open-net-worth-ai/open-net-worth": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 14
-      }
-    ],
     "https://github.com/timmzak/retext": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 21
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 21
@@ -3246,25 +2685,11 @@
     ],
     "https://github.com/greyoak111/cccodroid": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 29
-      },
-      {
         "at": "2026-10-29T08:00:15.806Z",
         "stars": 30
       }
     ],
-    "https://github.com/skulitom/nestbolt": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 10
-      }
-    ],
     "https://github.com/amurgola/lumabrowser": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 128
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 128
@@ -3280,67 +2705,33 @@
     ],
     "https://github.com/tidydesigns/tidy": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 41
-      },
-      {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 47
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 50
       }
     ],
     "https://github.com/fazmin/ailearningguide": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 235
-      },
       {
         "at": "2026-10-29T20:00:15.150Z",
         "stars": 235
       }
     ],
-    "https://github.com/lmliheng/adelie": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 134
-      }
-    ],
     "https://github.com/phigonai/observer": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 13
-      },
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 14
       }
     ],
-    "https://github.com/aimee51819/fileflipper": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 47
-      }
-    ],
     "https://github.com/mistgate/mistgate": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 101
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 101
       }
     ],
-    "https://github.com/olanetsoft/agent-lookout": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 10
-      }
-    ],
     "https://github.com/guillaume-gagnaire/escouade": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 35
-      },
       {
         "at": "2026-10-29T08:00:15.806Z",
         "stars": 35
@@ -3348,47 +2739,17 @@
     ],
     "https://github.com/promptclickrun/bighelp": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 63
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 63
-      }
-    ],
-    "https://github.com/sahilmahendrakar/paradee": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 125
       }
     ],
     "https://github.com/cuongyd196/cit-voice-studio": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 128
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 128
       }
     ],
-    "https://github.com/arther-hup/forge-context-engine": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 76
-      }
-    ],
-    "https://github.com/badajmoncef8-prog/zeroreal-orchestra": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 71
-      }
-    ],
     "https://github.com/coniieq/luau-guardrail": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 74
-      },
       {
         "at": "2026-10-30T08:00:15.612Z",
         "stars": 74
@@ -3398,17 +2759,7 @@
         "stars": 74
       }
     ],
-    "https://github.com/electric-capital/quest": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 80
-      }
-    ],
     "https://github.com/leciric/agentbox": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 12
-      },
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 12
@@ -3416,25 +2767,11 @@
     ],
     "https://github.com/nodal-data/nodal-context": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 10
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 10
       }
     ],
-    "https://github.com/kishormorol/cli-faq-shortcuts": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 132
-      }
-    ],
     "https://github.com/yuuyuko-uu/dsh-tts-bridge": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 176
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 176
@@ -3458,13 +2795,13 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 196
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 196
       }
     ],
     "https://github.com/thewariend/cleanslate": [
-      {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 14
-      },
       {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 14
@@ -3480,10 +2817,6 @@
     ],
     "https://github.com/goat-si/goat": [
       {
-        "at": "2026-10-28T20:00:15.671Z",
-        "stars": 15
-      },
-      {
         "at": "2026-10-28T22:33:10.816Z",
         "stars": 15
       },
@@ -3494,6 +2827,10 @@
       {
         "at": "2026-10-30T12:50:52.078Z",
         "stars": 17
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 18
       }
     ],
     "https://github.com/hpoenixf/open-etf-agent": [
@@ -3558,6 +2895,10 @@
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 10
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 10
       }
     ],
     "https://github.com/atastech/pitroom": [
@@ -3616,6 +2957,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 443
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 449
       }
     ],
     "https://github.com/k8s-servant/k8s-skills": [
@@ -3794,6 +3139,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 105981
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 106111
       }
     ],
     "https://github.com/daveebbelaar/bama": [
@@ -3826,6 +3175,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 8667
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 8733
       }
     ],
     "https://github.com/donchitos/claude-code-game-studios": [
@@ -3910,6 +3263,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 483
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 495
       }
     ],
     "https://github.com/ronitgupta138/vectra-core": [
@@ -3964,6 +3321,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 219
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 219
       }
     ],
     "https://github.com/egordoronchenko/kd-rules-mcp": [
@@ -4010,6 +3371,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 4
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 4
       }
     ],
     "https://github.com/aiseo-virtualabdigital/mcp-video-editor": [
@@ -4053,6 +3418,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 4
       }
     ],
@@ -4118,6 +3487,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 25
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 26
       }
     ],
     "https://github.com/hgjmkj/futures-ledger-forge": [
@@ -4129,6 +3502,10 @@
     "https://github.com/sley-lang/sley": [
       {
         "at": "2026-10-29T20:00:15.150Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 12
       }
     ],
@@ -4182,6 +3559,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 45
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 45
       }
     ],
     "https://github.com/jackwener/deepseekharness-android": [
@@ -4224,6 +3605,10 @@
       {
         "at": "2026-10-29T22:43:22.957Z",
         "stars": 23
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 57
       }
     ],
     "https://github.com/escudero/brandpose": [
@@ -4241,6 +3626,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 194
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 194
       }
     ],
@@ -4275,6 +3664,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 487
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 487
       }
     ],
@@ -4392,6 +3785,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "likes": 1326
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 1335
       }
     ],
     "https://github.com/gbourgeat/ddd-ts-kit": [
@@ -4433,6 +3830,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 111
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 111
       }
     ],
@@ -4518,6 +3919,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 307345
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 307412
       }
     ],
     "https://github.com/lightpanda-io/browser": [
@@ -4528,6 +3933,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 38206
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 38293
       }
     ],
     "https://github.com/noah-thing/open-cursor": [
@@ -4550,6 +3959,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 185184
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 185247
       }
     ],
     "https://github.com/maxtrigify/otto": [
@@ -4583,6 +3996,10 @@
       },
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 11
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 11
       }
     ],
@@ -4648,6 +4065,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 77
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 77
       }
     ],
     "https://github.com/morethanrealio/brambit": [
@@ -4665,6 +4086,10 @@
     "https://github.com/touri-ai/touri": [
       {
         "at": "2026-10-30T20:00:15.640Z",
+        "stars": 90
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
         "stars": 90
       }
     ],
@@ -4690,6 +4115,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 108
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 108
       }
     ],
     "https://github.com/tigusigalpa/ai-kit": [
@@ -4714,6 +4143,10 @@
       {
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 10
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 10
       }
     ],
     "https://github.com/imserhatdemir/ft-motion": [
@@ -4721,86 +4154,147 @@
         "at": "2026-10-30T20:00:15.640Z",
         "stars": 46
       }
+    ],
+    "https://github.com/conahmorgan2304/sentient": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/ta0p1/resolvelab": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 91
+      }
+    ],
+    "https://github.com/open-net-worth-ai/open-net-worth": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/mickey/tailhome": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 31
+      }
+    ],
+    "https://github.com/opensec-git/pi-bolt": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 668
+      }
+    ],
+    "https://github.com/capthvnsen/alans-way": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 101
+      }
+    ],
+    "https://github.com/phprs-cms/kaletacms": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 129
+      }
+    ],
+    "https://github.com/skulitom/pixelbolt": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/agent-labs-dev/fastbrowse": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 135
+      }
+    ],
+    "https://github.com/leemysw/yovoice": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 1990
+      }
     ]
   },
   "repositoryMetrics": {
-    "thedotmack/claude-mem": 105981,
-    "mattpocock/skills": 307345,
-    "lightpanda-io/browser": 38206,
-    "CopilotKit/OpenBot": 8667,
-    "pbakaus/impeccable": 96857,
-    "anthropics/skills": 185184,
-    "jackwener/DeepseekHarness-Android": 499,
+    "thedotmack/claude-mem": 106111,
+    "mattpocock/skills": 307412,
+    "lightpanda-io/browser": 38293,
+    "CopilotKit/OpenBot": 8733,
+    "anthropics/skills": 185247,
+    "pbakaus/impeccable": 96953,
     "lonthq/overtone-captions": 45,
-    "macro-inc/macro": 5817,
-    "expo/skills": 3849,
-    "tangency-labs/solidcraft": 12337,
-    "yetone/magpie": 26216,
+    "macro-inc/macro": 5837,
+    "expo/skills": 3869,
+    "yetone/magpie": 26236,
     "HiAriesZhou/Howler": 4,
-    "Deibler/openskycam": 71,
-    "Alexays/Lilo": 28,
-    "konic-labs/kubic": 70,
-    "third-intelligence/RubatoCodec": 15,
+    "tangency-labs/solidcraft": 12359,
+    "drawthingsai/local-code-community": 57,
+    "Deibler/openskycam": 72,
+    "TheLastOxygen/mafdet": 76,
+    "conahmorgan2304/sentient": 28,
+    "Ta0p1/ResolveLab": 91,
+    "Shikasar7/CicaTavern": 48,
     "Animan-AI/DuckBuddy": 77,
     "georgeguimaraes/transmuter": 21,
-    "UCS-Care-Group/mailcraft": 172,
     "escudero/brandpose": 194,
-    "morethanrealio/brambit": 21,
-    "aaryanrwt/athena": 12,
     "timoncool/speech-studio": 149,
     "touri-ai/touri": 90,
+    "open-net-worth-ai/open-net-worth": 17,
     "T8mars/Comfyui-Drama-3": 11,
+    "mickey/tailhome": 31,
+    "cromford-ai/cromford": 28,
     "Zaneris/passenger": 207,
     "oimo-ai/apgar": 4,
-    "acrylblends/acrylblends": 12,
-    "cutfac/cutfac": 13,
-    "donet-org-cn/FunAsrNet": 56,
+    "goat-si/goat": 18,
     "kobaltgit/photocraft-companion": 24,
+    "tidydesigns/tidy": 50,
     "Dicklesworthstone/franken_accounting": 28,
-    "Sallyn0225/eidolon-sc": 337,
-    "qwdwqfwq/topconf-paper-figure-gallery": 1274,
-    "dgesteves/onsystem": 165,
     "Dicklesworthstone/frankensonos": 108,
-    "tigusigalpa/ai-kit": 46,
-    "dgesteves/ondocs": 39,
+    "qwdwqfwq/topconf-paper-figure-gallery": 1274,
     "tedix-hq/tedix": 32,
+    "opensec-git/Pi-Bolt": 668,
     "LambdaLabsHQ/xmatrix": 88,
+    "Sallyn0225/eidolon-sc": 338,
     "strands-agents/box": 487,
-    "Yuuyuko-uu/dsh-tts-bridge": 196,
-    "phigonai/observer": 14,
-    "Kernel-Hunter/mudroom": 15,
-    "ronitgupta138/Vectra-Core": 64,
+    "i098/Crewship": 10,
+    "capthvnsen/alans-way": 101,
     "100yenadmin/fish-audio-hermes": 111,
-    "nyosegawa/speech.cpp": 219,
+    "ww-w-ai/super-video-agent": 19,
+    "Yuuyuko-uu/dsh-tts-bridge": 196,
     "oleost/VisionState": 182,
+    "nyosegawa/speech.cpp": 219,
+    "phpclaw-php/phpclaw-monorepo": 26,
     "aminry/decisio": 10,
-    "phpclaw-php/phpclaw-monorepo": 25,
-    "imserhatdemir/ft-motion": 46,
-    "ww-w-ai/super-video-agent": 18,
-    "coniieq/luau-guardrail": 74,
-    "gameplayerroblox9-cmyk/RoNet-BPE-Tensor-Forge": 70,
-    "kudakwashechanda-byte/Bee-Swarm-Task-Automation-Suite": 68,
-    "midagedev/bloomery": 54,
-    "yashsindya2014-hash/frame-trace-mcp": 68,
+    "phprs-cms/kaletacms": 129,
+    "skulitom/Pixelbolt": 14,
     "Abdulsinsn/Scaler-2-Music-Theory-Engine": 70,
-    "Onion-Alien/onion-board": 15,
     "SEYKOOOOOO/xeno-json-response-inspector": 70,
-    "ahmadluthfan421-star/Lithicsoft-Trainer-Forge": 57,
-    "anshutiwari9917-ui/survival-stat-tuner": 56,
-    "Ayush-6/AI-Studio-Setup": 57,
-    "duke6290/FormAI-Coach": 56,
-    "khaledali2702-prog/torch-trainer-forge": 53,
-    "ozynautetu-create/FlowForge-Optima": 56,
-    "Sujit273-cpu/rep-forge": 56,
+    "erolilhan/DataForge-Lua": 68,
+    "yashsindya2014-hash/frame-trace-mcp": 68,
     "abelchrispin5-glitch/Keras-Forge-CNN-Studio": 56,
+    "avri22222/TS-Forge": 54,
+    "fh6312/kubeflow-pipeline-forge": 53,
+    "GabrielNicolas10/haiku-forge": 56,
+    "martinguirado95-ux/untangling-ml-complexity": 56,
     "mhdijas-2001/torch-hydra-forge": 53,
+    "Onion-Alien/onion-board": 15,
     "seandavedalaguit-ui/edge-vision-forge": 56,
+    "sley-lang/sley": 12,
+    "Vinsmoke2110/CoreML-Live-Vision-Showcase": 56,
     "olamideayanlami2-blip/theme-song-face-recognition": 53,
-    "john-walks-slow/token-speed-patrol": 11
+    "shafikhan24/aniruddhha-profile-forge": 54,
+    "stof-dorof/fretwise-listener": 56,
+    "Sujit273-cpu/rep-forge": 56,
+    "duke6290/FormAI-Coach": 56,
+    "agent-labs-dev/fastbrowse": 135,
+    "midagedev/bloomery": 54,
+    "flisk-sh/flisk": 28,
+    "leemysw/yovoice": 1990
   },
   "editorial": "최근 관심 증가·공개 시점·개발 활동과 실제 커뮤니티 신호로 후보를 비교합니다. 누적 인기도의 영향은 낮추고 반복 노출·분야·제작자 쏠림을 완화합니다. GitHub·Hugging Face와 SNS·정보 소스, arXiv·alphaXiv 연구 채널을 확인합니다. 공식 발표·제품 소개·커뮤니티 글·보도·논문을 구분하며 논문 등록은 동료심사 통과를 뜻하지 않습니다. 본문을 확보한 한글 심층 카드만 발행하며 각 카드의 ‘선정 이유’에서 관측 근거를 확인할 수 있습니다. 선정 신호는 품질 평가가 아닙니다.",
-  "pendingCount": 11,
-  "candidateCount": 190,
+  "pendingCount": 13,
+  "candidateCount": 183,
   "exposureHistory": {
     "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
       "lastFeaturedAt": "2026-10-30T20:00:15.640Z"
@@ -5073,5 +4567,5 @@
       "lastFeaturedAt": "2026-10-30T20:00:15.640Z"
     }
   },
-  "lastCheckedAt": "2026-10-30T20:00:15.640Z"
+  "lastCheckedAt": "2026-10-30T22:16:24.313Z"
 }
