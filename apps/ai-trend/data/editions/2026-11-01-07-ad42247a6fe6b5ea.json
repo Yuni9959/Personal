@@ -1,0 +1,6095 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-11-01",
+  "generatedAt": "2026-10-31T12:22:58.494Z",
+  "cards": [
+    {
+      "id": "55737272f83db8f2",
+      "category": "news",
+      "title": "AI isn't replacing SREs, it's deskilling them",
+      "source": "Hacker News · Show HN",
+      "sourceKind": "community",
+      "channel": "information",
+      "discoveryUrl": "https://news.ycombinator.com/item?id=50305693",
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 65.1,
+        "components": {
+          "freshness": 54.2,
+          "communityAttention": 20,
+          "repeatPenalty": -9.1
+        },
+        "badge": "커뮤니티 소식",
+        "reasons": [
+          "커뮤니티 게시 21시간 경과",
+          "Hacker News · Show HN 발견 경로",
+          "Hacker News 607점 · 댓글 455개"
+        ],
+        "signals": [
+          {
+            "label": "커뮤니티 게시 21시간 경과",
+            "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling"
+          },
+          {
+            "label": "Hacker News · Show HN 발견 경로",
+            "url": "https://news.ycombinator.com/item?id=50305693"
+          },
+          {
+            "label": "Hacker News 607점 · 댓글 455개",
+            "url": "https://news.ycombinator.com/item?id=50305693"
+          }
+        ],
+        "growth": null,
+        "family": "SRE 역량 유지",
+        "owner": "Hacker News · Show HN",
+        "repeated": true,
+        "independentCommunity": true
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling",
+      "publishedAt": "2026-10-30T15:52:18.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "SigNoz 뉴스레터가 AI 장애 대응 자동화로 SRE의 실전 역량과 주니어의 학습 기회가 줄어들 수 있다고 주장합니다. 제품 출시 안내나 SRE 대상 실증 연구가 아니라 자동화의 위험을 논하는 글로, 운영 책임자와 교육 담당자에게 인간의 판단·훈련을 남기는 도입 원칙을 제안합니다.",
+      "tags": [
+        "SRE 역량 유지"
+      ],
+      "stats": [],
+      "signalLabel": "커뮤니티 소식",
+      "slides": [
+        {
+          "title": "1. 자동화 뒤에 남는 어려운 장애",
+          "body": "이 자료는 특정 도구의 출시 안내가 아니라, AI가 일상적인 장애 대응을 맡을수록 SRE가 낯선 장애에 대응할 연습을 잃을 수 있다는 논평입니다. 글은 알림 묶기, 알려진 문제의 runbook 실행, 로그 이상 탐지 등을 자동화 영역으로 설명합니다. 핵심 문제는 반복 작업에서 쌓던 판단 경험이 줄어드는데, 복잡한 예외 상황은 여전히 사람이 맡는다는 점입니다. 본문의 ‘95% 자동화’는 논의를 여는 가정이며, 측정된 도입률이나 성능 수치로 제시되지 않습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 글쓴이가 제안하는 AI 보조 방식",
+          "body": "2026년 2월 28일 글을 쓴 SigNoz의 Elizabeth는 사람이 통제권을 유지하는 AI assistant부터 시작하고, 신뢰가 쌓이면 명확한 제한 안에서 자율성을 늘리는 방향을 소개합니다. SigNoz 측은 metrics·traces·logs의 데이터 계층을 직접 보유하므로, API로 관측 도구에 연결하는 AI SRE 제품보다 깊은 맥락을 제공할 수 있다고 설명합니다. 이는 글에 담긴 자사 접근법과 비교 주장입니다. 실제 정확도, 장애 해결 시간, 경쟁 제품 대비 우위를 입증하는 독립 검증은 제공 자료에 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "3. 팀에서 적용할 수 있는 활용 예시",
+          "body": "활용 예시 ① 주니어 SRE에게 알려진 장애의 알림과 원시 로그를 제공하고, AI의 원인 제안을 보기 전에 가설과 대응 절차를 작성하게 합니다. 이후 AI 제안과 비교하면 결과물로 대응 기록과 학습 과제를 남길 수 있습니다. ② 운영팀이 복합 장애의 metrics·logs·traces와 AI의 원인 후보를 함께 검토하고, 담당자가 가설을 검증한 뒤 조치를 결정합니다. 결과물은 근거가 기록된 대응 판단입니다. 두 예시는 글의 수동 연습·적극적 인간 참여 원칙을 구체화한 것으로, 검증된 고객 사례나 SigNoz의 구현 기능을 뜻하지 않습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 토론 규모와 검증된 평가는 다릅니다",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 Hacker News 관측 자료에는 2026년 10월 30일 기준 게시 약 5시간, 362점, 댓글 283개가 기록돼 있지만 댓글 본문은 없습니다. 따라서 참여자들이 어떤 장점이나 문제를 지적했는지, 동의와 반박이 어떻게 나뉘었는지는 확인할 수 없습니다. 이슈의 열림·해결 상태도 제공되지 않았습니다. 2월 원문이 인용한 의료·항공 사례 역시 해당 글의 설명이며, SRE 역량 저하를 직접 검증한 결과나 제품 벤치마크로 볼 수 없습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 도입 기준은 자동화와 훈련의 균형",
+          "body": "이 글은 설치 가능한 단일 프로젝트 명세가 아니므로 실행 환경, 설치 절차, 정확한 라이선스, API 비용과 배포 요구사항은 미확인입니다. SigNoz를 오픈소스 관측 플랫폼으로 소개하지만 구체적인 라이선스 조건은 싣지 않았습니다. 이미 AI로 장애 대응을 보조하는 팀이라면, 일부 익숙한 장애를 수동 훈련에 배정하고 사람이 근거를 검토하는 절차를 설계할 때 참고할 만합니다. 다만 이런 방식이 역량을 얼마나 유지하는지, 대응 속도에 어떤 영향을 주는지에 대한 SRE 대상 측정 결과는 자료에 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "AI 장애 대응, SRE의 실전 역량을 지키려면",
+      "topic": "SRE 역량 유지",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://news.ycombinator.com/item?id=50305693",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-10-30T20:00:53.194Z"
+    },
+    {
+      "id": "28168c91138a1b41",
+      "category": "news",
+      "title": "Proton's CEO Cancels AI 'Re-Interviews'",
+      "source": "Hacker News · Show HN",
+      "sourceKind": "community",
+      "channel": "information",
+      "discoveryUrl": "https://news.ycombinator.com/item?id=50307183",
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 64.7,
+        "components": {
+          "freshness": 55.3,
+          "communityAttention": 18.5,
+          "repeatPenalty": -9.1
+        },
+        "badge": "커뮤니티 소식",
+        "reasons": [
+          "커뮤니티 게시 19시간 경과",
+          "Hacker News · Show HN 발견 경로",
+          "Hacker News 279점 · 댓글 232개"
+        ],
+        "signals": [
+          {
+            "label": "커뮤니티 게시 19시간 경과",
+            "url": "https://www.404media.co/protons-ceo-cancels-ai-re-interviews"
+          },
+          {
+            "label": "Hacker News · Show HN 발견 경로",
+            "url": "https://news.ycombinator.com/item?id=50307183"
+          },
+          {
+            "label": "Hacker News 279점 · 댓글 232개",
+            "url": "https://news.ycombinator.com/item?id=50307183"
+          }
+        ],
+        "growth": null,
+        "family": "기업 AI 도입과 인사 평가",
+        "owner": "Hacker News · Show HN",
+        "repeated": true,
+        "independentCommunity": true
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://www.404media.co/protons-ceo-cancels-ai-re-interviews",
+      "publishedAt": "2026-10-30T17:24:45.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "404 Media에 따르면 Proton은 직원들의 AI 활용을 점검하려던 재면접을 취소했지만, AI 도입 추진은 유지했습니다. 직원 반응과 보안 우려를 함께 다룬 이번 보도는 AI 활용을 인사 평가에 연결하려는 경영진과 개발 조직에 도입 방식과 검증 절차를 돌아볼 근거를 제공합니다.",
+      "tags": [
+        "기업 AI 도입과 인사 평가"
+      ],
+      "stats": [],
+      "signalLabel": "커뮤니티 소식",
+      "slides": [
+        {
+          "title": "1. AI 도구보다 도입 정책이 쟁점",
+          "body": "이번 자료는 새 AI 제품 소개가 아니라 Proton의 사내 AI 도입 정책을 둘러싼 보도입니다. 404 Media에 따르면 회사는 직원들이 AI를 어떻게 쓰는지 설명하는 광범위한 재면접을 추진했다가 취소했습니다. 보도는 직원들이 AI 활용 부족을 이유로 해고될 수 있다고 우려한 상황을 전합니다. 핵심 쟁점은 특정 도구의 기능이 아니라, AI 사용을 요구하고 평가하는 방식이 보안 검증과 직원의 문제 제기에 어떤 영향을 주느냐입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 경영진은 AI 추진 유지 입장",
+          "body": "제작자의 README나 공식 발표문은 제공되지 않았습니다. 대신 404 Media가 확보했다는 전체회의 녹음에는 경영진의 설명이 담겨 있습니다. 보도에 따르면 CEO Andy Yen은 의사소통 실패를 인정하고 재면접 취소를 알렸지만, AI 도입은 계속 추진하겠다고 밝혔습니다. CTO Bart Butler는 실용적인 AI 활용이 보안·설계·소프트웨어 공학 원칙을 포기한다는 뜻은 아니라고 설명했습니다. 이는 보도에 실린 경영진 입장이며, 실제 보안 수준이나 생산성이 검증됐다는 의미는 아닙니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "3. 개발과 인사 현장에서의 활용 예시",
+          "body": "활용 예시 ① 개발팀은 AI로 작성한 코드와 변경 내역을 입력으로 삼아 보안 검토와 테스트를 거친 뒤 배포 여부를 판단할 수 있습니다. 보도에는 직원이 새 코드의 침투 테스트 시간을 요구한 장면이 있지만, 이 절차가 실제 정착됐다는 결과는 없습니다. 활용 예시 ② 인사 담당자는 직원의 AI 사용 사례를 받아 업무 성과와 검증 과정을 함께 살피는 평가안을 만들 수 있습니다. 다만 AI 활용 항목이 성과평가에 들어간다는 내용은 보도 속 직원 증언이며, 구체적인 평가표나 시행 결과는 제시되지 않았습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 직원 반응은 갈렸고 보안 우려는 남았다",
+          "body": "404 Media는 취소 보도에 현직 직원 6명의 설명과 약 2시간의 회의 녹음을 활용했다고 밝혔습니다. 직원 반응은 진전이라는 평가부터 책임 규명 부족, AI 추진 방향 유지에 대한 우려까지 갈렸습니다. 앞선 조사는 현직 8명·전직 1명 등을 토대로 했으며, 두 표본의 중복 여부는 미확인입니다. 제공 자료에는 정확한 기사 발행일과 이후 해결 여부가 없습니다. 2026년 10월 30일 수집된 Hacker News 점수·댓글 수는 관심 지표이며, 댓글 본문이 없어 해당 토론의 평가 내용은 확인할 수 없습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 도입 판단에는 검증 절차가 필요하다",
+          "body": "이 자료만으로 Proton에서 사용하는 AI 모델·실행 환경·라이선스·API 비용·설치 방식은 확인할 수 없습니다. 보도에 따르면 Yen은 AI로 인한 일자리 손실은 없을 것이라고 말했지만, 이는 경영진의 약속이며 이후 결과는 제시되지 않았습니다. 따라서 특정 도구 구매보다 조직의 AI 도입 정책을 검토하는 경영진·개발 책임자에게 유용한 사례입니다. 평가 기준, 보안 테스트 시간, 직원의 이의 제기 경로를 구체화할 때 참고할 수 있지만, 생산성 향상이나 보안 저하의 크기를 수치로 판단할 근거는 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "Proton, AI 활용 점검 위한 직원 재면접 취소",
+      "topic": "기업 AI 도입과 인사 평가",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://www.404media.co/protons-ceo-cancels-ai-re-interviews",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://news.ycombinator.com/item?id=50307183",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-10-30T20:01:28.003Z"
+    },
+    {
+      "id": "653d82f9a2953196",
+      "category": "model",
+      "title": "Nanbeige/Nanbeige4.3-33B",
+      "source": "Hugging Face",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 54,
+        "components": {
+          "nativeTrend": 42,
+          "freshness": 10.6,
+          "measuredVelocity": 13.3,
+          "totalAttention": 3.2,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "Hugging Face 트렌딩 1위 관측",
+          "좋아요 +17개 / 4.4시간",
+          "공개 8일 이내 모델"
+        ],
+        "signals": [
+          {
+            "label": "Hugging Face 트렌딩 1위 관측",
+            "url": "https://huggingface.co/models?sort=trending"
+          },
+          {
+            "label": "좋아요 +17개 / 4.4시간",
+            "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B"
+          },
+          {
+            "label": "공개 8일 이내 모델",
+            "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B"
+          }
+        ],
+        "growth": {
+          "metric": "likes",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 805,
+          "current": 822,
+          "delta": 17,
+          "hours": 4.4,
+          "perHour": 3.9
+        },
+        "family": "추론·인프라",
+        "owner": "nanbeige",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [
+        "transformers",
+        "safetensors",
+        "llama",
+        "text-generation",
+        "llm",
+        "nanbeige",
+        "conversational",
+        "en",
+        "zh",
+        "base_model:Nanbeige/Nanbeige4.3-33B-Base",
+        "base_model:finetune:Nanbeige/Nanbeige4.3-33B-Base",
+        "license:apache-2.0",
+        "eval-results",
+        "text-generation-inference",
+        "endpoints_compatible",
+        "region:us"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": "text-generation",
+      "pushedAt": null,
+      "stars": null,
+      "likes": 822,
+      "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B",
+      "publishedAt": "2026-10-24T02:49:18.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Nanbeige4.3-33B는 코딩과 전문 업무의 다단계 도구 사용을 겨냥한 공개 언어모델입니다. 추론 생성과 이전 추론 보존을 설정할 수 있어 자체 에이전트를 구축하는 개발팀이 검토할 만합니다. 다만 성능 수치는 제작자 평가이며, 한국어 품질과 실제 운영 비용은 제공 자료만으로 확인하기 어렵습니다.",
+      "tags": [
+        "에이전트 언어모델"
+      ],
+      "stats": [
+        {
+          "label": "Downloads",
+          "value": 13832
+        },
+        {
+          "label": "Likes",
+          "value": 822
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 코딩·업무 에이전트의 기반 모델",
+          "body": "Nanbeige4.3-33B는 복잡한 코딩과 전문 업무를 수행하는 에이전트의 기반으로 설계된 언어모델입니다. 완성된 업무 앱보다는 개발자가 실행 환경과 도구를 연결해 사용하는 모델에 가깝습니다. 채팅 템플릿에서 현재 답변의 추론 생성 여부와 이전 대화의 추론 보존 여부를 따로 설정하고, tools를 전달해 도구 호출 형식을 활성화합니다. 제작자는 이 모델을 향후 소형 모델에 에이전트 능력을 증류하기 위한 교사 모델로도 소개합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 기능과 성능",
+          "body": "제작자는 최대 524,288토큰 문맥과 XML·JSON 도구 호출 형식을 지원한다고 설명하며, 도구 사용에는 XML을 권장합니다. 자체 비교에서는 모델별로 가장 높은 추론 노력과 동일한 추론 설정·평가 실행 틀을 사용했다고 밝힙니다. 제작자는 Terminal-Bench 2.1에서 80.9, DeepSWE에서 65.5를 기록했다고 설명합니다. 다만 자체 표에서도 SWE-Bench Pro와 GDPval은 Qwen3.8-27B보다 낮습니다. 이 결과는 제작자 벤치마크이며 독립 검증으로 볼 수 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 개발팀이 구성할 수 있는 활용 예시",
+          "body": "활용 예시 ① 개발자가 저장소와 오류 수정 요청을 입력하면, 모델에 연결한 코드 에이전트가 도구 호출을 주고받으며 수정 작업을 진행하고 변경 코드와 작업 결과를 반환하도록 구성할 수 있습니다. 활용 예시 ② 사내 업무 자동화 담당자가 여러 단계의 업무 요청을 입력하면, 연결된 업무 도구를 사용하면서 대화와 이전 추론을 이어가고 처리 결과를 정리하도록 구성할 수 있습니다. 두 예시는 공식 기능에서 추론한 활용이며, 실제 고객 사례는 제공되지 않았습니다. 도구 연결은 별도로 필요합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 사용자 반응은 제목 수준의 제한된 표본",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 사용자 토론은 3건이며 본문 없이 제목과 상태만 확인됩니다. 2026년 10월 29일의 #32는 제목 기준으로 한국어 문서 질의응답 비교와 추론을 끈 temperature 0 설정의 반복 현상을 다루며 열려 있습니다. 같은 날 #33도 추론 설정에 따른 성격 조정 실험을 다루며 열려 있습니다. 10월 28일의 부정적 제목 토론 #31은 닫혔지만, 원인이나 해결 여부는 알 수 없습니다. 이 자료로 공식 점수의 재현성이나 사용자 만족도를 판단하기 어렵습니다.",
+          "evidenceIds": [
+            "s3",
+            "s4",
+            "s5"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 자체 운영팀에 적합하되 자원 산정은 별도",
+          "body": "라이선스는 Apache-2.0이며 접근 승인 제한 없이 공개되어 있습니다. 실행 예시는 Transformers, SGLang, vLLM으로 제공되고, 서버 예시는 텐서 병렬 크기를 4로 설정합니다. 이는 최소 GPU 수나 메모리 요구량을 확정하는 정보는 아닙니다. 필요한 GPU 사양, 처리 속도, 호스팅 API 요금은 미확인입니다. Transformers 예시에는 trust_remote_code=True가 포함되어 실행 코드 검토가 필요합니다. 공식 언어 표기는 영어·중국어이므로, 자체 인프라에서 도구 연동을 시험할 팀에 적합하며 한국어 업무 품질은 별도 검증해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "코딩·업무 도구 호출을 겨냥한 Nanbeige4.3-33B",
+      "topic": "에이전트 언어모델",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "모델 제작자 설명",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s2",
+          "label": "모델 공개 정보",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B",
+          "kind": "official"
+        },
+        {
+          "id": "s3",
+          "label": "모델 토론 #33",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/33",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "모델 토론 #32",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/32",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "모델 토론 #31",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/31",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "모델 토론 #30",
+          "url": "https://huggingface.co/Nanbeige/Nanbeige4.3-33B/discussions/30",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:07:55.863Z"
+    },
+    {
+      "id": "8128cb5cd44e07f8",
+      "category": "news",
+      "title": "As AI models commoditize, lasting wealth will accrue to those controlling chokepoints like distribution, payment rails, and a stablecoin dollar, not to the labs",
+      "source": "Techmeme",
+      "sourceKind": "reporting",
+      "channel": "information",
+      "discoveryUrl": "https://www.techmeme.com/261031/p6#a261031p6",
+      "primaryUrl": "https://commanding-heights.com/#top",
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 51.4,
+        "components": {
+          "freshness": 66.4,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "보도·종합 소식",
+        "reasons": [
+          "보도·종합 소식 6시간 경과",
+          "Techmeme 발견 경로"
+        ],
+        "signals": [
+          {
+            "label": "보도·종합 소식 6시간 경과",
+            "url": "https://commanding-heights.com/"
+          },
+          {
+            "label": "Techmeme 발견 경로",
+            "url": "https://www.techmeme.com/261031/p6#a261031p6"
+          }
+        ],
+        "growth": null,
+        "family": "AI 가치 배분",
+        "owner": "Techmeme",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://commanding-heights.com/",
+      "publishedAt": "2026-10-31T06:30:01.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Techmeme가 소개한 글은 AI 모델이 범용화될수록 장기적인 부가 연구소보다 유통·결제망·스테이블코인 달러 같은 경제적 길목에 집중될 것이라는 관점을 제시합니다. AI 사업 전략과 산업 변화를 검토하는 데 유용한 논지지만, 제공된 본문은 일부이며 미래 서사와 전망을 검증된 사실과 구분해야 합니다.",
+      "tags": [
+        "AI 가치 배분"
+      ],
+      "stats": [],
+      "signalLabel": "보도·종합 소식",
+      "slides": [
+        {
+          "title": "1. AI 제품이 아닌 부의 이동에 관한 논지",
+          "body": "이 자료는 설치해서 사용하는 AI 프로젝트가 아니라, AI 확산으로 생기는 부가 어디에 쌓일지를 다룬 글입니다. Techmeme의 소개 제목은 모델이 범용화될수록 유통·결제망·스테이블코인 달러를 통제하는 주체가 장기적인 부를 확보한다는 논지를 전합니다. 제공된 본문도 AI 연구소의 기술 발전에서 출발해 자본 조달과 수익 회수로 시선을 옮깁니다. 다만 발췌문에는 각 길목의 수익 구조를 입증하는 상세 분석까지 포함돼 있지 않습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 글쓴이가 강조하는 자본과 생산성",
+          "body": "글쓴이는 AI 성능 개선과 막대한 설비 투자가 이어지고, 첨단 AI가 국가 주권의 문제가 될 것이라는 관점을 밝힙니다. 이어 투자자와 대출기관이 수익을 요구하므로 AI가 실제 돈을 버는 업무에 투입될 것이라고 주장합니다. 도입부의 Ravi 이야기는 자동화로 기업 이익이 늘어도 노동자의 고용과 생활은 불안해질 수 있다는 미래 시나리오입니다. 여기에 등장하는 감원율·실업률·업무 속도는 실제 기업의 검증된 성과나 관측 통계로 읽어서는 안 됩니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "3. 사업 전략과 고용 위험에 적용하기",
+          "body": "활용 예시 ① AI 서비스 기획자가 모델 사용료와 고객 유입 경로, 결제 구조를 입력 자료로 놓고 사업을 검토합니다. 모델 공급이 늘어날 때도 자사가 고객 접점이나 거래 흐름을 유지할 수 있는지 따져 사업 가설을 정리할 수 있습니다. 활용 예시 ② 아웃소싱 기업의 경영진이 인력 구성과 자동화 대상 업무를 놓고 Ravi 서사와 비교합니다. 생산성 향상과 채용 축소, 관리자의 승인 업무 증가가 함께 발생할 가능성을 점검하는 시나리오를 만들 수 있습니다. 둘 다 실제 도입 성과가 아닌 논지의 응용입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 독립적인 사용자 평가는 부족",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 자료에는 실제 댓글·토론·이슈의 표본이나 작성일, 열림·해결 상태가 없습니다. s2는 2026년 10월 31일 수집 시점에 Techmeme에서 발견됐다는 정보이며, 품질이나 예측 정확도를 검증한 평가가 아닙니다. 본문의 감사 명단도 피드백을 준 사람들의 지지를 뜻하지 않는다고 명시합니다. 따라서 이 글의 파급력이나 타당성을 외부에서 확인된 합의처럼 제시할 근거는 부족합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 전략 검토용 가설로 읽기",
+          "body": "이 자료는 소프트웨어가 아니므로 실행 환경이나 설치 절차는 적용되지 않습니다. 제공된 발췌문에서는 라이선스, 전체 문서의 이용 조건과 가격을 확인할 수 없으며, 특정 API나 사용 비용도 제시되지 않습니다. 핵심 제약은 본문이 중간에서 끊겨 유통·결제·스테이블코인에 관한 상세 근거와 반론을 검토할 수 없다는 점입니다. AI 사업자와 산업 분석가가 수익 배분 구조를 질문하는 데는 유용하지만, 확정적인 시장 예측이나 투자 수익의 근거로 삼기에는 자료가 부족합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "AI 시대의 부는 유통·결제 길목에 쌓일까",
+      "topic": "AI 가치 배분",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://commanding-heights.com/",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://www.techmeme.com/261031/p6#a261031p6",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:02:17.321Z"
+    },
+    {
+      "id": "6b3364e67e36a770",
+      "category": "news",
+      "title": "[AINews] Google admits AI Mode hurts Search revenue; -15% $500B drop worst since 2004 IPO. AI Bear Market coming?",
+      "source": "AI News / Latent Space",
+      "sourceKind": "reporting",
+      "channel": "information",
+      "discoveryUrl": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c/",
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 50,
+        "components": {
+          "freshness": 65,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "보도·종합 소식",
+        "reasons": [
+          "보도·종합 소식 8시간 경과",
+          "AI News / Latent Space 발견 경로"
+        ],
+        "signals": [
+          {
+            "label": "보도·종합 소식 8시간 경과",
+            "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c"
+          },
+          {
+            "label": "AI News / Latent Space 발견 경로",
+            "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c/"
+          }
+        ],
+        "growth": null,
+        "family": "AI 검색 수익화",
+        "owner": "AI News / Latent Space",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c",
+      "publishedAt": "2026-10-31T05:00:48.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "AI News / Latent Space는 Google AI Mode의 낮은 수익화가 검색 사업에 부담을 줬다는 경영진 발언을 전했습니다. 검색 이용자에게는 요약의 편의성을, 광고주·콘텐츠 사업자에게는 수익과 유입 변화의 점검 필요성을 보여주는 보도입니다. 다만 AI Mode만의 실적이 충분히 공개되지 않아 영향의 크기는 확정하기 어렵습니다.",
+      "tags": [
+        "AI 검색 수익화"
+      ],
+      "stats": [],
+      "signalLabel": "보도·종합 소식",
+      "slides": [
+        {
+          "title": "1. 답을 요약하는 검색이 바꾸는 것",
+          "body": "이번 대상은 개발 프로젝트 소개가 아니라 Google의 AI 검색과 사업 영향을 다룬 종합 보도입니다. 보도는 AI Mode와 AI Overviews처럼 정보를 요약해 보여주는 방식이 원문 방문의 필요성을 줄일 수 있다고 설명합니다. 링크를 따라 개별 페이지를 읽는 흐름에서 검색 화면의 요약으로 정보를 얻는 흐름으로 바뀌는 셈입니다. 핵심 쟁점은 이용자의 편의가 커질 때 콘텐츠 제공자의 방문 유입과 Google의 검색 수익도 함께 유지될 수 있느냐입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. Google 경영진 발언과 보도의 해석",
+          "body": "제공 자료에는 AI Mode의 공식 발표문이나 상세 기능 설명서가 없습니다. 대신 AI News / Latent Space는 Google 최고사업책임자 Philipp Schindler가 AI Mode의 질의 증가와 낮은 수익화가 실적에 영향을 줬다고 말했다고 전합니다. 보도 제목은 주가 15% 하락과 시가총액 5,000억 달러 감소를 내세우지만, 본문은 다른 부진한 실적도 함께 작용했다고 설명합니다. 또한 AI Mode 실적이 충분히 분리 공개되지 않아 엄밀한 분석이 어렵다고 명시하므로, 주가 하락 전체를 AI 검색 탓으로 해석할 수는 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "3. 검색 이용과 사업 점검의 활용 예시",
+          "body": "활용 예시 ① 검색 이용자가 궁금한 주제를 입력하고 AI 검색이 제공하는 요약을 읽어 핵심 정보를 파악하는 흐름입니다. 원문 방문을 줄일 수 있다는 보도의 설명에서 추론한 예시이며, 특정 질의의 답변 정확도나 실제 사용 결과는 제시되지 않았습니다. 활용 예시 ② 콘텐츠 사업자가 검색 유입 기록을 입력 자료로 삼아 AI 검색 확산 전후의 방문 변화를 비교하는 작업입니다. 결과는 유입 감소 여부를 살피는 근거가 될 수 있지만, 이 보도만으로 감소 원인을 AI Mode로 확정할 수는 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 외부 반응은 유입 우려, 검증은 제한적",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 10월 29~30일 소식을 다룬 이 보도는 Reddit CEO가 Google AI Mode의 트래픽 기여를 부정적으로 평가했고, 10월 검색 유입이 주당 100만 건 이상 감소했다고 전합니다. 이는 이해관계가 있는 외부 기업 경영진의 발언을 재전달한 것으로, 일반 이용자 표본 조사나 인과관계 검증과는 구분해야 합니다. 관련 이슈·댓글의 표본 수, 개별 작성일, 열림·해결 상태와 AI Mode의 공식 품질 벤치마크는 자료에서 확인되지 않습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 도입 판단에는 비용과 유입 자료가 더 필요",
+          "body": "이 자료에는 AI Mode의 구체적인 지원 지역·계정 조건·실행 환경, 설치 절차, API 제공 여부와 비용, 라이선스 조건이 나와 있지 않습니다. 따라서 개발자가 API 연동이나 자체 배포 가능성을 판단하기에는 정보가 부족합니다. 요약 중심 검색을 고려하는 이용자에게는 정보 소비 방식의 변화를 이해하는 자료로, 광고주와 콘텐츠 사업자에게는 수익화·유입 지표를 점검하는 자료로 유용합니다. 다만 실제 도입의 경제성을 계산하려면 별도 비용과 전환·방문 데이터가 필요하며, 이 보도는 그 수치를 제공하지 않습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "Google AI Mode, 검색 요약과 광고 수익의 충돌",
+      "topic": "AI 검색 수익화",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c/",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:03:26.270Z"
+    },
+    {
+      "id": "8e0b9acadf5d4ff9",
+      "category": "model",
+      "title": "LiquidAI/LFM3-1.7B",
+      "source": "Hugging Face",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 49.3,
+        "components": {
+          "nativeTrend": 24.2,
+          "freshness": 10.4,
+          "measuredVelocity": 11.6,
+          "totalAttention": 3,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "Hugging Face 트렌딩 3위 관측",
+          "좋아요 +13개 / 4.4시간",
+          "공개 8일 이내 모델"
+        ],
+        "signals": [
+          {
+            "label": "Hugging Face 트렌딩 3위 관측",
+            "url": "https://huggingface.co/models?sort=trending"
+          },
+          {
+            "label": "좋아요 +13개 / 4.4시간",
+            "url": "https://huggingface.co/LiquidAI/LFM3-1.7B"
+          },
+          {
+            "label": "공개 8일 이내 모델",
+            "url": "https://huggingface.co/LiquidAI/LFM3-1.7B"
+          }
+        ],
+        "growth": {
+          "metric": "likes",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 585,
+          "current": 598,
+          "delta": 13,
+          "hours": 4.4,
+          "perHour": 3
+        },
+        "family": "에이전트·개발",
+        "owner": "liquidai",
+        "repeated": false,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [
+        "transformers",
+        "safetensors",
+        "lfm3",
+        "text-generation",
+        "liquid",
+        "edge",
+        "conversational",
+        "custom_code",
+        "en",
+        "ar",
+        "zh",
+        "fr",
+        "de",
+        "it",
+        "ja",
+        "ko",
+        "pt",
+        "es",
+        "vi",
+        "th",
+        "id",
+        "hi",
+        "ru",
+        "pl",
+        "base_model:LiquidAI/LFM3-1.7B-Base",
+        "base_model:finetune:LiquidAI/LFM3-1.7B-Base",
+        "license:other",
+        "eval-results",
+        "region:us"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": "text-generation",
+      "pushedAt": null,
+      "stars": null,
+      "likes": 598,
+      "url": "https://huggingface.co/LiquidAI/LFM3-1.7B",
+      "publishedAt": "2026-10-23T21:35:42.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "LiquidAI의 LFM3-1.7B는 기기에서 실행하는 에이전트와 전문 업무용 텍스트 모델입니다. 도구 호출·구조화 출력·분야별 미세조정을 지원해 앱 개발자에게 유용한 선택지입니다. 다만 제작자는 복잡한 다단계 추론과 코딩 에이전트 용도로는 권장하지 않으며, 제공된 외부 평가도 제목 수준에 한정됩니다.",
+      "tags": [
+        "로컬 에이전트 모델"
+      ],
+      "stats": [
+        {
+          "label": "Downloads",
+          "value": 32933
+        },
+        {
+          "label": "Likes",
+          "value": 598
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 기기 안에서 도구를 다루는 텍스트 모델",
+          "body": "LFM3-1.7B는 로컬 에이전트와 전문 애플리케이션을 위한 텍스트 전용 언어 모델입니다. 짧은 합성곱, 슬라이딩 윈도 어텐션, 전역 어텐션을 결합한 구조를 사용합니다. 도구 명세를 입력하면 호출 내용을 생성하고, 실제 실행은 연결된 애플리케이션이 맡습니다. 완성형 에이전트 앱보다는 앱에 넣어 특화하는 모델에 가깝습니다. 제작자는 도구 호출·구조화 출력·분야별 미세조정을 주요 용도로 제시하며, 지식이 많이 필요한 작업에는 검색을 함께 쓰도록 권합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 작은 크기와 특화",
+          "body": "제작자는 1.73B 매개변수와 입력·출력을 합친 256K 토큰 문맥을 제공하며, Hermes Agent·Pi·OpenClaw 같은 실행 환경에 맞춰 후속 학습했다고 설명합니다. 또한 4비트에서는 약 1GB 메모리를 사용하고 단일 GPU로 빠르게 미세조정할 수 있다고 설명합니다. 다만 이 메모리 설명만으로 모든 기기와 문맥 길이에서의 실행 조건을 확정할 수는 없습니다. 기존에 9B 모델이 필요하던 에이전트 앱을 구동할 수 있다는 비교도 제작자의 주장이며, 제공된 벤치마크 표는 잘려 있어 점수와 조건을 확인할 수 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 문서 정리와 검색 답변에 활용",
+          "body": "공식 README가 제시한 학습 용도를 구체화한 활용 예시 두 가지입니다. 첫째, 문서 처리 앱 개발자가 형식이 제각각인 문서와 목표 JSON 예시를 준비하고 SFT로 미세조정하면, 새 문서에서 필요한 항목을 구조화해 출력하는 흐름을 만들 수 있습니다. 둘째, 사내 검색 도우미 개발자가 검색 문서와 답변·거절 선호 데이터를 준비하고 DPO로 조정하면, 검색 결과를 근거로 답하거나 근거가 부족할 때 거절하도록 학습할 수 있습니다. 두 예시 모두 실제 고객 도입 성과나 정확도가 검증된 사례는 아닙니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 커뮤니티 반응은 제목 수준의 단서",
+          "body": "제공된 토론 4건은 본문 없이 제목과 상태만 확인됩니다. 제목 기준으로 2026년 10월 30일 #13은 Pi를 통한 6개 범주 평가에서 93.6%를 얻었다는 게시자 주장이고, 닫힘 상태입니다. 평가 문항 수·방법·재현 여부와 닫힌 이유는 미확인입니다. 10월 31일 #14는 Rust 기반 단일 파일 로컬 실행 빌드를 소개하며 열려 있습니다. 10월 29일 #11·#12는 같은 작성자의 Apollo 지원 문의로 모두 열려 있어 별개 사용자 반응으로 셀 수 없습니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 공식 성능 주장과도 구분해야 합니다.",
+          "evidenceIds": [
+            "s3",
+            "s4",
+            "s5",
+            "s6",
+            "s1"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 로컬 특화 앱에 적합하되 조건 확인 필요",
+          "body": "공식 안내에는 GPU용 Transformers·vLLM·SGLang, CPU·GPU용 GGUF, Apple Silicon용 MLX, ONNX Runtime 경로가 있습니다. Transformers 예제는 trust_remote_code=True를 사용하며, 도구 호출 실행은 앱에서 구현해야 합니다. 라이선스는 LFM Open License v1.0이고 세부 이용 조건과 API 가격은 제공 자료에서 미확인입니다. 제작자는 작은 규모 때문에 코딩 에이전트와 복잡한 다단계 추론을 권장하지 않으며, 추론 흔적 끄기도 일관되지 않을 수 있다고 밝힙니다. 정해진 도구·출력 형식에 맞춰 조정할 개발자에게 적합한 후보입니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "로컬 도구 호출과 맞춤 학습을 위한 LFM3",
+      "topic": "로컬 에이전트 모델",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "모델 제작자 설명",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s2",
+          "label": "모델 공개 정보",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B",
+          "kind": "official"
+        },
+        {
+          "id": "s3",
+          "label": "모델 토론 #14",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B/discussions/14",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "모델 토론 #13",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B/discussions/13",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "모델 토론 #12",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B/discussions/12",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "모델 토론 #11",
+          "url": "https://huggingface.co/LiquidAI/LFM3-1.7B/discussions/11",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:05:56.745Z"
+    },
+    {
+      "id": "a3988ff6e2f31db4",
+      "category": "news",
+      "title": "Edit entire presentations with Gemini in Google Slides",
+      "source": "Google Workspace Updates",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+      "primaryUrl": "https://support.google.com/docs/answer/17111393",
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 47.4,
+        "components": {
+          "freshness": 56.5,
+          "communityAttention": 0,
+          "repeatPenalty": -9.1
+        },
+        "badge": "새 공식 발표",
+        "reasons": [
+          "공식 발표 18시간 경과"
+        ],
+        "signals": [
+          {
+            "label": "공식 발표 18시간 경과",
+            "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html"
+          }
+        ],
+        "growth": null,
+        "family": "프레젠테이션 편집",
+        "owner": "Google Workspace Updates",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+      "publishedAt": "2026-10-30T18:54:03.258Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Google Slides의 Gemini가 한 번의 요청으로 여러 슬라이드나 발표 자료 전체를 수정합니다. Google Drive 파일을 바탕으로 내용을 보강하고 서식을 통일하며, 결과를 편집 가능한 슬라이드에 직접 반영합니다. 기존 자료를 반복해서 갱신하는 업무에 유용하지만, 출시 시점에는 영어만 지원합니다.",
+      "tags": [
+        "프레젠테이션 편집"
+      ],
+      "stats": [],
+      "signalLabel": "새 공식 발표",
+      "slides": [
+        {
+          "title": "1. 한 장씩 고치던 발표 자료를 일괄 수정",
+          "body": "Google Slides 측면 패널에서 Gemini에 요청하면 여러 슬라이드나 발표 자료 전체를 한꺼번에 수정할 수 있습니다. Gemini가 변경할 슬라이드를 판단해 내용과 디자인을 기존 슬라이드에 직접 반영하는 방식입니다. 별도의 결과물을 옮기는 과정 없이 편집 가능한 상태로 남아 후속 수정도 가능합니다. 발표 자료 전체의 서식을 맞추거나 여러 장에 흩어진 내용을 갱신하는 반복 작업을 줄이는 데 초점을 둡니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. Google이 강조한 내용·디자인 동시 편집",
+          "body": "Google은 글꼴·배경·색상 체계를 일괄 변경하고, 다른 프레젠테이션의 스타일을 참고해 전체 디자인을 맞출 수 있다고 설명합니다. Google Drive의 참고 파일을 바탕으로 내용을 보강하거나 초점을 바꾸고, 여러 장을 한 장으로 압축하거나 새 슬라이드를 추가하는 기능도 소개했습니다. 작업 후에는 측면 패널에 변경 요약이 표시되며 실행 취소와 버전 기록으로 되돌릴 수 있다고 안내합니다. 이는 공식 기능 설명이며, 별도의 속도·정확도 검증 결과는 제공되지 않았습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 보고서 갱신과 발표 분량 조절에 활용",
+          "body": "활용 예시 ① 정기 보고 담당자가 기존 발표 자료와 Google Drive의 참고 파일을 준비하고, 해당 파일의 세부 내용을 추가해 달라고 요청합니다. Gemini가 관련 슬라이드를 수정하면 담당자는 편집 가능한 결과와 변경 요약을 검토할 수 있습니다. 활용 예시 ② 발표자가 분량을 줄이기 위해 5~7번 슬라이드를 한 장으로 요약해 달라고 요청합니다. 여러 장의 내용을 압축한 뒤 직접 다듬는 흐름입니다. 두 예시는 공식 안내의 요청 방식을 업무 상황에 적용한 것으로, 실제 사용자 실증 사례는 아닙니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 사용자 반응과 품질 검증은 아직 부족",
+          "body": "제공 자료는 2026년 10월 30일 Google의 공식 발표 한 건입니다. 실제 사용자 댓글이나 토론, 이슈의 열림·해결 상태를 확인할 자료가 없어 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 편집 가능한 슬라이드에 직접 반영되고 변경을 되돌릴 수 있다는 점은 제작자가 소개한 기능입니다. 긴 발표 자료에서 수정 누락이나 서식 오류가 얼마나 발생하는지 판단할 외부 평가와 공식 벤치마크 수치도 이 자료에는 없습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 영어 지원과 대상 요금제부터 확인",
+          "body": "실행 환경은 Google Slides의 Gemini 측면 패널이며 출시 시점 지원 언어는 영어입니다. 대상은 Business Standard·Plus, Enterprise Standard·Plus, Google AI Pro·Ultra, Google AI Pro for Education입니다. 2026년 10월 29일부터 배포가 시작됐으며 표시까지 15일 넘게 걸릴 수 있습니다. 최소 12월 1일까지 다중 슬라이드 생성의 높은 사용 한도를 판촉 제공한다고 안내했지만, 이후 한도와 정확한 비용·별도 API 요금·라이선스 조건은 미확인입니다. 대상 요금제를 쓰며 영어 요청으로 기존 자료를 자주 갱신하는 사용자에게 적합합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "Gemini로 Google Slides 전체를 한 번에 편집",
+      "topic": "프레젠테이션 편집",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "발표 원문",
+          "url": "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html",
+          "kind": "creator"
+        }
+      ],
+      "reviewedAt": "2026-10-30T20:02:02.328Z"
+    },
+    {
+      "id": "3fbb0d0462685f17",
+      "category": "project",
+      "title": "lightpanda-io/browser",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 41.4,
+        "components": {
+          "dailyAttention": 24.1,
+          "measuredVelocity": 20.7,
+          "freshness": 0,
+          "activity": 8,
+          "earlyDiscovery": 0,
+          "totalAttention": 3.7,
+          "curationPenalty": 0,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "GitHub 오늘 별 +929개",
+          "별 +128개 / 4.4시간 · 시간당 29.2개",
+          "최근 7일 내 코드 변경 관측"
+        ],
+        "signals": [
+          {
+            "label": "GitHub 오늘 별 +929개",
+            "url": "https://github.com/trending?since=daily"
+          },
+          {
+            "label": "별 +128개 / 4.4시간 · 시간당 29.2개",
+            "url": "https://github.com/lightpanda-io/browser"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/lightpanda-io/browser"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 38663,
+          "current": 38791,
+          "delta": 128,
+          "hours": 4.4,
+          "perHour": 29.2
+        },
+        "family": "브라우저 자동화",
+        "owner": "lightpanda-io",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": "lightpanda-io/browser",
+      "topics": [
+        "browser",
+        "browser-automation",
+        "cdp",
+        "headless",
+        "lightpanda",
+        "playwright",
+        "puppeteer",
+        "zig"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-10-31T11:44:59Z",
+      "stars": 38791,
+      "likes": null,
+      "url": "https://github.com/lightpanda-io/browser",
+      "publishedAt": "2023-02-07T15:19:34Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Lightpanda는 AI 에이전트와 웹 자동화를 위해 Zig로 새로 만든 헤드리스 브라우저입니다. CDP 연결, 내장 에이전트, MCP를 통해 페이지 탐색과 데이터 추출을 수행합니다. 반복 수집 작업을 스크립트로 저장하려는 개발자에게 유용하지만, 웹 표준 호환성과 실행 환경을 따져 도입해야 합니다.",
+      "tags": [
+        "브라우저 자동화"
+      ],
+      "stats": [
+        {
+          "label": "오늘",
+          "value": 929,
+          "suffix": " stars"
+        },
+        {
+          "label": "전체",
+          "value": 38791,
+          "suffix": " stars"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. AI가 웹을 다루도록 만든 브라우저",
+          "body": "Lightpanda는 AI 에이전트와 자동화 프로그램이 웹페이지를 탐색하고 데이터를 추출하도록 만든 헤드리스 브라우저입니다. Chromium을 수정한 제품이 아니라 Zig로 새로 구현했으며, V8으로 JavaScript를 실행하고 DOM을 제공합니다. CDP 서버에 Puppeteer 등을 연결하거나 내장 에이전트·MCP로 조작할 수 있습니다. HTML·Markdown·구조화 데이터 추출을 지원하지만, PNG·PDF 출력은 README에서 텍스트 중심 렌더링으로 설명하므로 일반 브라우저의 화면 재현과 구분해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 속도와 작업 재사용",
+          "body": "제작자는 AWS EC2 m5.large에서 실제 웹페이지 933개를 요청한 벤치마크를 소개합니다. 그중 100페이지 기준 표에서 최대 메모리는 Lightpanda 123MB·Headless Chrome 2GB, 실행 시간은 각각 5초·46초로, 약 16배 적은 메모리와 약 9배 빠른 실행을 보였다고 설명합니다. 이는 제작자 측 측정이며 독립 검증은 아닙니다. 또한 자연어로 수행한 작업을 PandaScript로 저장하고, 이후에는 모델 호출 없이 실행할 수 있다고 강조합니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 링크 수집과 반복 탐색에 활용",
+          "body": "첫째, README의 실제 코드 예시는 수집 개발자가 데모 페이지 주소를 입력하고 → Puppeteer로 Lightpanda의 CDP 서버에 연결해 페이지의 모든 a 요소를 조회하고 → href 목록을 출력하는 흐름입니다. 둘째, 활용 예시로 반복 뉴스 확인이 있습니다. 자동화 담당자가 내장 에이전트에 Hacker News의 최상위 기사를 찾도록 요청하고 → 탐색 세션을 /save로 저장하고 → 이후 lightpanda run으로 해당 스크립트를 실행하는 방식입니다. 자연어 작업 지시와 저장·재실행 기능은 공식 문서에 있지만, 이 조합의 운영 성과는 제공 자료에서 확인되지 않습니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 공개 이슈에서 드러난 호환성 과제",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 이슈 4건 중 기술 내용이 있는 2건은 CONTRIBUTOR의 보고입니다. 2026년 10월 31일 작성된 #4324는 XML 파싱 시 xmlns 속성과 CDATA 노드 유형이 보존되지 않는다고, #4323은 XMLSerializer가 HTML 방식으로 출력해 SVG 재사용 등에 문제가 생긴다고 보고합니다. 수집 시점에 둘 다 열림 상태이며 댓글은 없습니다. 같은 날 일반 사용자의 Windows·Android 배포 요청도 열려 있습니다. 이는 특정 문제의 보고 표본이며, 앞선 공식 벤치마크와 별도로 판단해야 합니다.",
+          "evidenceIds": [
+            "s3",
+            "s4",
+            "s5",
+            "s6"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 실행 환경과 호환성을 기준으로 도입",
+          "body": "라이선스는 AGPL-3.0이며 Linux·macOS의 x86_64·aarch64 바이너리와 Linux용 Docker 이미지를 제공합니다. Windows는 네이티브 바이너리 없이 WSL2를 이용하고, Android 네이티브 빌드도 없습니다. Linux 배포 바이너리는 glibc가 필요합니다. 외부 모델을 쓰는 에이전트의 API 요금은 자료에서 미확인이고, 로컬 모델 연결과 모델 없는 REPL도 지원합니다. 기본 사용 통계 전송은 환경변수로 끌 수 있습니다. 데이터 추출·반복 자동화 개발자에게 적합한 후보지만, XML·SVG 처리가 핵심이라면 열린 호환성 이슈를 도입 판단에 반영해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2",
+            "s4",
+            "s5"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "AI 에이전트의 웹 작업을 실행하는 Lightpanda",
+      "topic": "브라우저 자동화",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/lightpanda-io/browser",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/lightpanda-io/browser/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s3",
+          "label": "공개 이슈 #4326",
+          "url": "https://github.com/lightpanda-io/browser/issues/4326",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "공개 이슈 #4324",
+          "url": "https://github.com/lightpanda-io/browser/issues/4324",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "공개 이슈 #4323",
+          "url": "https://github.com/lightpanda-io/browser/issues/4323",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "공개 이슈 #4318",
+          "url": "https://github.com/lightpanda-io/browser/issues/4318",
+          "kind": "user-report"
+        },
+        {
+          "id": "s7",
+          "label": "Hacker News 댓글 표본",
+          "url": "https://news.ycombinator.com/item?id=42815694",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:04:25.203Z"
+    },
+    {
+      "id": "cac24968e5aa0d5b",
+      "category": "model",
+      "title": "deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "source": "Hugging Face",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 40.6,
+        "components": {
+          "nativeTrend": 29.7,
+          "freshness": 6.4,
+          "measuredVelocity": 15.6,
+          "totalAttention": 3.9,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "Hugging Face 트렌딩 2위 관측",
+          "좋아요 +24개 / 4.4시간"
+        ],
+        "signals": [
+          {
+            "label": "Hugging Face 트렌딩 2위 관측",
+            "url": "https://huggingface.co/models?sort=trending"
+          },
+          {
+            "label": "좋아요 +24개 / 4.4시간",
+            "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017"
+          }
+        ],
+        "growth": {
+          "metric": "likes",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 4036,
+          "current": 4060,
+          "delta": 24,
+          "hours": 4.4,
+          "perHour": 5.5
+        },
+        "family": "비전·멀티모달",
+        "owner": "deepseek-ai",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [
+        "transformers",
+        "safetensors",
+        "deepseek_v41",
+        "text-generation",
+        "image-text-to-text",
+        "license:mit",
+        "eval-results",
+        "endpoints_compatible",
+        "8-bit",
+        "fp8",
+        "region:us",
+        "deploy:azure"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": "image-text-to-text",
+      "pushedAt": null,
+      "stars": null,
+      "likes": 4060,
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+      "publishedAt": "2026-10-17T02:40:38.000Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "DeepSeek-V4.1-Flash-1017은 텍스트와 이미지를 입력받고 추론·코딩·에이전트 작업을 수행하도록 소개된 공개 모델입니다. 자체 서비스에 모델을 연결하려는 개발자에게 프롬프트 인코딩 구현과 MIT 라이선스를 제공하지만, 실제 추론 환경과 도구 실행은 별도로 구성해야 합니다.",
+      "tags": [
+        "멀티모달 에이전트 모델"
+      ],
+      "stats": [
+        {
+          "label": "Downloads",
+          "value": 156373
+        },
+        {
+          "label": "Likes",
+          "value": 4060
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 무엇인가: 이미지와 도구를 다루는 공개 모델",
+          "body": "DeepSeek-V4.1-Flash-1017은 기존 DeepSeek-V4.1-Flash의 소규모 업데이트로 소개된 모델입니다. 공개 정보에는 이미지·텍스트를 받아 텍스트를 생성하는 모델로 분류돼 있으며, README는 추론·코딩·에이전트 작업을 주요 대상으로 제시합니다. 완성된 자동화 서비스라기보다 개발자가 실행 환경에 연결하는 모델입니다. 함께 안내된 deepseek-recipe는 요청 형식 변환과 출력 해석을 맡고, 실제 모델 추론·도구 실행·HTTP 통신은 호출자가 구현하는 구조입니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자의 소개: 성능 개선과 실행 효율 강조",
+          "body": "제작자는 이번 업데이트가 추론·코딩·시각 평가 성능을 높이면서 작업 시간과 출력 길이를 줄였다고 설명합니다. 공식 표에서 Terminal-Bench 4.0 점수는 기존 31.2에서 42.3으로, DeepSWE v1.1은 74.2에서 77.0으로 올랐다고 제시합니다. 각각 Claude Code와 Mini-SWE-V2 실행 틀을 사용한 결과입니다. 이는 제작자 측 평가이며 독립 재현 결과는 제공 자료에 없습니다. 시간·비용 절감 주장에도 구체적인 절감률이나 API 요금은 제시되지 않았습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 실제 활용: 개발 작업과 이미지 질의 연결",
+          "body": "다음은 자료에 명시된 기능을 조합한 활용 예시이며, 검증된 도입 사례는 아닙니다. 첫째, 개발자가 오류 설명과 관련 코드를 입력하면 모델이 수정안을 생성하고, 연결된 실행기가 도구 호출을 처리한 결과를 다시 받아 후속 답변을 만드는 흐름을 구성할 수 있습니다. 둘째, 분석 담당자가 차트 이미지와 질문을 입력하면 이미지가 포함된 대화 형식으로 인코딩해 설명문을 생성하도록 연결할 수 있습니다. 두 경우 모두 응답 해석에는 deepseek-recipe를 활용할 수 있지만, 추론 서버와 필요한 도구는 별도로 준비해야 합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 평가와 반응: 제목으로 확인된 보고 4건",
+          "body": "제공된 토론 4건은 본문 없이 제목과 상태만 확인됩니다. 2026년 10월 27일 일반 사용자 1명은 GSQ 변형을 RX 7900 XT에서 실행한 속도를 제목에 보고했고, 다른 1명은 도구 사용 시 페르시아어 U+200C가 제거된다는 버그를 제기했습니다. 28일과 30일에는 Hugging Face 직원 계정의 응답 템플릿·평가 결과 추가 PR이 각각 등록됐습니다. 모두 수집 시점에 열려 있었습니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 이 제목들만으로 공식 성능을 검증하거나 일반적인 장단점을 확정할 수 없습니다.",
+          "evidenceIds": [
+            "s3",
+            "s4",
+            "s5",
+            "s6"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 도입 판단: 직접 통합할 개발팀에 적합",
+          "body": "저장소와 모델 가중치는 MIT 라이선스로 안내됩니다. 로컬 실행은 별도 inference 폴더의 가중치 변환·추론 지침을 따르도록 돼 있지만, 제공 자료에는 설치 명령·필수 GPU·메모리 요구량이 없습니다. 권장 설정은 temperature 1.0, top_p 1.0, 문맥 창 1M 토큰, max_tokens 256K 이상입니다. Jinja 형식 채팅 템플릿은 없으며 Python 인코딩 예제와 Rust 기반 Python 바인딩 도구가 안내됩니다. API 가격과 지원 언어 범위는 미확인입니다. 따라서 실행 인프라와 요청 형식을 직접 통합할 수 있는 개발팀에 적합한 검토 대상입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "이미지 이해와 코딩·도구 호출을 묶은 AI 모델",
+      "topic": "멀티모달 에이전트 모델",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "모델 제작자 설명",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s2",
+          "label": "모델 공개 정보",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017",
+          "kind": "official"
+        },
+        {
+          "id": "s3",
+          "label": "모델 토론 #40",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/discussions/40",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "모델 토론 #39",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/discussions/39",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "모델 토론 #38",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/discussions/38",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "모델 토론 #37",
+          "url": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017/discussions/37",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:05:27.097Z"
+    },
+    {
+      "id": "853c63f738f0cecf",
+      "category": "project",
+      "title": "thedotmack/claude-mem",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 48.6,
+        "components": {
+          "dailyAttention": 26.2,
+          "measuredVelocity": 25.5,
+          "freshness": 0,
+          "activity": 7.8,
+          "earlyDiscovery": 0,
+          "totalAttention": 4,
+          "curationPenalty": 0,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "GitHub 오늘 별 +1,723개",
+          "별 +289개 / 4.4시간 · 시간당 66개",
+          "최근 7일 내 코드 변경 관측"
+        ],
+        "signals": [
+          {
+            "label": "GitHub 오늘 별 +1,723개",
+            "url": "https://github.com/trending?since=daily"
+          },
+          {
+            "label": "별 +289개 / 4.4시간 · 시간당 66개",
+            "url": "https://github.com/thedotmack/claude-mem"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/thedotmack/claude-mem"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 106745,
+          "current": 107034,
+          "delta": 289,
+          "hours": 4.4,
+          "perHour": 66
+        },
+        "family": "에이전트·개발",
+        "owner": "thedotmack",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": "thedotmack/claude-mem",
+      "topics": [
+        "ai",
+        "ai-agents",
+        "ai-memory",
+        "anthropic",
+        "artificial-intelligence",
+        "chromadb",
+        "claude",
+        "claude-agent-sdk",
+        "claude-agents",
+        "claude-code",
+        "claude-code-plugin",
+        "claude-skills",
+        "embeddings",
+        "long-term-memory",
+        "mem0",
+        "memory-engine",
+        "openmemory",
+        "rag",
+        "sqlite",
+        "supermemory"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-10-31T08:56:15Z",
+      "stars": 107034,
+      "likes": null,
+      "url": "https://github.com/thedotmack/claude-mem",
+      "publishedAt": "2025-08-31T20:50:03Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Claude-Mem은 AI 에이전트의 도구 사용 기록을 수집하고 AI로 요약해 다음 세션에 관련 맥락을 제공하는 기억 시스템입니다. 같은 프로젝트를 여러 세션에 걸쳐 개발하는 사용자에게 유용하며, 과거 결정과 버그 수정 내역을 검색할 수 있습니다. 도입 전에는 모델 이용 비용과 요약 중복 보고를 살펴야 합니다.",
+      "tags": [
+        "AI 에이전트 장기 기억"
+      ],
+      "stats": [
+        {
+          "label": "오늘",
+          "value": 1723,
+          "suffix": " stars"
+        },
+        {
+          "label": "전체",
+          "value": 107034,
+          "suffix": " stars"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 세션이 끝나도 프로젝트 맥락을 연결",
+          "body": "Claude-Mem은 새 세션마다 이전 작업과 결정 사항을 다시 설명해야 하는 문제를 줄이려는 기억 시스템입니다. 도구 사용 관찰 기록을 자동 수집하고 AI로 의미를 요약한 뒤, 이후 세션에 관련 내용을 제공합니다. README에 따르면 생명주기 훅과 로컬 워커가 수집을 담당하고 SQLite에 기록을 저장하며, Chroma를 활용해 의미·키워드 검색을 결합합니다. 기록 보관뿐 아니라 검색과 다음 세션의 맥락 주입까지 연결하는 구조가 특징입니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 단계별 기억 검색",
+          "body": "제작자는 필요한 기록만 단계적으로 읽는 검색 방식을 강조합니다. 먼저 search로 짧은 결과 목록과 ID를 얻고, timeline으로 주변 작업 흐름을 살핀 다음, get_observations로 선택한 기록의 상세 내용을 가져옵니다. 제작자는 이 방식이 상세 기록을 먼저 읽는 것보다 토큰을 약 10배 절약한다고 설명하지만, 제공 자료에는 이를 독립 검증한 결과가 없습니다. 민감한 내용을 저장 대상에서 제외하는 <private> 태그와 맥락 주입 설정도 소개합니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 버그 수정 이력과 지난 결정을 찾는 활용",
+          "body": "첫째, README의 검색 사례는 인증 버그를 조사하는 개발자입니다. authentication bug와 bugfix 유형을 입력해 기록 목록을 찾고, 관련 ID의 상세 내용을 조회해 이전 수정 내용을 확인합니다. 둘째는 기능 개발을 다음 날 이어가는 개발자의 활용 예시입니다. 전날 도구 사용과 작업 요약을 남긴 뒤 새 세션을 시작하면, 저장된 관련 맥락을 받아 작업을 이어가는 데 활용할 수 있습니다. 두 번째는 설명된 기능에서 도출한 예시이며, 실제 사용자 성과가 입증된 사례는 아닙니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 기여자 1명이 보고한 요약 중복 문제",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 반응은 CONTRIBUTOR로 표시된 작성자의 이슈 1건입니다. 2026년 10월 31일 등록된 #5225는 수집 시점에 열림 상태이고 댓글은 0개입니다. 작성자는 15.7.0과 Claude Code 데스크톱 환경에서 백그라운드 작업이 에이전트를 다시 깨울 때 같은 턴의 요약이 반복 저장된다고 보고했습니다. 본인 데이터에서 52개 턴에 추가 행 103개가 있었다는 주장으로, 전체 사용자에게 일반화할 수 없습니다. 공식 토큰 절감 주장과도 별개인 결함 보고입니다.",
+          "evidenceIds": [
+            "s3",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 반복 작업이 많다면 환경과 비용부터 점검",
+          "body": "라이선스는 Apache-2.0입니다. README의 Claude Code 설치 요건은 Node.js 20 이상, 플러그인을 지원하는 최신 Claude Code이며, Bun과 uv는 없으면 자동 설치되고 SQLite는 포함됩니다. npx claude-mem install 또는 플러그인 명령을 사용해야 하며, 전역 npm 설치만으로는 훅과 워커가 설정되지 않습니다. 제작자는 계정 로그인 시 관찰 모델의 30일 무료 체험을 안내하지만 이후 구독료와 API 단가는 자료에서 미확인입니다. 여러 세션에 걸친 개발에 적합하되, 저장 제외 설정과 요약 중복 이슈를 도입 판단에 반영해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2",
+            "s3"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "에이전트의 이전 작업을 기억해 다음 세션에 연결",
+      "topic": "AI 에이전트 장기 기억",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/thedotmack/claude-mem",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/thedotmack/claude-mem/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s3",
+          "label": "공개 이슈 #5225",
+          "url": "https://github.com/thedotmack/claude-mem/issues/5225",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:03:55.619Z"
+    },
+    {
+      "id": "56f0750699d50935",
+      "category": "project",
+      "title": "lonthq/overtone-captions",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 29.7,
+        "components": {
+          "dailyAttention": 0,
+          "measuredVelocity": 0,
+          "freshness": 16.6,
+          "activity": 7.5,
+          "earlyDiscovery": 7.3,
+          "totalAttention": 1.4,
+          "curationPenalty": 0,
+          "communityAttention": 11.9,
+          "repeatPenalty": -15
+        },
+        "badge": "커뮤니티 주목",
+        "reasons": [
+          "별 +0개 / 4.4시간 · 시간당 0개",
+          "공개 3일 이내 신규 프로젝트",
+          "최근 7일 내 코드 변경 관측",
+          "Hacker News 44점 · 댓글 10개"
+        ],
+        "signals": [
+          {
+            "label": "별 +0개 / 4.4시간 · 시간당 0개",
+            "url": "https://github.com/lonthq/overtone-captions"
+          },
+          {
+            "label": "공개 3일 이내 신규 프로젝트",
+            "url": "https://github.com/lonthq/overtone-captions"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/lonthq/overtone-captions"
+          },
+          {
+            "label": "Hacker News 44점 · 댓글 10개",
+            "url": "https://news.ycombinator.com/item?id=50293115"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 48,
+          "current": 48,
+          "delta": 0,
+          "hours": 4.4,
+          "perHour": 0
+        },
+        "family": "음성·오디오",
+        "owner": "lonthq",
+        "repeated": true,
+        "independentCommunity": true
+      },
+      "name": "lonthq/overtone-captions",
+      "topics": [
+        "captions",
+        "speech-to-text",
+        "subtitles",
+        "transcription",
+        "vertical-video",
+        "video-js",
+        "webvtt"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-10-31T02:22:54Z",
+      "stars": 48,
+      "likes": null,
+      "url": "https://github.com/lonthq/overtone-captions",
+      "publishedAt": "2026-10-28T21:14:06Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Overtone은 단어별 시간과 화자를 저장하고 화면 비율에 맞춰 자막을 나누는 오픈소스 도구입니다. 기존 SRT·WebVTT를 재편집하거나 음성에서 자막을 만들 수 있어, 가로 영상과 세로 숏폼을 함께 제작하는 편집자와 video.js 기반 서비스 개발자에게 유용합니다.",
+      "tags": [
+        "영상 자막 편집"
+      ],
+      "stats": [
+        {
+          "label": "Stars",
+          "value": 48
+        },
+        {
+          "label": "TypeScript",
+          "value": 1,
+          "suffix": " forks"
+        }
+      ],
+      "signalLabel": "커뮤니티 주목",
+      "slides": [
+        {
+          "title": "1. 화면마다 자막을 다시 나누는 도구",
+          "body": "Overtone은 가로 영상용 자막을 세로 화면에 그대로 넣을 때 생기는 긴 줄과 어색한 문장 분할을 줄이려는 도구입니다. 단어별 시간과 화자를 .overtone.json에 한 번 저장하고, 기본 16:9·9:16 또는 지정한 화면 비율마다 별도의 자막 구성을 만듭니다. CLI가 파일을 생성하고 video.js 플러그인이 화면에 맞는 구성을 표시합니다. 완성된 자막 구간을 저장하는 WebVTT·SRT와 달리, 단어 데이터와 여러 화면용 구성을 함께 보관하며 필요할 때 표준 자막으로 내보냅니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 전사와 줄바꿈",
+          "body": "제작자는 여러 음성 인식 엔진의 결과를 비교하고, 불일치 구간을 다시 듣고 선택한 뒤 LLM으로 용어·이름을 교정한다고 설명합니다. 시간 정보는 LLM이 아닌 음성 엔진에서 가져옵니다. 줄바꿈에는 화자 분리, 이름·숫자 묶음 유지, 발화 사이 쉼을 반영하는 규칙을 적용합니다. 제작자는 영어 영상 3개, 총 20.8분의 자체 시험에서 부적절한 단어로 끝난 줄바꿈이 0.3%였다고 설명합니다. 이는 제한된 공식 시험 결과이며 독립적인 성능 검증은 아닙니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 기존 자막 재편집과 영상 전사",
+          "body": "활용 예시 ① 영상 편집자가 기존 SRT를 recut에 입력하면, 자막 구간에서 단어 시간을 추정하고 가로·세로용 VTT·SRT와 통합 JSON, 대본을 받습니다. 이 작업은 API 키나 ffmpeg 없이 오프라인으로 가능합니다. 활용 예시 ② 인터뷰 제작자가 영상과 주제 설명을 transcribe에 입력하면, 음성 인식과 문맥 교정을 거쳐 화면별 자막을 생성할 수 있습니다. 실행 전 --dry-run으로 음성 전송 대상과 예상 비용을 확인할 수 있습니다. 두 예시는 문서의 기능을 바탕으로 구성한 활용 시나리오입니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 외부 사용자 평가는 아직 근거 부족",
+          "body": "제공된 자료에서는 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 실제 댓글·토론·개별 이슈 내용이 없어 사용자가 체감한 장점이나 장애, 해결 여부를 판단할 수 없습니다. 2026년 10월 31일 수집된 저장소 정보에는 열린 이슈가 0개로 표시되지만, 이것만으로 문제가 없거나 과거 문제가 모두 해결됐다고 볼 수는 없습니다. README의 줄바꿈·전사 정확도·비용 수치는 제작자의 자체 시험입니다. 외부 평가와 구분해야 하며, 별 개수도 품질 검증 근거로 삼지 않습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 도입 조건과 확인된 한계",
+          "body": "MIT 라이선스이며 CLI에는 Node.js 22.12 이상, 플레이어에는 video.js 8.5 이상이 필요합니다. 클라우드 전사는 ffmpeg와 공급자 API 키가 필요하고, 제작자는 자체 시험 비용을 음성 1분당 0.023~0.025달러로 제시합니다. 실제 청구액은 미확인입니다. --local은 whisper.cpp와 Ollama를 사용합니다. 완전한 줄바꿈·숫자 규칙은 영어·네덜란드어에 한정되며 한국어 전용 규칙은 확인되지 않습니다. 번역·음악 태그·GUI 편집기는 없고 미디어는 최대 2시간입니다. 기존 자막을 여러 화면용으로 만드는 CLI 중심 작업에 적합합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "자막 파일 하나로 가로·세로 화면별 줄바꿈 생성",
+      "topic": "영상 자막 편집",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/lonthq/overtone-captions",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/lonthq/overtone-captions/blob/main/README.md",
+          "kind": "creator"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:06:34.259Z"
+    },
+    {
+      "id": "637c99109af31ed2",
+      "category": "project",
+      "title": "mattpocock/skills",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 42.2,
+        "components": {
+          "dailyAttention": 23.9,
+          "measuredVelocity": 22.3,
+          "freshness": 0,
+          "activity": 7,
+          "earlyDiscovery": 0,
+          "totalAttention": 4,
+          "curationPenalty": 0,
+          "communityAttention": 0,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "GitHub 오늘 별 +882개",
+          "별 +168개 / 4.4시간 · 시간당 38.4개",
+          "최근 7일 내 코드 변경 관측"
+        ],
+        "signals": [
+          {
+            "label": "GitHub 오늘 별 +882개",
+            "url": "https://github.com/trending?since=daily"
+          },
+          {
+            "label": "별 +168개 / 4.4시간 · 시간당 38.4개",
+            "url": "https://github.com/mattpocock/skills"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/mattpocock/skills"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 307710,
+          "current": 307878,
+          "delta": 168,
+          "hours": 4.4,
+          "perHour": 38.4
+        },
+        "family": "에이전트·개발",
+        "owner": "mattpocock",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": "mattpocock/skills",
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-10-30T14:00:30Z",
+      "stars": 307878,
+      "likes": null,
+      "url": "https://github.com/mattpocock/skills",
+      "publishedAt": "2026-02-03T11:15:53Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "mattpocock/skills는 코딩 에이전트에 요구사항 질문, 용어 정리, 명세 작성, 테스트와 코드 리뷰 절차를 제공하는 스킬 모음입니다. 개발 과정을 직접 통제하면서 필요한 절차만 조합하려는 개발자에게 유용합니다. 다만 공개 이슈에는 환경 파일 처리와 명세의 빈틈을 놓치는 리뷰 문제가 보고돼 있습니다.",
+      "tags": [
+        "코딩 에이전트 스킬"
+      ],
+      "stats": [
+        {
+          "label": "오늘",
+          "value": 882,
+          "suffix": " stars"
+        },
+        {
+          "label": "전체",
+          "value": 307878,
+          "suffix": " stars"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 개발 절차를 작은 스킬로 나누다",
+          "body": "mattpocock/skills는 코딩 에이전트가 요구를 잘못 이해하거나, 검증 없이 코드를 만들거나, 구조를 복잡하게 만드는 문제를 줄이려는 스킬 모음입니다. 질문으로 요구를 구체화하고, 대화를 명세와 티켓으로 정리한 뒤 구현·테스트·리뷰로 연결합니다. 제작자는 GSD·BMAD·Spec-Kit처럼 전체 절차를 맡기는 접근과 대비해, 작고 수정하기 쉬운 스킬을 개발자가 골라 조합하도록 설계했다고 설명합니다. 별도의 모델보다는 기존 에이전트의 작업 방식을 보완하는 도구입니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 질문과 검증",
+          "body": "제작자는 자신이 매일 사용하는 엔지니어링 습관을 반복 가능한 절차로 담았다고 소개합니다. `/grill-with-docs`는 상세 질문과 함께 `GLOSSARY.md` 및 ADR을 정리하고, `/tdd`는 실패하는 테스트부터 시작하는 개발 흐름을 안내합니다. `/diagnosing-bugs`는 재현과 가설 검증을, `/code-review`는 코드 기준과 명세 충족 여부를 나눠 검토합니다. 제작자는 공유 용어가 장황한 설명과 토큰 사용을 줄인다고 설명하지만, 제공 자료에는 이를 측정한 비교 실험이나 성능 수치가 없습니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 요구 정리와 버그 조사에 쓰는 방법",
+          "body": "활용 예시 ① 기능 요구가 모호한 개발자가 현재 구상과 프로젝트 맥락을 입력합니다. `/grill-with-docs`로 용어와 설계 결정을 정리하고 `/to-spec`, `/to-tickets`로 이어가면, 논의 내용을 명세와 의존 관계가 표시된 티켓으로 남길 수 있습니다. 활용 예시 ② 재현되는 버그를 맡은 개발자가 증상과 실행 조건을 제공합니다. `/diagnosing-bugs`로 실패를 확인하는 절차를 만들고 원인을 좁혀 수정·회귀 테스트로 연결할 수 있습니다. 두 예시는 README의 기능을 조합한 활용안이며, 검증된 도입 사례는 아닙니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 공개 이슈에서 드러난 두 가지 빈틈",
+          "body": "2026년 10월 31일 수집 자료에서 외부 사용자 보고는 네 건이지만, #1358·#1359는 같은 리뷰 문제를 다뤄 별개 경험으로 세기 어렵습니다. 10월 31일 열린 #1360은 `wizard`가 줄바꿈 포함 값을 저장할 때 `.env`와 값 읽기가 손상된다고 보고합니다. 10월 30일의 #1359는 명세에 없는 경계 조건을 리뷰가 놓쳤다는 보고로 열려 있으며, 같은 내용의 #1358은 닫혔지만 해결 여부는 확인되지 않습니다. 모두 본문 기준 보고이며 독립 재현 결과는 없습니다. 장점에 관한 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
+          "evidenceIds": [
+            "s3",
+            "s4",
+            "s5",
+            "s6"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. 필요한 절차부터 선택해 도입하기",
+          "body": "MIT 라이선스이며 README는 Claude Code, Codex, GitHub Copilot, Gemini CLI 등의 설치 경로를 안내합니다. 플러그인과 편집 가능한 파일 설치는 중복을 피하도록 하나만 선택하고, 저장소마다 `/setup-matt-pocock-skills`로 이슈 추적기·라벨·문서 위치를 설정합니다. 업데이트 방식은 에이전트별로 다릅니다. API 비용과 최소 실행 환경은 제공 자료에서 미확인입니다. 기존 에이전트에 개발 규율을 더하려는 팀에 적합하지만, 명세의 미결정 사항은 사람이 판단하고 `wizard`의 여러 줄 비밀값 처리는 열린 이슈를 고려해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2",
+            "s3",
+            "s4"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "코딩 에이전트에 요구사항 정리·테스트·리뷰 절차 더하기",
+      "topic": "코딩 에이전트 스킬",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/mattpocock/skills",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/mattpocock/skills/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s3",
+          "label": "공개 이슈 #1360",
+          "url": "https://github.com/mattpocock/skills/issues/1360",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "공개 이슈 #1359",
+          "url": "https://github.com/mattpocock/skills/issues/1359",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "공개 이슈 #1358",
+          "url": "https://github.com/mattpocock/skills/issues/1358",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "공개 이슈 #1357",
+          "url": "https://github.com/mattpocock/skills/issues/1357",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:04:58.127Z"
+    },
+    {
+      "id": "b49846f0eae6dabb",
+      "category": "project",
+      "title": "brthor/fast-forced-aligner",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 24.1,
+        "components": {
+          "dailyAttention": 0,
+          "measuredVelocity": 1.1,
+          "freshness": 19.1,
+          "activity": 7.3,
+          "earlyDiscovery": 7.8,
+          "totalAttention": 0.2,
+          "curationPenalty": 0,
+          "communityAttention": 3.6,
+          "repeatPenalty": -15
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "별 +1개 / 4.4시간 · 시간당 0.2개",
+          "공개 1일 이내 신규 프로젝트",
+          "최근 7일 내 코드 변경 관측",
+          "Hacker News 3점 · 댓글 0개"
+        ],
+        "signals": [
+          {
+            "label": "별 +1개 / 4.4시간 · 시간당 0.2개",
+            "url": "https://github.com/brthor/fast-forced-aligner"
+          },
+          {
+            "label": "공개 1일 이내 신규 프로젝트",
+            "url": "https://github.com/brthor/fast-forced-aligner"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/brthor/fast-forced-aligner"
+          },
+          {
+            "label": "Hacker News 3점 · 댓글 0개",
+            "url": "https://news.ycombinator.com/item?id=50310134"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-10-31T08:00:15.653Z",
+          "observedAt": "2026-10-31T12:22:58.494Z",
+          "baseline": 0,
+          "current": 1,
+          "delta": 1,
+          "hours": 4.4,
+          "perHour": 0.2
+        },
+        "family": "음성·오디오",
+        "owner": "brthor",
+        "repeated": true,
+        "independentCommunity": true
+      },
+      "name": "brthor/fast-forced-aligner",
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-10-30T21:36:50Z",
+      "stars": 1,
+      "likes": null,
+      "url": "https://github.com/brthor/fast-forced-aligner",
+      "publishedAt": "2026-10-30T20:30:17Z",
+      "discoveredAt": "2026-10-31T12:22:58.494Z",
+      "summary": "Fast Forced Aligner는 CTC 모델의 프레임별 로그 확률과 이미 알려진 대본을 받아 음성 프레임마다 토큰과 점수를 배정하는 Python 패키지입니다. 길이가 다른 녹음을 GPU에서 묶어 처리하므로, 기존 음성 모델을 유지하면서 대량 음성 데이터의 정렬 단계를 개선하려는 개발자에게 유용합니다.",
+      "tags": [
+        "음성 강제 정렬"
+      ],
+      "stats": [
+        {
+          "label": "Stars",
+          "value": 1
+        },
+        {
+          "label": "Python",
+          "value": 0,
+          "suffix": " forks"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "1. 음성과 이미 아는 대본을 연결한다",
+          "body": "Fast Forced Aligner는 음성에서 대본을 새로 생성하는 대신, 주어진 대본의 토큰이 어느 음성 프레임에 해당하는지 계산합니다. 입력은 기존 CTC 모델이 만든 로그 확률과 대본 토큰 ID이며, 출력은 프레임별 토큰 라벨과 점수입니다. 길이가 다른 녹음을 패딩 없이 한 번에 처리하고 결과를 GPU에 유지합니다. 최적화 정렬과 일반적인 CTC 동적 계획법을 같은 Python API로 선택할 수 있으며, 음향 모델 추론은 호출자가 별도로 수행해야 합니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "2. 제작자가 강조하는 배치 처리와 속도",
+          "body": "제작자는 GPU 배치 실행과 128프레임 단위 분할, 경계 복구, 필요시 전체 동적 계획법으로 전환하는 방식으로 계산을 줄인다고 설명합니다. RTX 3090에서 사전 검증한 입력을 사용한 10개 작업의 합산 시간은 최적화 모드 30.44ms였으며, 수정된 ctc-forced-aligner CPU8보다 11.50배, k2 CUDA보다 208.18배 빠르다고 보고합니다. 이는 제작자 벤치마크이며 음향 추론·최초 컴파일·초기 GPU 전송은 제외됩니다. 기본 입력 검증을 포함한 전체 측정은 아직 대기 중입니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "3. 공개 실행 사례와 파이프라인 활용 예시",
+          "body": "공개 실행 사례: 음성 처리 개발자가 LibriSpeech 음성과 대본을 입력하고, facebook/wav2vec2-base-960h로 CTC 출력을 만든 뒤 정렬기에 전달하면 프레임별 정렬 결과와 초당 처리 행 수를 얻습니다. 이 예제의 정렬 시간에는 모델 추론이 포함되지 않습니다. 활용 예시: 데이터 엔지니어가 길이가 다른 녹음들의 CTC 출력과 대본 토큰을 배치로 전달하고, 여러 호출의 상태를 모아 검사한 뒤 GPU 정렬 경로를 후속 처리에 사용할 수 있습니다. 대기 결과를 늘리면 메모리 사용과 오류 발견 지연도 커집니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "4. 외부 평가는 부족하고 공식 한계는 명시됐다",
+          "body": "제공된 자료에서는 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 10월 31일 수집된 저장소 정보에는 열린 이슈가 0개로 표시되지만, 댓글·토론·해결된 이슈 자료가 없어 사용 경험이나 안정성을 판단하기 어렵습니다. 제작자는 서로 다른 벤치마크 입력 3,482개에서 최적화 결과가 일반 동적 계획법과 일치했다고 보고합니다. 다만 수치적으로 거의 동점인 경우에는 경로가 달라질 수 있고, 일부 긴 녹음 작업에서는 최적화 모드가 더 느리다고 밝힙니다. 이 결과는 외부 검증과 구분해야 합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "5. CUDA 개발 환경이 있는 팀에 적합하다",
+          "body": "MIT 라이선스이며 Python 3.11 이상, 호환 NVIDIA 드라이버, CUDA 12.8 개발 툴킷과 nvcc·C++ 컴파일러가 필요합니다. 안내된 설치 조합은 PyTorch 2.8.0이며, PyPI 대신 GitHub에서 설치하고 첫 사용 때 CUDA 소스를 컴파일합니다. 입력은 같은 GPU의 연속된 FP32 로그 확률과 int64 토큰이어야 합니다. 외부 API 요금과 최소 GPU 메모리 요구량은 자료에서 확인되지 않습니다. 이미 CTC 추론 환경을 갖춘 대량 처리 팀에 적합하며, 기본 검증 유지와 동점 부근 경로 차이 검토가 필요합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "음성과 대본의 위치를 GPU로 맞추는 강제 정렬 도구",
+      "topic": "음성 강제 정렬",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/brthor/fast-forced-aligner",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/brthor/fast-forced-aligner/blob/master/README.md",
+          "kind": "creator"
+        }
+      ],
+      "reviewedAt": "2026-10-31T08:07:04.150Z"
+    }
+  ],
+  "sources": [
+    {
+      "name": "Hugging Face Models",
+      "url": "https://huggingface.co/models?sort=trending",
+      "status": "ok",
+      "count": 12,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
+      "status": "ok",
+      "count": 7,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "OpenAI",
+      "url": "https://openai.com/news/rss.xml",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Product Hunt",
+      "url": "https://www.producthunt.com/feed",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "arXiv",
+      "url": "https://rss.arxiv.org/atom/cs.AI+cs.LG+cs.CL+cs.CV",
+      "status": "ok",
+      "count": 0,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Anthropic Engineering",
+      "url": "https://www.anthropic.com/engineering",
+      "status": "ok",
+      "count": 0,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Techmeme",
+      "url": "https://www.techmeme.com/feed.xml",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Gemini 변경 기록",
+      "url": "https://gemini.google/release-notes/",
+      "status": "ok",
+      "count": 0,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Google Workspace Updates",
+      "url": "https://feeds.feedburner.com/GoogleAppsUpdates",
+      "status": "ok",
+      "count": 5,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Google AI",
+      "url": "https://blog.google/technology/ai/rss/",
+      "status": "ok",
+      "count": 1,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "alphaXiv",
+      "url": "https://www.alphaxiv.org/",
+      "status": "ok",
+      "count": 10,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Hacker News · Show HN",
+      "url": "https://news.ycombinator.com/",
+      "status": "ok",
+      "count": 44,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "Reddit r/LocalLLaMA",
+      "url": "https://www.reddit.com/r/LocalLLaMA/new/.rss?limit=30",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "GeekNews",
+      "url": "https://news.hada.io/rss/news",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "AI News / Latent Space",
+      "url": "https://latent.space/feeds/news.xml",
+      "status": "ok",
+      "count": 5,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "GitHub New AI",
+      "url": "https://github.com/topics/llm",
+      "status": "ok",
+      "count": 72,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    },
+    {
+      "name": "GitHub Trending",
+      "url": "https://github.com/trending?since=daily",
+      "status": "ok",
+      "count": 7,
+      "checkedAt": "2026-10-31T12:22:58.494Z"
+    }
+  ],
+  "selectionPolicy": "momentum-v2",
+  "metricHistory": {
+    "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 3687
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 3744
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 3759
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 3908
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 3942
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 3987
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 4000
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 4036
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 4060
+      }
+    ],
+    "https://huggingface.co/black-forest-labs/flux-3-image-klein-comfy": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 2008
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 2033
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 2041
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 2066
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 2080
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 2104
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 2111
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 2137
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 2160
+      }
+    ],
+    "https://github.com/tangency-labs/solidcraft": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 11843
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 12020
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 12141
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 12337
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 12359
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 12447
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 12496
+      }
+    ],
+    "https://github.com/dicklesworthstone/franken_accounting": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 29
+      }
+    ],
+    "https://github.com/tedix-hq/tedix": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 32
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 32
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 32
+      }
+    ],
+    "https://huggingface.co/abenzerps/Qwen-Image-2.1-Uncensored-Quantized": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 5311
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 5344
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 5363
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 5369
+      }
+    ],
+    "https://github.com/oleost/visionstate": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 178
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 180
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 181
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 181
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 181
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 182
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 182
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 183
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 183
+      }
+    ],
+    "https://huggingface.co/Lightricks/LTX-2.5": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 9785
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 9828
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 9844
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 9884
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 9903
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 9943
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 9952
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 9996
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 10018
+      }
+    ],
+    "https://github.com/sallyn0225/eidolon-sc": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 315
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 321
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 321
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 337
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 338
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 339
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 340
+      }
+    ],
+    "https://github.com/seykoooooo/xeno-json-response-inspector": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/gameplayerroblox9-cmyk/ronet-bpe-tensor-forge": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/kudakwashechanda-byte/bee-swarm-task-automation-suite": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 68
+      }
+    ],
+    "https://github.com/yashsindya2014-hash/frame-trace-mcp": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 68
+      }
+    ],
+    "https://github.com/abdulsinsn/scaler-2-music-theory-engine": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/anshutiwari9917-ui/survival-stat-tuner": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/ayush-6/ai-studio-setup": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 57
+      }
+    ],
+    "https://github.com/fh6312/kubeflow-pipeline-forge": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 53
+      }
+    ],
+    "https://github.com/khaledali2702-prog/torch-trainer-forge": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 53
+      }
+    ],
+    "https://github.com/martinguirado95-ux/untangling-ml-complexity": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/seandavedalaguit-ui/edge-vision-forge": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/sujit273-cpu/rep-forge": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/abelchrispin5-glitch/keras-forge-cnn-studio": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/duke6290/formai-coach": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/mhdijas-2001/torch-hydra-forge": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 53
+      }
+    ],
+    "https://github.com/olamideayanlami2-blip/theme-song-face-recognition": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 53
+      }
+    ],
+    "https://github.com/asepochs/ai-digital-teacher": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 13
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 13
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/lambdalabshq/xmatrix": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 88
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 88
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 88
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 88
+      }
+    ],
+    "https://github.com/yetone/magpie": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 25344
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 25356
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 25778
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 26001
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 26216
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 26236
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 26541
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 26687
+      }
+    ],
+    "https://github.com/erolilhan/dataforge-lua": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 68
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 68
+      }
+    ],
+    "https://github.com/avri22222/ts-forge": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 54
+      }
+    ],
+    "https://github.com/gabrielnicolas10/haiku-forge": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/shafikhan24/aniruddhha-profile-forge": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 54
+      }
+    ],
+    "https://github.com/stof-dorof/fretwise-listener": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/vinsmoke2110/coreml-live-vision-showcase": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/shikasar7/cicatavern": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 45
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 46
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 46
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 48
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 48
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 49
+      }
+    ],
+    "https://github.com/ahmadluthfan421-star/lithicsoft-trainer-forge": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 57
+      }
+    ],
+    "https://github.com/ozynautetu-create/flowforge-optima": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/timoncool/speech-studio": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 142
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 145
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 148
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 149
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 149
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 158
+      }
+    ],
+    "https://github.com/flisk-sh/flisk": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 29
+      }
+    ],
+    "https://github.com/georgeguimaraes/transmuter": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 22
+      }
+    ],
+    "https://huggingface.co/RecursiveSI/flint": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 1224
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 1236
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 1238
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 1248
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 1250
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 1255
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 1256
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 1265
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 1269
+      }
+    ],
+    "https://github.com/kobaltgit/photocraft-companion": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 23
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 23
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 24
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 24
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 25
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 25
+      }
+    ],
+    "https://github.com/devswha/ovis": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 1645
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 1653
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 1670
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 1715
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 1727
+      }
+    ],
+    "https://github.com/jpmyrmecol/amadeus": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 33
+      }
+    ],
+    "https://huggingface.co/XHToken/Spark-X2.6-4B": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 890
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 899
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 903
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 912
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 915
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 919
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 922
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 925
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 933
+      }
+    ],
+    "https://huggingface.co/Qwen/Qwen3.8-27B": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 18673
+      }
+    ],
+    "https://github.com/pbakaus/impeccable": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 94292
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 95041
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 95194
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 96020
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 96414
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 96857
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 96953
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 97459
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 97676
+      }
+    ],
+    "https://huggingface.co/MiniMaxAI/MiniMax-M3.1-Flash": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 477
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 484
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 486
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 493
+      }
+    ],
+    "https://github.com/qwdwqfwq/topconf-paper-figure-gallery": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 1267
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 1274
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 1274
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 1283
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 1286
+      }
+    ],
+    "https://github.com/zaneris/passenger": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 206
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 206
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 207
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 207
+      }
+    ],
+    "https://github.com/zlhad/openvideoharness": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 24
+      }
+    ],
+    "https://huggingface.co/Nanbeige/Nanbeige4.3-33B": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 750
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 763
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 769
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 783
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 790
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 794
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 796
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 805
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 822
+      }
+    ],
+    "https://huggingface.co/ISTA-DASLab/DeepSeek-V4.1-Flash-1017-GSQ-RCO-GGUF": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 461
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 467
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 470
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 485
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 492
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 503
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 506
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 509
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 511
+      }
+    ],
+    "https://github.com/software-mansion/runntime": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 104
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 104
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 105
+      }
+    ],
+    "https://github.com/deibler/openskycam": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 67
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 67
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 69
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 70
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 71
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 72
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 74
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 74
+      }
+    ],
+    "https://github.com/thelastoxygen/mafdet": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 76
+      }
+    ],
+    "https://github.com/nightly-labs/openbot": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 3611
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 3791
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 3833
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 4067
+      }
+    ],
+    "https://github.com/onion-alien/onion-board": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 16
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 16
+      }
+    ],
+    "https://github.com/modelplan/modelplan": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 41
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 41
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 41
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 41
+      }
+    ],
+    "https://github.com/ww-w-ai/super-video-agent": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 18
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 19
+      }
+    ],
+    "https://github.com/midagedev/bloomery": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 54
+      }
+    ],
+    "https://github.com/c4rohan/lampline": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 547
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 543
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 546
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 547
+      }
+    ],
+    "https://github.com/respanai/respan-gateway": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 394
+      }
+    ],
+    "https://github.com/alexays/lilo": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 29
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/cromford-ai/cromford": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/dvchd/vifasttts": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 58
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 58
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 58
+      }
+    ],
+    "https://github.com/keptinventory/kept": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 405
+      }
+    ],
+    "https://github.com/cloudcell/gnosislab": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 21
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 21
+      }
+    ],
+    "https://github.com/elayadesign/ai-design-skills": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 11747
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 12002
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 12066
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 12533
+      }
+    ],
+    "https://github.com/scaleapi/agentenv-framework": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 391
+      }
+    ],
+    "https://github.com/parad0x-labs/vool": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/01men/ybkkasi": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 21
+      }
+    ],
+    "https://github.com/savannahfeder/agentbox": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 261
+      }
+    ],
+    "https://github.com/kleinicke/tapirscan": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/expo/skills": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 3795
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 3849
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 3869
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 3950
+      }
+    ],
+    "https://github.com/macro-inc/macro": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 5705
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 5817
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 5837
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 5956
+      }
+    ],
+    "https://github.com/ker0el/starryvt": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/jaisurya-dev-art/rigby2d": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 81
+      }
+    ],
+    "https://github.com/keremss7/lingolay": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 17
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/egma-ai/homi": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 6
+      }
+    ],
+    "https://huggingface.co/LiquidAI/LFM3-1.7B": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 441
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 465
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 474
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 505
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 522
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 547
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 556
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 585
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 598
+      }
+    ],
+    "https://huggingface.co/tencent/Hy-SimulMT-30B-A3B-FP8": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 454
+      }
+    ],
+    "https://github.com/thomasunise/casecite": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 108
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 124
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 126
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 132
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 136
+      }
+    ],
+    "https://github.com/amurgola/lumabrowser": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 128
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 128
+      }
+    ],
+    "https://github.com/tidydesigns/tidy": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 47
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 50
+      }
+    ],
+    "https://github.com/fazmin/ailearningguide": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 235
+      }
+    ],
+    "https://github.com/phigonai/observer": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/coniieq/luau-guardrail": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 74
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 74
+      }
+    ],
+    "https://github.com/leciric/agentbox": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/yuuyuko-uu/dsh-tts-bridge": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 185
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 185
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 189
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 191
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 196
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 196
+      }
+    ],
+    "https://github.com/thewariend/cleanslate": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/goat-si/goat": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 17
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 17
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 18
+      }
+    ],
+    "https://github.com/yolow92/pagesift": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 156
+      }
+    ],
+    "https://github.com/i098/crewship": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/yjid/kensaku": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 152
+      }
+    ],
+    "https://huggingface.co/baidu/Unlimited-OCR-2": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 360
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 373
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 376
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 425
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 431
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 443
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 449
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 462
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 467
+      }
+    ],
+    "https://github.com/mw00/project-maya": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 2203
+      }
+    ],
+    "https://github.com/lemomo-ai/lemo-opuscar": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 9300
+      }
+    ],
+    "https://github.com/adamenrem-jpg/roblox-live-bridge-mcp": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/fahad8236/ai-roblox-studio-bridge": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/tbee6061-ctrl/studio-live-window-capture": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 71
+      }
+    ],
+    "https://github.com/eliot5566/jev-paper-radar": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 37
+      }
+    ],
+    "https://github.com/tranvanviet27/nlp-llm-fine-tuning-studio": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 57
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 57
+      }
+    ],
+    "https://github.com/3265807971-cloud/voice-design-prompt-guide": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/sepehr071/iran-gold-mcp": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/loukan42/chaosfolk": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 19
+      }
+    ],
+    "https://github.com/thedotmack/claude-mem": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 104243
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 104586
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 104709
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 105113
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 105415
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 105981
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 106111
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 106745
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 107034
+      }
+    ],
+    "https://github.com/daveebbelaar/bama": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 695
+      }
+    ],
+    "https://github.com/copilotkit/openbot": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 7788
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 8013
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 8080
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 8361
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 8478
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 8667
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 8733
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 8963
+      }
+    ],
+    "https://github.com/donchitos/claude-code-game-studios": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 28678
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 28998
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 29092
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 29682
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 30687
+      }
+    ],
+    "https://github.com/sepehr071/toolsmelt": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 18
+      }
+    ],
+    "https://github.com/jialaoliu/dsh-baton": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 90
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 101
+      }
+    ],
+    "https://github.com/kayraucklnc/beluga": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 27
+      }
+    ],
+    "https://github.com/y3nk0/practical-guides": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 81
+      }
+    ],
+    "https://github.com/enhesa/big-agentic-brain": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 20
+      }
+    ],
+    "https://github.com/graphersal/graphersal": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 19
+      }
+    ],
+    "https://huggingface.co/nvidia/NVIDIA-Nemotron-3.5-Transcribe-30B-A4B": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "likes": 331
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "likes": 386
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "likes": 398
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 431
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 459
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 483
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 495
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 511
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 519
+      }
+    ],
+    "https://github.com/ronitgupta138/vectra-core": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 64
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 64
+      }
+    ],
+    "https://github.com/rsaryev/localix": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 22
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 23
+      }
+    ],
+    "https://github.com/nodemaven/google-browser-scraper": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 91
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 100
+      }
+    ],
+    "https://github.com/sepehr071/snapp-mcp": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 36
+      }
+    ],
+    "https://github.com/nyosegawa/speech.cpp": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 215
+      },
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 216
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 217
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 219
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 219
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 244
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 263
+      }
+    ],
+    "https://github.com/egordoronchenko/kd-rules-mcp": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/nano-muse/nanomuse": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 2839
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 2925
+      }
+    ],
+    "https://github.com/blackhole1/passportsim": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 24
+      }
+    ],
+    "https://github.com/mizorewww/laya-mlx": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 7036
+      }
+    ],
+    "https://github.com/oldcircle/geo-sleuth": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 4484
+      }
+    ],
+    "https://github.com/cercatrovato/cityu-ai-course-notes": [
+      {
+        "at": "2026-10-29T12:57:28.921Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/hiarieszhou/howler": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 0
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 4
+      }
+    ],
+    "https://github.com/aiseo-virtualabdigital/mcp-video-editor": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 72
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 72
+      }
+    ],
+    "https://github.com/better-vault/better-vault": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/bpawnzz/lemonwrench": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 21
+      }
+    ],
+    "https://github.com/oimo-ai/apgar": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 3
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 3
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 4
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 4
+      }
+    ],
+    "https://github.com/marclou/mailcheap": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 1555
+      }
+    ],
+    "https://github.com/joahanmorales/upiixia-agentic-kit": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/strands-labs/strands-decider": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 741
+      }
+    ],
+    "https://github.com/mosttt/ternilo": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/arad01486-hash/studio-pulse-relay": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 72
+      }
+    ],
+    "https://github.com/chandtheblues99-ai/studio-bridge-mcp": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/demoos415/lua-script-bridge": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 68
+      }
+    ],
+    "https://github.com/phpclaw-php/phpclaw-monorepo": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 19
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 22
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 24
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 25
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 25
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 26
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 27
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/hgjmkj/futures-ledger-forge": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 59
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 60
+      }
+    ],
+    "https://github.com/sley-lang/sley": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/gustavobaranda/chatflow-agent": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 25
+      }
+    ],
+    "https://github.com/john-walks-slow/token-speed-patrol": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 11
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/slyyr/awesome-robotics": [
+      {
+        "at": "2026-10-29T20:00:15.150Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 20
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 20
+      }
+    ],
+    "https://github.com/lonthq/overtone-captions": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 14
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 38
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 43
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 45
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 45
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 48
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 48
+      }
+    ],
+    "https://github.com/jackwener/deepseekharness-android": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 195
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 362
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 499
+      }
+    ],
+    "https://github.com/ratomirjovanovic/pandaward": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/vancci-sloth/sloth": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/alexturkey/voxcpm2-turkce-ses-tasarimi": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 294
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 298
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 339
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 343
+      }
+    ],
+    "https://github.com/drawthingsai/local-code-community": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 23
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 57
+      }
+    ],
+    "https://github.com/escudero/brandpose": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 192
+      },
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 192
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 192
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 194
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 194
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 196
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 196
+      }
+    ],
+    "https://github.com/bnsd55/openscion": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 31
+      }
+    ],
+    "https://github.com/misterdiagram/misterdiagram": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/adziendziold/cocoon": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/omarqaterge/hermes-mobile-app": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 90
+      }
+    ],
+    "https://github.com/strands-agents/box": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 487
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 487
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 487
+      }
+    ],
+    "https://github.com/omnesis-dev/omnesis": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 44
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 44
+      }
+    ],
+    "https://github.com/aallamr/robloxforge-intelligence": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 75
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 75
+      }
+    ],
+    "https://github.com/boytoy-hub/robo-sync-studio": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 73
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 73
+      }
+    ],
+    "https://github.com/yarik-contr/mcp-forge-studio-bridge": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 74
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 74
+      }
+    ],
+    "https://github.com/lucas5913/tllm-instruct-forge": [
+      {
+        "at": "2026-10-29T22:43:22.957Z",
+        "stars": 53
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 53
+      }
+    ],
+    "https://github.com/sebytzr16/on-device-llm": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 11
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/third-intelligence/rubatocodec": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/kevinnie2003/lomassistant": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 105
+      }
+    ],
+    "https://github.com/pick-your-ai/pick-your-ai-research": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/chatvia/chatvia": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/donet-org-cn/funasrnet": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 56
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/grinzero/open-game-studio": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/minchenlee/flockbook": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 42
+      }
+    ],
+    "https://huggingface.co/mistralai/Mistral-Large-4-1T-A52B": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "likes": 1251
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "likes": 1290
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "likes": 1326
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "likes": 1335
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 1361
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 1375
+      }
+    ],
+    "https://github.com/gbourgeat/ddd-ts-kit": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 19
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 19
+      }
+    ],
+    "https://github.com/ip2867/ctf-re-tool": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/goyohan0611-png/turnbook": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/wudahua/mcp_creo_mechdog": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/100yenadmin/fish-audio-hermes": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 111
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 111
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 111
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 111
+      }
+    ],
+    "https://github.com/ifrit98/explainer": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 13
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/penso/herdr-gpui": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 1889
+      }
+    ],
+    "https://github.com/muellerberndt/cadence-demos": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 18
+      }
+    ],
+    "https://github.com/home-operations/kritika": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 34
+      }
+    ],
+    "https://github.com/darkdarkcocoa/codex-routing-detector": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 19
+      }
+    ],
+    "https://github.com/2049lab/personos": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 14
+      }
+    ],
+    "https://github.com/wirecatlabs/max-cli": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/reacher-z/awesome-rea": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 629
+      },
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 640
+      }
+    ],
+    "https://github.com/leaddeopenlab/awesome-opus-5-5-video-prompts": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 117
+      }
+    ],
+    "https://github.com/wh000wh000/awesome-jev-live": [
+      {
+        "at": "2026-10-30T08:00:15.612Z",
+        "stars": 377
+      }
+    ],
+    "https://github.com/wangzan101/mika": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 364
+      }
+    ],
+    "https://github.com/mattpocock/skills": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 307039
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 307345
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 307412
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 307710
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 307878
+      }
+    ],
+    "https://github.com/lightpanda-io/browser": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 37904
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 38206
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 38293
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 38663
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 38791
+      }
+    ],
+    "https://github.com/noah-thing/open-cursor": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/infrec-cardinal/the-trinity": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 30
+      }
+    ],
+    "https://github.com/anthropics/skills": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 184978
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 185184
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 185247
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 185552
+      }
+    ],
+    "https://github.com/maxtrigify/otto": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 97
+      }
+    ],
+    "https://github.com/aixwangtw/feedback-desk": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 37
+      }
+    ],
+    "https://github.com/axisvela/praxo-core": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 12
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/doem97/cvsm": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 23
+      }
+    ],
+    "https://github.com/t8mars/comfyui-drama-3": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 11
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/zephyr4123/speakmore": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 172
+      }
+    ],
+    "https://github.com/ucs-care-group/mailcraft": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 169
+      },
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 172
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 177
+      }
+    ],
+    "https://github.com/arcmira/mcp": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 78
+      }
+    ],
+    "https://github.com/sitor-ai/frametell": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 439
+      }
+    ],
+    "https://github.com/canvixel-eloweny/ai-bot-groupmate": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 96
+      }
+    ],
+    "https://github.com/nahuel990/baldanders": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 24
+      }
+    ],
+    "https://github.com/goosehouse-llc/redde": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 99
+      }
+    ],
+    "https://github.com/vicfei/awesome-jev-prompts": [
+      {
+        "at": "2026-10-30T12:50:52.078Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/konic-labs/kubic": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 70
+      }
+    ],
+    "https://github.com/animan-ai/duckbuddy": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 77
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 77
+      },
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 77
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 78
+      }
+    ],
+    "https://github.com/morethanrealio/brambit": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 21
+      }
+    ],
+    "https://github.com/aaryanrwt/athena": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/touri-ai/touri": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 90
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 90
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 91
+      }
+    ],
+    "https://github.com/acrylblends/acrylblends": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/cutfac/cutfac": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 13
+      }
+    ],
+    "https://github.com/dgesteves/onsystem": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 165
+      }
+    ],
+    "https://github.com/dicklesworthstone/frankensonos": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 108
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 108
+      }
+    ],
+    "https://github.com/tigusigalpa/ai-kit": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 46
+      }
+    ],
+    "https://github.com/dgesteves/ondocs": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 39
+      }
+    ],
+    "https://github.com/kernel-hunter/mudroom": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/aminry/decisio": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 10
+      },
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/imserhatdemir/ft-motion": [
+      {
+        "at": "2026-10-30T20:00:15.640Z",
+        "stars": 46
+      }
+    ],
+    "https://github.com/conahmorgan2304/sentient": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 28
+      }
+    ],
+    "https://github.com/ta0p1/resolvelab": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 91
+      }
+    ],
+    "https://github.com/open-net-worth-ai/open-net-worth": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/mickey/tailhome": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 31
+      }
+    ],
+    "https://github.com/opensec-git/pi-bolt": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 668
+      }
+    ],
+    "https://github.com/capthvnsen/alans-way": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 101
+      }
+    ],
+    "https://github.com/phprs-cms/kaletacms": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 129
+      }
+    ],
+    "https://github.com/skulitom/pixelbolt": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 14
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/agent-labs-dev/fastbrowse": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 135
+      }
+    ],
+    "https://github.com/leemysw/yovoice": [
+      {
+        "at": "2026-10-30T22:16:24.313Z",
+        "stars": 1990
+      }
+    ],
+    "https://github.com/brthor/fast-forced-aligner": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 0
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 1
+      }
+    ],
+    "https://github.com/entrancestarfish/voicestudiov2": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 129
+      }
+    ],
+    "https://github.com/mars-1438/indextts2-longform-workbench": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 13
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 15
+      }
+    ],
+    "https://github.com/inferedge-ai/evalkit": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/al-nafisah/fpga-project-analyzer": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 23
+      }
+    ],
+    "https://huggingface.co/ccore/Qwen3.5-4B-3D-Coder": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "likes": 346
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "likes": 364
+      }
+    ],
+    "https://github.com/heitorcarvalhohlbryzeis6-cloud/whatsapp-mcp-server": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 58
+      }
+    ],
+    "https://github.com/saganaki22/comfyui-ming-3-tts": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 27
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 27
+      }
+    ],
+    "https://github.com/stashdock/stashdock": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 60
+      }
+    ],
+    "https://github.com/reidjohnson/nn-field-guide": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 23
+      }
+    ],
+    "https://github.com/hehehai/audiosmith": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 183
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 183
+      }
+    ],
+    "https://github.com/intel/dokimi": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/beyondtahir/beyondwords": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 148
+      }
+    ],
+    "https://github.com/shiptiffin/tiffin": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/water-run/ft": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 33
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 33
+      }
+    ],
+    "https://github.com/blazestudio/hh-auto-response": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 49
+      }
+    ],
+    "https://github.com/weslocke/ed-outrider": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 25
+      },
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 25
+      }
+    ],
+    "https://github.com/blackman99/deskfolk": [
+      {
+        "at": "2026-10-31T08:00:15.653Z",
+        "stars": 36
+      }
+    ],
+    "https://github.com/orkas-ai/orkas": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 5866
+      }
+    ],
+    "https://github.com/stdlogits/neuron-lens": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 17
+      }
+    ],
+    "https://github.com/harrytted/ai-agent-interview-playbook": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 25
+      }
+    ],
+    "https://github.com/neetnina/dsh-model-master": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/ngocanhnckh/renderlint": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 47
+      }
+    ],
+    "https://github.com/umouyoumou-del/deepinfer-sm86": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 10
+      }
+    ],
+    "https://github.com/thu-maic/openmaic": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 42000
+      }
+    ],
+    "https://github.com/yuatemycat/superghidra": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 170
+      }
+    ],
+    "https://github.com/azerdsq131/open-hermes-bot": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 47
+      }
+    ],
+    "https://github.com/hodgemann/mondo-music-video": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 11
+      }
+    ],
+    "https://github.com/lalabase/lalabase": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 91
+      }
+    ],
+    "https://github.com/ybak/ai-tutorial": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 16
+      }
+    ],
+    "https://github.com/lingcore/winshun": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 769
+      }
+    ],
+    "https://github.com/34823/tg-pane": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 19
+      }
+    ],
+    "https://github.com/gatewai-dev/framefields": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 501
+      }
+    ],
+    "https://github.com/renaissance-mind/showai": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 132
+      }
+    ],
+    "https://github.com/flowfield-sh/flowfield-core": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 32
+      }
+    ],
+    "https://github.com/irsyadmr354/kestrel": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 66
+      }
+    ],
+    "https://github.com/rnckp/awesome-ai-switzerland": [
+      {
+        "at": "2026-10-31T12:22:58.494Z",
+        "stars": 12
+      }
+    ]
+  },
+  "repositoryMetrics": {
+    "Donchitos/Claude-Code-Game-Studios": 30687,
+    "pbakaus/impeccable": 97676,
+    "thedotmack/claude-mem": 107034,
+    "mattpocock/skills": 307878,
+    "lightpanda-io/browser": 38791,
+    "yetone/magpie": 26687,
+    "Orkas-AI/Orkas": 5866,
+    "stdlogits/neuron-lens": 17,
+    "tangency-labs/solidcraft": 12496,
+    "harrytted/ai-agent-interview-playbook": 25,
+    "Mars-1438/indextts2-longform-workbench": 15,
+    "alexturkey/voxcpm2-turkce-ses-tasarimi": 343,
+    "lonthq/overtone-captions": 48,
+    "NEETnina/dsh-model-master": 10,
+    "ngocanhnckh/renderlint": 47,
+    "umouyoumou-del/DeepInfer-SM86": 10,
+    "THU-MAIC/OpenMAIC": 42000,
+    "Deibler/openskycam": 74,
+    "nyosegawa/speech.cpp": 263,
+    "yuatemycat/SuperGhidra": 170,
+    "brthor/fast-forced-aligner": 1,
+    "timoncool/speech-studio": 158,
+    "Saganaki22/ComfyUI-Ming-3-tts": 27,
+    "AZERDSQ131/Open-Hermes-Bot": 47,
+    "Animan-AI/DuckBuddy": 78,
+    "Shikasar7/CicaTavern": 49,
+    "georgeguimaraes/transmuter": 22,
+    "devswha/ovis": 1727,
+    "touri-ai/touri": 91,
+    "nano-muse/nanoMuse": 2925,
+    "hodgemann/mondo-music-video": 11,
+    "hehehai/AudioSmith": 183,
+    "escudero/brandpose": 196,
+    "lalabase/lalabase": 91,
+    "modelplan/modelplan": 41,
+    "Dicklesworthstone/franken_accounting": 29,
+    "oimo-ai/apgar": 4,
+    "ybak/ai-tutorial": 16,
+    "kobaltgit/photocraft-companion": 25,
+    "LingCore/WinShun": 769,
+    "gbourgeat/ddd-ts-kit": 19,
+    "34823/tg-pane": 19,
+    "qwdwqfwq/topconf-paper-figure-gallery": 1286,
+    "gatewai-dev/framefields": 501,
+    "LambdaLabsHQ/xmatrix": 88,
+    "Renaissance-Mind/ShowAI": 132,
+    "phpclaw-php/phpclaw-monorepo": 28,
+    "Sallyn0225/eidolon-sc": 340,
+    "Water-Run/ft": 33,
+    "flowfield-sh/flowfield-core": 32,
+    "oleost/VisionState": 183,
+    "skulitom/Pixelbolt": 15,
+    "Onion-Alien/onion-board": 16,
+    "weslocke/ED-Outrider": 25,
+    "gameplayerroblox9-cmyk/RoNet-BPE-Tensor-Forge": 70,
+    "yashsindya2014-hash/frame-trace-mcp": 68,
+    "Abdulsinsn/Scaler-2-Music-Theory-Engine": 70,
+    "ahmadluthfan421-star/Lithicsoft-Trainer-Forge": 57,
+    "flisk-sh/flisk": 29,
+    "kudakwashechanda-byte/Bee-Swarm-Task-Automation-Suite": 68,
+    "ozynautetu-create/FlowForge-Optima": 56,
+    "SEYKOOOOOO/xeno-json-response-inspector": 70,
+    "duke6290/FormAI-Coach": 56,
+    "Irsyadmr354/KESTREL": 66,
+    "anshutiwari9917-ui/survival-stat-tuner": 56,
+    "Ayush-6/AI-Studio-Setup": 57,
+    "fh6312/kubeflow-pipeline-forge": 53,
+    "khaledali2702-prog/torch-trainer-forge": 53,
+    "martinguirado95-ux/untangling-ml-complexity": 56,
+    "seandavedalaguit-ui/edge-vision-forge": 56,
+    "Sujit273-cpu/rep-forge": 56,
+    "olamideayanlami2-blip/theme-song-face-recognition": 53,
+    "WireCatLabs/max-cli": 10,
+    "CercaTrovato/cityu-ai-course-notes": 13,
+    "vicfei/awesome-jev-prompts": 10,
+    "rnckp/awesome-ai-switzerland": 12
+  },
+  "editorial": "최근 관심 증가·공개 시점·개발 활동과 실제 커뮤니티 신호로 후보를 비교합니다. 누적 인기도의 영향은 낮추고 반복 노출·분야·제작자 쏠림을 완화합니다. GitHub·Hugging Face와 SNS·정보 소스, arXiv·alphaXiv 연구 채널을 확인합니다. 공식 발표·제품 소개·커뮤니티 글·보도·논문을 구분하며 논문 등록은 동료심사 통과를 뜻하지 않습니다. 본문을 확보한 한글 심층 카드만 발행하며 각 카드의 ‘선정 이유’에서 관측 근거를 확인할 수 있습니다. 선정 신호는 품질 평가가 아닙니다.",
+  "pendingCount": 11,
+  "candidateCount": 190,
+  "exposureHistory": {
+    "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://huggingface.co/fishaudio/drama-3": {
+      "lastFeaturedAt": "2026-10-25T08:00:08.052Z"
+    },
+    "https://github.com/c4rohan/lampline": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://github.com/cloudflare/security-audit-skill": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://huggingface.co/blog/Dharma-AI/vocabx-vocabulary-specialization": {
+      "lastFeaturedAt": "2026-10-25T20:00:06.403Z"
+    },
+    "https://huggingface.co/RecursiveSI/flint": {
+      "lastFeaturedAt": "2026-10-27T12:07:25.987Z"
+    },
+    "https://github.com/luongnv89/claude-howto": {
+      "lastFeaturedAt": "2026-10-24T20:00:06.199Z"
+    },
+    "https://github.com/lemomo-ai/lemo-opuscar": {
+      "lastFeaturedAt": "2026-10-24T20:00:06.199Z"
+    },
+    "https://github.com/nvidia/openshell": {
+      "lastFeaturedAt": "2026-10-25T08:00:08.052Z"
+    },
+    "https://github.com/alexturkey/voxcpm2-turkce-ses-tasarimi": {
+      "lastFeaturedAt": "2026-10-26T20:00:15.124Z"
+    },
+    "https://huggingface.co/XHToken/Spark-X2.6-4B": {
+      "lastFeaturedAt": "2026-10-29T20:00:15.150Z"
+    },
+    "https://huggingface.co/blog/allenai/litpivot": {
+      "lastFeaturedAt": "2026-10-26T12:57:26.317Z"
+    },
+    "https://huggingface.co/blog/torch-neuronx-model-support": {
+      "lastFeaturedAt": "2026-10-25T20:48:32.850Z"
+    },
+    "https://github.com/yzxbiz/copytrading": {
+      "lastFeaturedAt": "2026-10-24T20:45:49.549Z"
+    },
+    "https://github.com/georgeguimaraes/transmuter": {
+      "lastFeaturedAt": "2026-10-25T11:22:53.520Z"
+    },
+    "https://github.com/reidjohnson/nn-field-guide": {
+      "lastFeaturedAt": "2026-10-25T11:22:53.520Z"
+    },
+    "https://github.com/pbakaus/impeccable": {
+      "lastFeaturedAt": "2026-10-30T20:00:15.640Z"
+    },
+    "https://github.com/nutlope/hallmark": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://github.com/shaitrish/37studio": {
+      "lastFeaturedAt": "2026-10-24T20:00:06.199Z"
+    },
+    "https://github.com/makecindy/cindy": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://github.com/hehehai/audiosmith": {
+      "lastFeaturedAt": "2026-10-25T08:00:08.052Z"
+    },
+    "https://github.com/tauricresearch/tradingagents": {
+      "lastFeaturedAt": "2026-10-27T08:00:15.423Z"
+    },
+    "https://github.com/agricidaniel/claude-seo": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://vithushansylvester.com/writing/the-real-impact-of-ai-on-tech-jobs": {
+      "lastFeaturedAt": "2026-10-26T12:57:26.317Z"
+    },
+    "https://twitter.com/boneGPT/status/2114035719853265264": {
+      "lastFeaturedAt": "2026-10-26T04:59:14.976Z"
+    },
+    "https://arxiv.org/abs/2610.31678": {
+      "lastFeaturedAt": "2026-10-26T12:57:26.317Z"
+    },
+    "https://arxiv.org/abs/2610.31679": {
+      "lastFeaturedAt": "2026-10-26T22:38:22.262Z"
+    },
+    "https://www.bloomberg.com/news/articles/2026-10-25/sk-hynix-plans-12-billion-dividend-from-kioxia-gains-report": {
+      "lastFeaturedAt": "2026-10-26T04:59:14.976Z"
+    },
+    "https://huggingface.co/Nanbeige/Nanbeige4.3-33B": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/alexturkey/dubworld": {
+      "lastFeaturedAt": "2026-10-26T22:38:22.262Z"
+    },
+    "https://contraptions.venkateshrao.com/p/cognitive-mercantilism": {
+      "lastFeaturedAt": "2026-10-26T12:57:26.317Z"
+    },
+    "https://www.techspot.com/news/114171-nikon-photography-contest-winner-loses-title-after-scientists.html": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://spyglass.org/amazon-bee": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://arxiv.org/abs/2610.31681": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://arxiv.org/abs/2610.31684": {
+      "lastFeaturedAt": "2026-10-26T08:00:13.753Z"
+    },
+    "https://arxiv.org/abs/2610.31682": {
+      "lastFeaturedAt": "2026-10-26T12:57:26.317Z"
+    },
+    "https://cohere.com/blog/concerning-behaviour-popular-open-weight-ai-model": {
+      "lastFeaturedAt": "2026-10-26T20:00:15.124Z"
+    },
+    "https://www.brown.edu/news/2026-10-26/ai-data-workers": {
+      "lastFeaturedAt": "2026-10-26T20:00:15.124Z"
+    },
+    "https://www.macrumors.com/2026/10/26/apple-releases-ios-27-2": {
+      "lastFeaturedAt": "2026-10-26T20:00:15.124Z"
+    },
+    "https://blog.google/products-and-platforms/products/education/ai-quests-polar-peaks": {
+      "lastFeaturedAt": "2026-10-27T22:10:58.913Z"
+    },
+    "https://fortune.com/2026/10/26/former-revolut-execs-70-million-financial-advisor-shortage": {
+      "lastFeaturedAt": "2026-10-26T20:00:15.124Z"
+    },
+    "https://github.com/affaan-m/ecc": {
+      "lastFeaturedAt": "2026-10-28T08:00:14.727Z"
+    },
+    "https://github.com/multica-ai/andrej-karpathy-skills": {
+      "lastFeaturedAt": "2026-10-27T08:00:15.423Z"
+    },
+    "https://j11g.com/the-mythical-man-month-in-the-age-of-ai": {
+      "lastFeaturedAt": "2026-10-27T22:10:58.913Z"
+    },
+    "https://blog.cloudflare.com/kv-cache-exposure-remediation": {
+      "lastFeaturedAt": "2026-10-27T22:10:58.913Z"
+    },
+    "https://latent.space/p/ainews-anthropic-s1": {
+      "lastFeaturedAt": "2026-10-27T22:10:58.913Z"
+    },
+    "https://www.producthunt.com/products/revix-ai-2": {
+      "lastFeaturedAt": "2026-10-27T22:10:58.913Z"
+    },
+    "https://www.producthunt.com/products/off-grid-ai": {
+      "lastFeaturedAt": "2026-10-27T08:00:15.423Z"
+    },
+    "https://www.producthunt.com/products/pulsedev": {
+      "lastFeaturedAt": "2026-10-27T12:07:25.987Z"
+    },
+    "https://gizmodo.com/police-are-using-ai-to-pull-over-drivers-for-suspicious-behavior-2000831220": {
+      "lastFeaturedAt": "2026-10-28T12:50:31.777Z"
+    },
+    "https://www.brangus.io/survival-llm": {
+      "lastFeaturedAt": "2026-10-28T12:50:31.777Z"
+    },
+    "https://www.anthropic.com/research/early-progress-drug-development": {
+      "lastFeaturedAt": "2026-10-27T22:20:28.424Z"
+    },
+    "https://www.bloomberg.com/news/articles/2026-10-27/meta-s-25-billion-stock-sale-ended-five-times-oversubscribed": {
+      "lastFeaturedAt": "2026-10-27T22:20:28.424Z"
+    },
+    "https://arxiv.org/abs/2610.35862": {
+      "lastFeaturedAt": "2026-10-27T22:20:28.424Z"
+    },
+    "https://github.com/nightly-labs/openbot": {
+      "lastFeaturedAt": "2026-10-28T20:00:15.671Z"
+    },
+    "https://oioannou.com/blog/ai-promised-less-work": {
+      "lastFeaturedAt": "2026-10-28T08:00:14.727Z"
+    },
+    "https://www.producthunt.com/products/opera": {
+      "lastFeaturedAt": "2026-10-28T12:50:31.777Z"
+    },
+    "https://www.producthunt.com/products/openllm": {
+      "lastFeaturedAt": "2026-10-28T12:50:31.777Z"
+    },
+    "https://arxiv.org/abs/2610.35869": {
+      "lastFeaturedAt": "2026-10-28T12:50:31.777Z"
+    },
+    "https://arxiv.org/abs/2610.35877": {
+      "lastFeaturedAt": "2026-10-28T22:33:10.816Z"
+    },
+    "https://github.com/elayadesign/ai-design-skills": {
+      "lastFeaturedAt": "2026-10-30T08:00:15.612Z"
+    },
+    "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-carbon": {
+      "lastFeaturedAt": "2026-10-29T12:57:28.921Z"
+    },
+    "https://surgehq.ai/blog/dayjob-tax": {
+      "lastFeaturedAt": "2026-10-28T20:00:15.671Z"
+    },
+    "https://news.bgov.com/bloomberg-government-news/hochul-signs-bills-on-ai-risks-to-children-in-pre-election-push": {
+      "lastFeaturedAt": "2026-10-28T20:00:15.671Z"
+    },
+    "https://workspaceupdates.googleblog.com/2026/10/immersive-explorations-now-available-in-the-Gemini-app.html": {
+      "lastFeaturedAt": "2026-10-29T12:57:28.921Z"
+    },
+    "https://workspaceupdates.googleblog.com/2026/10/fill-with-gemini-now-provides-cell-level-citations-for-web-sources-and-supports-larger-requests.html": {
+      "lastFeaturedAt": "2026-10-29T22:43:22.957Z"
+    },
+    "https://huggingface.co/ISTA-DASLab/DeepSeek-V4.1-Flash-1017-GSQ-RCO-GGUF": {
+      "lastFeaturedAt": "2026-10-30T08:00:15.612Z"
+    },
+    "https://github.com/egma-ai/homi": {
+      "lastFeaturedAt": "2026-10-29T12:57:28.921Z"
+    },
+    "https://github.com/expo/skills": {
+      "lastFeaturedAt": "2026-10-28T20:00:15.671Z"
+    },
+    "https://gist.github.com/flamerix-ai/c3905705cc4205e5de3011fa2e74efce": {
+      "lastFeaturedAt": "2026-10-29T22:43:22.957Z"
+    },
+    "https://arstechnica.com/ai/2026/10/google-ai-gets-cagey-when-asked-who-won-the-2020-elections": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://latent.space/p/ainews-gemini-4-carbon": {
+      "lastFeaturedAt": "2026-10-30T20:00:15.640Z"
+    },
+    "https://techcrunch.com/2026/10/28/google-expands-ai-search-ads-globally-as-core-ad-growth-slows": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://www.theregister.com/ai-and-ml/2026/10/29/google-struggling-to-make-ai-mode-searches-pay/5306181": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://huggingface.co/tencent/Hy-SimulMT-30B-A3B-FP8": {
+      "lastFeaturedAt": "2026-10-29T08:00:15.806Z"
+    },
+    "https://github.com/thomasunise/casecite": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://artificialanalysis.ai/articles/gemini-4-carbon-new-number-1": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://www.404media.co/manifestos-fear-and-loser-thinking-inside-protons-ai-reckoning": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://www.wired.com/story/a-defense-contractor-gave-their-personal-ai-agent-access-to-a-secure-pentagon-system": {
+      "lastFeaturedAt": "2026-10-29T20:00:15.150Z"
+    },
+    "https://techcrunch.com/2026/10/29/superme-raises-20m-for-its-network-of-ai-expert-profiles": {
+      "lastFeaturedAt": "2026-10-29T20:00:15.150Z"
+    },
+    "https://www.bbc.com/news/articles/cm9qzdqpxy48o": {
+      "lastFeaturedAt": "2026-10-30T08:00:15.612Z"
+    },
+    "https://www.wired.com/story/software-verification-is-the-hot-new-answer-to-the-ai-safety-crisis": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://www.bostonglobe.com/2026/10/23/opinion/ai-impact-cognitive-ability-eric-so": {
+      "lastFeaturedAt": "2026-10-30T08:00:15.612Z"
+    },
+    "https://www.nbcnews.com/tech/security/china-linked-hackers-used-ai-target-200-organizations-crowdstrike-says-rcna606343": {
+      "lastFeaturedAt": "2026-10-30T12:50:52.078Z"
+    },
+    "https://newsletter.signoz.io/p/ai-isnt-replacing-sres-its-deskilling": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://www.404media.co/protons-ceo-cancels-ai-re-interviews": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://www.bbc.co.uk/news/articles/cvwy72e0n72yo": {
+      "lastFeaturedAt": "2026-10-31T08:00:15.653Z"
+    },
+    "https://fortune.com/2026/10/30/cisco-president-jeetu-patel-gen-z-27-year-old-unlimited-ai-tokens-rewrite-legacy-code-entry-level-jobs": {
+      "lastFeaturedAt": "2026-10-31T08:00:15.653Z"
+    },
+    "https://commanding-heights.com/": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://www.tomshardware.com/tech-industry/data-centers/openai-ceo-says-its-quite-terrible-for-your-pc-to-have-ram-sam-altman-says-data-centers-offer-better-utilization": {
+      "lastFeaturedAt": "2026-10-31T08:00:15.653Z"
+    },
+    "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/thedotmack/claude-mem": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/lightpanda-io/browser": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/mattpocock/skills": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/lonthq/overtone-captions": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://huggingface.co/baidu/Unlimited-OCR-2": {
+      "lastFeaturedAt": "2026-10-31T08:00:15.653Z"
+    },
+    "https://github.com/brthor/fast-forced-aligner": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    },
+    "https://github.com/copilotkit/openbot": {
+      "lastFeaturedAt": "2026-10-31T08:00:15.653Z"
+    },
+    "https://huggingface.co/LiquidAI/LFM3-1.7B": {
+      "lastFeaturedAt": "2026-10-31T12:22:58.494Z"
+    }
+  },
+  "lastCheckedAt": "2026-10-31T12:22:58.494Z",
+  "publication": {
+    "id": "2026-11-01-07",
+    "scheduledAt": "2026-10-31T22:00:00.000Z",
+    "preparedAt": "2026-10-31T12:23:03.197Z"
+  }
+}
