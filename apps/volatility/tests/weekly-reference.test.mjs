@@ -31,6 +31,12 @@ function syntheticDailyCsv() {
   return Buffer.from(`${lines.join("\n")}\n`, "utf8");
 }
 
+test("학습과 holdout만 있는 6년 자료는 선정 표본 없이 게시할 수 없다", () => {
+  const rows = syntheticDailyCsv().toString("utf8").trim().split("\n");
+  const shortHistory = Buffer.from([rows[0], ...rows.slice(1).filter(row => row.slice(0, 10) >= "2020-08-24")].join("\n"));
+  assert.throws(() => buildWeeklyReference(shortHistory, {now: new Date("2026-08-24T00:30:00+09:00")}), /selection history.*70% Wilson/);
+});
+
 test("한국 날짜의 월요일 자정에서 자동 주간 경계를 전환한다", () => {
   assert.deepEqual(currentKstWeek(new Date("2026-08-23T14:59:59.999Z")), {
     today: "2026-08-23",

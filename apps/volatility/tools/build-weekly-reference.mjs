@@ -325,9 +325,8 @@ function choosePolicies(history) {
       return { q, records, ...summarize(records) };
     });
     const eligible = candidates.filter(candidate => candidate.wilsonLow >= PRIMARY_HIT_FLOOR);
-    const chosen = eligible.length
-      ? [...eligible].sort((left, right) => left.meanTarget - right.meanTarget || left.q - right.q).at(-1)
-      : [...candidates].sort((left, right) => left.q - right.q || left.meanTarget - right.meanTarget)[0];
+    if (!eligible.length) fail(`Policy selection history does not meet the 70% Wilson floor: ${scope}`);
+    const chosen = [...eligible].sort((left, right) => left.meanTarget - right.meanTarget || left.q - right.q).at(-1);
     const holdoutRecords = history[scope][String(chosen.q)].holdout;
     policies[scope] = {
       q: chosen.q,

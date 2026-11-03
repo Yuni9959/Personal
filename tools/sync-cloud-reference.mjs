@@ -11,7 +11,8 @@ if (current.includes(`"effectiveFrom": "${week.effectiveFrom}"`) && !process.arg
   for (const host of ["query1.finance.yahoo.com", "query2.finance.yahoo.com"]) {
     try {
       const end = Math.floor(Date.now() / 1000);
-      const response = await fetch(`https://${host}/v8/finance/chart/NQ%3DF?interval=1d&period1=${end - 6 * 366 * 86400}&period2=${end}`, {
+      // Five training years plus a one-year holdout need earlier policy-selection history.
+      const response = await fetch(`https://${host}/v8/finance/chart/NQ%3DF?interval=1d&period1=0&period2=${end}`, {
         headers: { "User-Agent": "Mozilla/5.0 PersonalTap/1.0" }, signal: AbortSignal.timeout(15000)
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
