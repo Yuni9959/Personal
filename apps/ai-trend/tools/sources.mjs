@@ -13,11 +13,16 @@ export const SOURCES = [
   { name: "Gemini 변경 기록", url: "https://gemini.google/release-notes/", kind: "official", state: "candidate", parser: "gemini" },
   { name: "AI News / Latent Space", url: "https://latent.space/feeds/news.xml", kind: "reporting", state: "candidate" },
   { name: "GeekNews", url: "https://news.hada.io/rss/news", kind: "community", state: "candidate", filterAI: true },
+  { name: "Simon Willison", url: "https://simonwillison.net/atom/everything/", kind: "reporting", state: "selected", filterAI: true, observedFrom: "https://peakon.club/prompts/claude-haiku-5-5-prompt-guide" },
+  { name: "RUTINELABO", url: "https://rutinelabo.com/feed/", kind: "reporting", state: "selected", filterAI: true, observedFrom: "https://peakon.club/prompts/claude-haiku-5-5-prompt-guide" },
 ].map(s => ({ channel: "information", state: "monitoring", enabled: true, ...s }));
 
 export const WATCHLIST = [
   { name: "X 공식 계정", state: "candidate", enabled: false, accounts: ["OpenAI", "AnthropicAI", "claudeai", "ClaudeDevs", "GeminiApp", "googlecloud"], reason: "공식 X 읽기 API 인증·접근 경로 확인 필요. 공식 블로그·변경 기록을 별도 수집한다." },
   { name: "X 개인 개발자·연구자", state: "candidate", enabled: false, examples: ["Techartist"], reason: "정확한 계정 식별과 지속 수집 접근 경로 확인 필요" },
+  { name: "PEAKON이 직접 연결한 X 제작자", state: "candidate", enabled: false, accounts: ["Brankotrcek", "buildwithrajath", "letdarky", "tatsuyer", "ann_nnng", "DrstaOne", "leo114119", "badboyfoxy", "jchandra", "ProgrJb", "chongdashu", "rubenssoto_ai", "LexnLin", "kevin_t_ngo", "wikiwayne"], observedFrom: "https://peakon.club/prompts/claude-haiku-5-5-prompt-guide", reason: "공개 출처 링크로 계정을 확인했다. 자동 수집 경로는 미연결이며 원문·재현 결과를 별도로 검증한다." },
+  { name: "PEAKON 데모·평가·제작 기록", state: "candidate", enabled: false, examples: ["https://ruocco.it/ai-demos/", "https://hqman.me/demos/", "https://horsebench.meimei.one/", "https://www.bridgebench.ai/", "https://oneshotlm.com/", "https://adam.holter.com/", "https://www.iart.ai/blog/", "https://www.aifire.co/", "https://aaronorelup.com/ledger/", "https://muninn.austegard.com/blog/"], observedFrom: "https://peakon.club/prompts/claude-haiku-5-5-prompt-guide", reason: "직접 인용된 개별 원문 42개는 docs/peakon-source-map.json에 보존. RSS가 검증되지 않은 사이트는 수동 확인 후보로 유지한다." },
+  { name: "YC Labs · Olam 게임 실험", url: "https://labs.ycombinator.com/projects/games/index.html", state: "candidate", enabled: false, observedFrom: "https://www.instagram.com/p/DfOoxh2n1a-/", reason: "PEAKON 게시물의 실험·수치와 일치하는 1차 자료를 확인했다. PEAKON의 비공개 수집 경로를 확인한 것은 아니며 자동 수집은 미연결이다." },
   { name: "OpenRouter Rankings", url: "https://openrouter.ai/rankings", state: "candidate", enabled: false, reason: "기간별 사용량의 공식 수집 인터페이스 확인 필요. 전체 시장 점유율로 해석하지 않는다." },
   { name: "OpenReview", url: "https://openreview.net/", channel: "research", state: "candidate", enabled: false, reason: "추적할 학회·venue를 정한 뒤 공개 제출·심사 범위로 연결" },
   { name: "r/StableDiffusion · r/ComfyUI", state: "specialist-candidate", enabled: false, reason: "이미지·영상 분야 확장 후보. 현재 LocalLLaMA 수집과 구분" },
