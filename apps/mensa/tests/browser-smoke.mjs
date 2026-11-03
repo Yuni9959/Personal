@@ -1170,7 +1170,7 @@ async function run() {
     assert.match(pendingActiveCacheGate.delay, /이전 검증 시세 참고/);
     assert.match(pendingActiveCacheGate.notice, /이전에 검증한 세션/);
     assert.deepEqual(pendingActiveCacheGate.quoteValues,
-      ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
+      ["30,000.00", "30,004.75", "29,999.00", volatilityNumberFormat.format(activeMnqFixture().chart.result[0].meta.regularMarketPrice)]);
     assert.equal(pendingActiveCacheGate.referenceOpen, "30,000.00");
     assert.equal(pendingActiveCacheGate.referencePrices.every(value => value !== "—"), true);
     assert.notEqual(pendingActiveCacheGate.atr, "—");
@@ -1609,7 +1609,7 @@ async function run() {
     assert.equal(lockedFallback.locked, true);
     assert.equal(lockedFallback.calculationsHidden, true);
     assert.notEqual(lockedFallback.atr, "—");
-    assert.deepEqual(lockedFallback.quoteValues, ["30,000.00", "30,004.75", "29,999.00", "30,001.25"]);
+    assert.deepEqual(lockedFallback.quoteValues, ["30,000.00", "30,004.75", "29,999.00", volatilityNumberFormat.format(activeMnqFixture().chart.result[0].meta.regularMarketPrice)]);
     assert.equal(lockedFallback.referenceOpen, "30,000.00");
     assert.deepEqual(lockedFallback.referencePrices, volatilityReferencePrices);
     assert.deepEqual(lockedFallback.manualValues, ["", "", "", "", ""]);
