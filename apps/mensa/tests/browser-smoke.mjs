@@ -550,7 +550,8 @@ async function run() {
 
   let client;
   try {
-    await waitForJson(`http://127.0.0.1:${debugPort}/json/version`);
+    // Hosted runners may need longer than 10 seconds for Chrome's cold start.
+    await waitForJson(`http://127.0.0.1:${debugPort}/json/version`, 30000);
     const targets = await waitForJson(`http://127.0.0.1:${debugPort}/json/list`);
     const target = targets.find(item => item.type === "page");
     assert.ok(target?.webSocketDebuggerUrl, "브라우저 페이지 target을 찾을 수 없습니다.");
