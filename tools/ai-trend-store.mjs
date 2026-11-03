@@ -88,7 +88,9 @@ async function verify() {
   const expected = validateManifest(JSON.parse(await fs.readFile(path.join(ROOT, PREFIX, "release-manifest.json"), "utf8")));
   const next = expected.releases[0];
   let failure = "";
-  for (let attempt = 0; attempt < 6; attempt++) {
+  // GitHub raw branch contents can lag a successful push by several minutes.
+  const attempts = 37;
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       const response = await fetch(`https://personal-tap-data-yuni14.vercel.app/api/ai-trend?status=1&t=${Date.now()}`, { cache: "no-store", signal: AbortSignal.timeout(10000) });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -97,8 +99,11 @@ async function verify() {
       if (expected.catalogPath && status.catalogPath !== expected.catalogPath) throw new Error("Server has not observed the publication index");
       console.log(`Server confirmed ${next.id}, prepared ${next.preparedAt}. Release remains gated by server time.`);
       return;
-    } catch (error) { failure = error.message; }
-    if (attempt < 5) await new Promise(r => setTimeout(r, 10000));
+    } catch (error) {
+      failure = error.message;
+      console.log(`Waiting for server propagation (${attempt + 1}/${attempts}): ${failure}`);
+    }
+    if (attempt < attempts - 1) await new Promise(r => setTimeout(r, 10000));
   }
   throw new Error(`Server readiness verification failed: ${failure}`);
 }

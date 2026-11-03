@@ -40,7 +40,9 @@ async function request(url, { token, fetchImpl = fetch } = {}) {
   const r = await fetchImpl(url, { headers, signal: AbortSignal.timeout(15000) });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   const text = await r.text();
-  if (Buffer.byteLength(text) > 2500000) throw new Error("response too large");
+  // The combined arXiv subject feed exceeds 4 MB on busy publication days.
+  const maxBytes = new URL(url).hostname === "rss.arxiv.org" ? 8000000 : 2500000;
+  if (Buffer.byteLength(text) > maxBytes) throw new Error("response too large");
   return text;
 }
 export function makeCard(item, now = new Date()) {

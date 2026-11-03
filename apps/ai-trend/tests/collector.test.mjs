@@ -78,6 +78,8 @@ test("다중 주제·모델·뉴스·HN을 수집하고 정확한 링크만 교�
     else if (u.hostname === "hn.algolia.com") body = { hits: [{ title: "AI coding agent", url: "https://github.com/Demo/Trend/?utm_source=hn", created_at_i: Math.floor(+NOW / 1000) - 100, objectID: "123", points: 40, num_comments: 10 }] };
     else if (u.pathname.endsWith("README.md")) body = "A model description with sufficient content. ".repeat(20);
     else body = `<item><title>AI release</title><link>https://${u.hostname}/release</link><description>A new AI release</description><pubDate>Mon, 19 Oct 2026 12:00:00 GMT</pubDate></item>`;
+    if (u.hostname === "rss.arxiv.org") body = " ".repeat(4300000) + body;
+    if (u.hostname === "openai.com") body = " ".repeat(2600000) + body;
     return { ok: true, text: async () => typeof body === "string" ? body : JSON.stringify(body) };
   };
   const edition = await collect({ now: NOW, token: "test-only", fetchImpl });
@@ -87,4 +89,12 @@ test("다중 주제·모델·뉴스·HN을 수집하고 정확한 링크만 교�
   assert.equal(trend.selection.independentCommunity, true);
   assert.ok(trend.selection.signals.some(s => s.url === "https://news.ycombinator.com/item?id=123"));
   assert.ok(edition.candidatePool.some(c => c.pipelineTag === "text-to-speech"));
+  assert.equal(edition.sources.find(s => s.name === "arXiv").status, "ok");
+  assert.equal(edition.sources.find(s => s.name === "OpenAI").status, "error");
+  const oversized = await collect({ now: NOW, fetchImpl: async (url, options) =>
+    new URL(url).hostname === "rss.arxiv.org"
+      ? { ok: true, text: async () => " ".repeat(8000001) }
+      : fetchImpl(url, options),
+  });
+  assert.match(oversized.sources.find(s => s.name === "arXiv").detail, /response too large/);
 });
