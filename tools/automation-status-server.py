@@ -66,9 +66,19 @@ def collect():
     script = r"""
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new()
 $ErrorActionPreference = 'Stop'
+$worker = Get-CimInstance Win32_Process -Filter "Name='python.exe'" | Where-Object {
+    $_.CommandLine -like '*university_admission_service_v0.6.1*' -and
+    $_.CommandLine -match 'university_entry\.py.*--university\s+[a-z_]+'
+} | Select-Object -First 1
+$university = $null
+$phase = $null
+if ($worker -and $worker.CommandLine -match '--university\s+([a-z_]+)') {
+    $university = $Matches[1]
+    $phase = if ($worker.CommandLine -like '*--audit-only*') {'audit'} else {'collect'}
+}
 Get-ScheduledTask | Where-Object {$_.TaskName -in @('Quant Data Update','YML Admission Monitor','Personal Tap AI Trend Research','Google Drive Mount Health','Futures Trade Auto Process')} | ForEach-Object {
 $i = $_ | Get-ScheduledTaskInfo
-[pscustomobject]@{name=$_.TaskName;state=$_.State.ToString();lastRun=$i.LastRunTime.ToUniversalTime().ToString('o');nextRun=$i.NextRunTime.ToUniversalTime().ToString('o');result=$i.LastTaskResult}
+[pscustomobject]@{name=$_.TaskName;state=$_.State.ToString();lastRun=$i.LastRunTime.ToUniversalTime().ToString('o');nextRun=$i.NextRunTime.ToUniversalTime().ToString('o');result=$i.LastTaskResult;university=$(if ($_.TaskName -eq 'YML Admission Monitor') {$university});phase=$(if ($_.TaskName -eq 'YML Admission Monitor') {$phase})}
 } | ConvertTo-Json -Compress
 """
     proc = subprocess.run(["powershell.exe", "-NoProfile", "-Command", script],
@@ -107,6 +117,12 @@ $i = $_ | Get-ScheduledTaskInfo
     ]
     if receipt.get("issues") and admission["status"] == "최근 실행 성공":
         admission["status"] = "주의 필요"
+    if admission.get("state") == "Running" and admission.get("university"):
+        registry = read_json(ADMISSION.parent / "yonsei_admission_collector/universities.json")
+        names = {item["university_id"]: item["official_name"] for item in registry.get("universities", [])}
+        school = names.get(admission["university"], admission["university"])
+        phase = {"audit": "원본 무결성 검사", "collect": "자료 수집"}.get(admission.get("phase"), "처리 중")
+        admission["details"].insert(0, ["현재 세부 단계", f"{school} · {phase}"])
     path = latest(Path(os.environ.get("LOCALAPPDATA", "")) / "PersonalTap/ai-trend", "research-*.log")
     ai["observedAt"] = observed(path)
     ai["stages"] = [s[:240] for s in read_tail(path).splitlines()
