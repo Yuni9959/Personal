@@ -1,9 +1,13 @@
 const CACHE_PREFIX = "personal-tap-";
 const UNIVERSITY_ADMISSION_RELEASE = "3fa82f5435d110d822d9212a1c89087a1cc322b9276a74dff41766e904bba837";
-const CACHE_NAME = `${CACHE_PREFIX}v4.7.0-ai-text.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
+const CACHE_NAME = `${CACHE_PREFIX}v4.8.0-automation.1-admission-${UNIVERSITY_ADMISSION_RELEASE.slice(0, 12)}`;
 const CORE_ASSETS = [
   "./",
   "./index.html",
+  "./apps/automation-status/",
+  "./apps/automation-status/index.html",
+  "./apps/automation-status/style.css",
+  "./apps/automation-status/app.js",
   "./hub.css?v=2.9.0-three-column-grid.1",
   "./apps.js",
   "./hub.js",

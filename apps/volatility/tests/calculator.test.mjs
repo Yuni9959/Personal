@@ -86,7 +86,7 @@ test("자동 생성된 평균 범위·조건부 선·실전 ex-ante 계약의 �
   assert.equal((through - from) / 86_400_000, 6);
   assert.equal(reference.fitEndExclusive, reference.effectiveFrom);
   assert.equal(fitStart.getUTCFullYear(), from.getUTCFullYear() - 5);
-  assert.equal(reference.sourceDataset, "nasdaq_daily.csv");
+  assert.ok(["nasdaq_daily.csv", "Yahoo NQ daily (cloud)"].includes(reference.sourceDataset));
   assert.match(reference.sourceSha256, /^[a-f0-9]{64}$/);
   assert.equal(Object.isFrozen(reference), true);
   assert.equal(Object.isFrozen(reference.exAnte), true);

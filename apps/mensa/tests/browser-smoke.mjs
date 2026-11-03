@@ -8,6 +8,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkAiReader } from "../../ai-trend/tests/browser-flow.mjs";
 import { checkAiStorage } from "../../ai-trend/tests/browser-storage.mjs";
+import { checkAutomationStatus } from "../../../tools/tests/automation-browser.mjs";
+import { cmeEquitySessionFor } from "../../volatility/js/market-provider.js";
 import {
   WEEKLY_VOLATILITY_REFERENCE,
   calculateSafeReachScenario
@@ -24,8 +26,8 @@ function weekDate(offset, time) {
   date.setUTCDate(date.getUTCDate() + offset);
   return `${date.toISOString().slice(0, 10)}T${time}`;
 }
-const VOLATILITY_SESSION_START = weekDate(3, "22:00:00.000Z");
 const VOLATILITY_FIXTURE_NOW = weekDate(4, "06:30:00.000Z");
+const VOLATILITY_SESSION_START = cmeEquitySessionFor(new Date(VOLATILITY_FIXTURE_NOW)).start.toISOString();
 const VOLATILITY_FIXTURE_LOCAL_ENTRY = weekDate(4, "15:00").slice(0, 16);
 const VOLATILITY_COMPLETED_NOW = weekDate(5, "03:00:00.000Z");
 const VOLATILITY_INDICATOR_HISTORY_BARS = 300;
@@ -571,6 +573,7 @@ async function run() {
     });
 
     const baseUrl = `http://127.0.0.1:${serverPort}`;
+    await checkAutomationStatus({ client, navigate, evaluate, waitForCondition, baseUrl, assert });
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 1250,
@@ -2749,6 +2752,14 @@ async function run() {
       "!document.querySelector('#app').hidden && document.querySelectorAll('.type-card').length === 59",
       15000
     );
+    const offlineSnapshot = JSON.parse(fs.readFileSync(path.join(projectRoot, "apps/volatility/data/local-nasdaq-snapshot.json"), "utf8"));
+    const offlineClock = await client.send("Page.addScriptToEvaluateOnNewDocument", { source: `{
+      const NativeDate = Date;
+      window.Date = class extends NativeDate {
+        constructor(...args) { super(...(args.length ? args : [${JSON.stringify(offlineSnapshot.generatedAt)}])); }
+        static now() { return NativeDate.parse(${JSON.stringify(offlineSnapshot.generatedAt)}); }
+      };
+    }` });
     await navigate(client, `${baseUrl}/apps/volatility/?offline-smoke=1`);
     await waitForCondition(
       client,
@@ -2775,6 +2786,7 @@ async function run() {
     assert.match(offlineVolatility.positionSource, /최근 완료 NQ.*최근 관측 참고값/);
     assert.equal(offlineVolatility.manualPanelHidden, true);
     assert.equal(offlineVolatility.manualExpanded, "false");
+    await client.send("Page.removeScriptToEvaluateOnNewDocument", { identifier: offlineClock.identifier });
     await navigate(client, `${baseUrl}/?offline-hub-smoke=1`);
     await waitForCondition(
       client,

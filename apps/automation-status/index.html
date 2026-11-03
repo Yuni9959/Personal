@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>자동화 상태 · Personal Tap</title><link rel="stylesheet" href="./style.css"></head>
+<body><main><nav aria-label="Personal Tap 메뉴"><a href="https://yuni9959.github.io/Personal/">My Apps</a><a href="./" aria-current="page">자동화 상태</a></nav>
+<header><p class="eyebrow">PERSONAL TAP · OPERATIONS</p><h1>자동화 상태</h1><p>수집부터 분석·게시까지, 마지막으로 확인된 진행 상황입니다.</p>
+<button id="refresh" type="button">확인하기 · 새로고침</button><p id="summary" role="status" aria-live="polite">확인 준비 중</p></header>
+<p class="note">확인하기는 상태만 다시 조회합니다. 수집·분석을 새로 실행하지 않습니다. 기록 시각과 마지막 실행 결과를 함께 확인하세요.</p>
+<section aria-labelledby="pcTitle"><h2 id="pcTitle">이 PC의 자동화</h2><p id="localMessage"></p><div id="jobs" class="grid"></div></section>
+<section aria-labelledby="cloudTitle"><h2 id="cloudTitle">공개 발행 · 클라우드</h2><div id="cloud" class="grid"></div></section>
+<footer>PC 상세 상태는 이 PC가 켜져 있고 상태 조회 프로그램이 실행 중일 때 확인할 수 있습니다. 조회 실패를 정상으로 표시하지 않습니다.</footer>
+</main><script type="module" src="./app.js"></script></body></html>
