@@ -16,7 +16,7 @@ class StatusTest(unittest.TestCase):
         tasks = [{"name": "YML Weekly Operations Check", "state": "Ready", "result": 0,
                   "lastRun": datetime.now(timezone.utc).isoformat()}]
         def fixture(path):
-            return {"status": "attention_required", "stage": "점검 완료", "details": [["페이지 검사", "실패 3개"]]} if path.name == "latest-weekly.json" else {}
+            return {"status": "attention_required", "stage": "점검 완료", "pages": {"failed": 3}, "details": [["페이지 검사", "실패 3개"]]} if path.name == "latest-weekly.json" else {}
         with (
             patch.object(monitor.subprocess, "run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(tasks).encode())),
             patch.object(monitor, "read_json", side_effect=fixture),
@@ -25,6 +25,7 @@ class StatusTest(unittest.TestCase):
             result = monitor.collect()
         job = next(j for j in result["jobs"] if j["name"] == "YML Weekly Operations Check")
         self.assertEqual(job["status"], "주의 필요")
+        self.assertEqual(job["severity"], "error")
         self.assertIn(["페이지 검사", "실패 3개"], job["details"])
 
     def test_running_admission_reports_current_school_without_process_arguments(self):

@@ -144,6 +144,12 @@ $i = $_ | Get-ScheduledTaskInfo
         job["details"] = [["현재 단계", check.get("stage", "기록 없음")], *check.get("details", [])]
         if check.get("error"):
             job["details"].append(["검사 오류", check["error"]])
+        if (check.get("status") == "failed" or check.get("pages", {}).get("failed", 0)
+                or check.get("review", {}).get("integrity_errors")
+                or check.get("review", {}).get("audit_status") == "fail"
+                or any(item.get("status") == "fail" for item in check.get("data", {}).get("files", []))):
+            job["severity"] = "error"
+            job["details"].append(["신호등 판정", "최근 검사에서 오류 발견"])
         if job["status"] == "최근 실행 성공":
             if not check or check.get("status") == "running":
                 job["status"] = "확인 불가"
@@ -216,7 +222,7 @@ class Handler(BaseHTTPRequestHandler):
             finally:
                 LOCK.release()
             return
-        assets = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css"}
+        assets = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/health.js": "health.js"}
         if route not in assets:
             self.send_headers(404, "text/plain")
             return
