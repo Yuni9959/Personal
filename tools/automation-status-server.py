@@ -14,6 +14,7 @@ from urllib.request import urlopen, Request
 ROOT = Path(__file__).resolve().parents[1]
 DESKTOP = Path.home() / "Desktop"
 ADMISSION = DESKTOP / "YML/7. analysis/university_admission_service_v0.6.1/runtime"
+CHECKS = DESKTOP / "AI/admission-review-weekly-20261104"
 ORIGINS = {"https://yuni9959.github.io", "http://127.0.0.1:8768", "http://localhost:8768"}
 TASKS = {
     "Quant Data Update": ("시장 데이터 수집 · 게시", 9),
@@ -21,6 +22,8 @@ TASKS = {
     "Personal Tap AI Trend Research": ("AI Trend 한국어 생성", 18),
     "Google Drive Mount Health": ("Google Drive 연결", 1),
     "Futures Trade Auto Process": ("선물 CSV 처리", 1),
+    "YML Admission Evidence Review": ("대입자료 해석 · 근거 검토", 3),
+    "YML Weekly Operations Check": ("주간 데이터 · YML 페이지 점검", 192),
 }
 LOCK = threading.Lock()
 
@@ -76,7 +79,7 @@ if ($worker -and $worker.CommandLine -match '--university\s+([a-z_]+)') {
     $university = $Matches[1]
     $phase = if ($worker.CommandLine -like '*--audit-only*') {'audit'} else {'collect'}
 }
-Get-ScheduledTask | Where-Object {$_.TaskName -in @('Quant Data Update','YML Admission Monitor','Personal Tap AI Trend Research','Google Drive Mount Health','Futures Trade Auto Process')} | ForEach-Object {
+Get-ScheduledTask | Where-Object {$_.TaskName -in @('Quant Data Update','YML Admission Monitor','Personal Tap AI Trend Research','Google Drive Mount Health','Futures Trade Auto Process','YML Admission Evidence Review','YML Weekly Operations Check')} | ForEach-Object {
 $i = $_ | Get-ScheduledTaskInfo
 [pscustomobject]@{name=$_.TaskName;state=$_.State.ToString();lastRun=$i.LastRunTime.ToUniversalTime().ToString('o');nextRun=$i.NextRunTime.ToUniversalTime().ToString('o');result=$i.LastTaskResult;university=$(if ($_.TaskName -eq 'YML Admission Monitor') {$university});phase=$(if ($_.TaskName -eq 'YML Admission Monitor') {$phase})}
 } | ConvertTo-Json -Compress
@@ -92,7 +95,7 @@ $i = $_ | Get-ScheduledTaskInfo
     for name, (title, hours) in TASKS.items():
         task = by_name.get(name, {})
         rows.append(dict(task, name=name, title=title, status=classify(task, hours), details=[], stages=[]))
-    quant, admission, ai, drive, futures = rows
+    quant, admission, ai, drive, futures, review, weekly = rows
     path = DESKTOP / "quant/log.txt"
     content = read_tail(path)
     quant["observedAt"] = observed(path)
@@ -134,6 +137,18 @@ $i = $_ | Get-ScheduledTaskInfo
     path = DESKTOP / "남표니/선물거래내역/.futures_automation_state.json"
     futures["observedAt"] = observed(path)
     futures["details"] = [["마지막 분석 기록", observed(path)], ["처리 방식", "새 CSV가 없으면 정상 건너뜀. CSV 다운로드와 포지션은 수동 입력."]]
+    for job, mode in ((review, "review"), (weekly, "weekly")):
+        path = CHECKS / f"latest-{mode}.json"
+        check = read_json(path)
+        job["observedAt"] = check.get("updated_at") or observed(path)
+        job["details"] = [["현재 단계", check.get("stage", "기록 없음")], *check.get("details", [])]
+        if check.get("error"):
+            job["details"].append(["검사 오류", check["error"]])
+        if job["status"] == "최근 실행 성공":
+            if not check or check.get("status") == "running":
+                job["status"] = "확인 불가"
+            elif check.get("status") not in {"pass", "healthy"}:
+                job["status"] = "주의 필요"
     return {"checkedAt": datetime.now(timezone.utc).isoformat(), "jobs": rows}
 
 class Handler(BaseHTTPRequestHandler):
@@ -164,6 +179,16 @@ class Handler(BaseHTTPRequestHandler):
             self.send_headers(403, "text/plain")
             return
         route = urlsplit(self.path).path
+        reports = {"/admission-review": "admission-review.html", "/weekly-report": "weekly-report.html"}
+        if route in reports:
+            path = CHECKS / reports[route]
+            if not path.is_file():
+                self.send_headers(404, "text/plain; charset=utf-8")
+                self.wfile.write("점검 기록이 아직 없습니다.".encode())
+                return
+            self.send_headers(200, "text/html; charset=utf-8")
+            self.wfile.write(path.read_bytes())
+            return
         if route == "/publication":
             try:
                 request = Request("https://personal-tap-data-yuni14.vercel.app/api/ai-trend?status=1", headers={"User-Agent": "PersonalTap-Status/1.0"})

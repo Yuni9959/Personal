@@ -12,6 +12,21 @@ monitor = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(monitor)
 
 class StatusTest(unittest.TestCase):
+    def test_completed_weekly_checks_keep_detected_problems_visible(self):
+        tasks = [{"name": "YML Weekly Operations Check", "state": "Ready", "result": 0,
+                  "lastRun": datetime.now(timezone.utc).isoformat()}]
+        def fixture(path):
+            return {"status": "attention_required", "stage": "점검 완료", "details": [["페이지 검사", "실패 3개"]]} if path.name == "latest-weekly.json" else {}
+        with (
+            patch.object(monitor.subprocess, "run", return_value=SimpleNamespace(returncode=0, stdout=json.dumps(tasks).encode())),
+            patch.object(monitor, "read_json", side_effect=fixture),
+            patch.object(monitor, "read_tail", return_value=""),
+        ):
+            result = monitor.collect()
+        job = next(j for j in result["jobs"] if j["name"] == "YML Weekly Operations Check")
+        self.assertEqual(job["status"], "주의 필요")
+        self.assertIn(["페이지 검사", "실패 3개"], job["details"])
+
     def test_running_admission_reports_current_school_without_process_arguments(self):
         tasks = [{"name": "YML Admission Monitor", "state": "Running",
                   "university": "ewha_seoul", "phase": "audit"}]
