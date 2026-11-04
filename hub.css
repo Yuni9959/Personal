@@ -33,6 +33,36 @@ button:focus-visible, a:focus-visible {
   outline-offset: 4px;
 }
 .hidden { display: none !important; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.hub-navigation { display: flex; align-items: flex-start; gap: 16px; margin: 0 0 30px; }
+.apps-tab { padding: 16px 20px; border-radius: 16px; background: var(--violet-soft); color: #5142b8; font-weight: 800; white-space: nowrap; }
+.automation-overview { flex: 1; min-width: 0; padding: 16px 20px; border: 2px solid #d6ab35; border-radius: 20px; background: var(--surface); box-shadow: 0 8px 24px #17203306; }
+.automation-topline { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+.automation-link { font-weight: 800; }
+.automation-link span { color: var(--muted); margin-left: 4px; }
+.automation-signal { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+.automation-overview .traffic-light { display: flex; gap: 8px; padding: 9px 11px; border-radius: 30px; background: #202a3b; }
+.automation-overview .lamp { width: 14px; height: 14px; border-radius: 50%; background: #445066; box-shadow: inset 0 1px 3px #0005; }
+.automation-overview[data-level=green] { border-color: #269568; }
+.automation-overview[data-level=red] { border-color: #d54959; }
+.automation-overview[data-level=green] .lamp.green { background: #39d991; box-shadow: 0 0 8px #39d99180; }
+.automation-overview[data-level=yellow] .lamp.yellow { background: #ffcc47; box-shadow: 0 0 8px #ffcc4780; }
+.automation-overview[data-level=red] .lamp.red { background: #ff6372; box-shadow: 0 0 8px #ff637280; }
+.automation-overview[data-level=green] #healthLabel { color: #126644; }
+.automation-overview[data-level=yellow] #healthLabel { color: #80600b; }
+.automation-overview[data-level=red] #healthLabel { color: #a82434; }
+.automation-overview #refresh { margin-left: auto; padding: 9px 14px; border: 1px solid var(--line); border-radius: 10px; background: #f4f2ff; color: #5142b8; font-size: 12px; font-weight: 800; cursor: pointer; }
+.automation-overview #refresh:disabled { opacity: .55; cursor: wait; }
+.automation-overview p { margin: 10px 0 0; overflow-wrap: anywhere; font-size: 12px; line-height: 1.6; color: #596176; }
+.automation-overview #healthTime { color: var(--muted); font-size: 11px; }
+.automation-overview #localMessage a { color: #5142b8; text-decoration: underline; }
+@media (max-width: 600px) {
+  .hub-navigation { flex-direction: column; gap: 12px; }
+  .apps-tab { padding: 10px 16px; }
+  .automation-overview { width: 100%; padding: 16px; }
+  .automation-topline { gap: 12px; }
+  .automation-overview #refresh { margin-left: 0; }
+}
 
 .ambient {
   position: fixed;

@@ -29,6 +29,24 @@ export async function checkAutomationStatus({ client, navigate, evaluate, waitFo
     };
   }` });
   try {
+    await navigate(client, baseUrl + "/");
+    await waitForCondition(client, 'document.querySelector("#healthPanel")?.dataset.level === "red" && !document.querySelector("#refresh").disabled');
+    assert.equal(await evaluate(client, 'document.querySelectorAll(".app-card").length'), 6);
+    assert.equal(await evaluate(client, 'getComputedStyle(document.querySelector("#healthPanel")).borderTopWidth'), "2px");
+    assert.equal(await evaluate(client, 'document.querySelector(".automation-link").getAttribute("href")'), "./apps/automation-status/");
+    await evaluate(client, 'window.signalMode = "yellow"; document.querySelector("#refresh").click()');
+    await waitForCondition(client, '!document.querySelector("#refresh").disabled');
+    assert.equal(await evaluate(client, 'document.querySelector("#healthPanel").dataset.level'), "yellow");
+    await evaluate(client, 'window.signalMode = "green"; window.signalPoll()');
+    await waitForCondition(client, '!document.querySelector("#refresh").disabled');
+    assert.equal(await evaluate(client, 'document.querySelector("#healthPanel").dataset.level'), "green");
+    await client.send("Emulation.setDeviceMetricsOverride", { width:320, height:900, deviceScaleFactor:1, mobile:true });
+    assert.equal(await evaluate(client, 'document.documentElement.scrollWidth <= innerWidth'), true);
+    await evaluate(client, 'window.statusFail = true; document.querySelector("#refresh").click()');
+    await waitForCondition(client, '!document.querySelector("#refresh").disabled');
+    assert.equal(await evaluate(client, 'document.querySelector("#healthPanel").dataset.level'), "yellow");
+    assert.equal(await evaluate(client, 'document.querySelector("#localMessage").hidden'), false);
+    await client.send("Emulation.clearDeviceMetricsOverride");
     await navigate(client, baseUrl + "/apps/automation-status/");
     await waitForCondition(client, 'document.querySelectorAll(".card").length === 4 && !document.querySelector("#refresh").disabled');
     assert.match(await evaluate(client, 'document.querySelector("#jobs").textContent'), /게시 실패 <script>/);

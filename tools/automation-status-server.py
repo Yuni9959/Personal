@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 import subprocess
 import threading
+import time
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
@@ -26,6 +27,18 @@ TASKS = {
     "YML Weekly Operations Check": ("주간 데이터 · YML 페이지 점검", 192),
 }
 LOCK = threading.Lock()
+STATUS_CACHE = None
+STATUS_CACHE_AT = 0
+
+def status_snapshot():
+    """Share one fresh observation when the home and detail screens poll together."""
+    global STATUS_CACHE, STATUS_CACHE_AT
+    with LOCK:
+        if STATUS_CACHE is None or time.monotonic() - STATUS_CACHE_AT >= 5:
+            value = collect()
+            STATUS_CACHE = value
+            STATUS_CACHE_AT = time.monotonic()
+        return STATUS_CACHE
 
 def read_json(path):
     try:
@@ -64,6 +77,30 @@ def classify(task, max_hours, now=None):
     if age < -300 or age > max_hours * 3600:
         return "오래됨"
     return "최근 실행 성공" if task.get("result") == 0 else "실패"
+
+def recent(value, seconds):
+    try:
+        age = (datetime.now(timezone.utc) - datetime.fromisoformat(value)).total_seconds()
+        return -300 <= age <= seconds
+    except (ValueError, TypeError):
+        return False
+
+def admission_signal(job, receipt, health):
+    report = receipt.get("report", {})
+    counts = report.get("counts", {})
+    if report.get("status") == "fail" or counts.get("errors", 0):
+        job["severity"] = "error"
+        job["reason"] = "승인 보고서 검사 오류"
+    elif (job.get("state") == "Running" and receipt.get("status") == "healthy"
+          and not receipt.get("issues") and report.get("status") == "pass"
+          and counts.get("errors") == 0 and counts.get("institutions", 0) > 0
+          and counts.get("complete_institutions") == counts.get("institutions")
+          and health.get("coverage", {}).get("general_page_attachment_resource_warnings") == 0
+          and recent(receipt.get("generated_at"), 30 * 3600)
+          and recent(job.get("lastRun"), 2 * 3600)
+          and recent(job.get("observedAt"), 3600)):
+        job["status"] = "정상 실행 중"
+        job["reason"] = "최근 보고서 검사 통과 · 수집/검토 진행 중"
 
 def collect():
     script = r"""
@@ -120,6 +157,7 @@ $i = $_ | Get-ScheduledTaskInfo
     ]
     if receipt.get("issues") and admission["status"] == "최근 실행 성공":
         admission["status"] = "주의 필요"
+    admission_signal(admission, receipt, health)
     if admission.get("state") == "Running" and admission.get("university"):
         registry = read_json(ADMISSION.parent / "yonsei_admission_collector/universities.json")
         names = {item["university_id"]: item["official_name"] for item in registry.get("universities", [])}
@@ -142,6 +180,11 @@ $i = $_ | Get-ScheduledTaskInfo
         check = read_json(path)
         job["observedAt"] = check.get("updated_at") or observed(path)
         job["details"] = [["현재 단계", check.get("stage", "기록 없음")], *check.get("details", [])]
+        if check.get("status") == "running":
+            previous = read_json(latest(CHECKS / "history", f"{mode}-*/result.json"))
+            if previous:
+                check = previous
+                job["details"].extend([["검사 기준", "재검사 중 · 직전 완료 결과 유지"], *check.get("details", [])])
         if check.get("error"):
             job["details"].append(["검사 오류", check["error"]])
         if (check.get("status") == "failed" or check.get("pages", {}).get("failed", 0)
@@ -155,6 +198,24 @@ $i = $_ | Get-ScheduledTaskInfo
                 job["status"] = "확인 불가"
             elif check.get("status") not in {"pass", "healthy"}:
                 job["status"] = "주의 필요"
+        reasons = []
+        if check.get("error"):
+            reasons.append("점검 실행 실패")
+        if mode == "review":
+            value = check.get("review", {})
+            if value.get("pending_events"):
+                reasons.append(f'자료 검토 대기 {value["pending_events"]}건')
+            if value.get("integrity_errors"):
+                reasons.append(f'근거 연결 오류 {len(value["integrity_errors"])}건')
+        else:
+            if check.get("data", {}).get("needs_attention"):
+                reasons.append(f'데이터 품질 점검 {check["data"]["needs_attention"]}개')
+            if check.get("pages", {}).get("failed"):
+                reasons.append(f'페이지 오류 {check["pages"]["failed"]}개')
+        if reasons:
+            job["reason"] = " · ".join(reasons)
+            if job.get("severity") != "error":
+                job["severity"] = "warning"
     return {"checkedAt": datetime.now(timezone.utc).isoformat(), "jobs": rows}
 
 class Handler(BaseHTTPRequestHandler):
@@ -208,19 +269,13 @@ class Handler(BaseHTTPRequestHandler):
                 self.wfile.write(b'{"error":"Publication check failed"}')
             return
         if route == "/status":
-            if not LOCK.acquire(blocking=False):
-                self.send_headers(429, "application/json")
-                self.wfile.write(b'{"error":"Already checking"}')
-                return
             try:
-                result = collect()
+                result = status_snapshot()
                 self.send_headers(200, "application/json; charset=utf-8")
                 self.wfile.write(json.dumps(result, ensure_ascii=False).encode())
             except Exception:
                 self.send_headers(503, "application/json")
                 self.wfile.write(b'{"error":"Status collection failed"}')
-            finally:
-                LOCK.release()
             return
         assets = {"/": "index.html", "/index.html": "index.html", "/app.js": "app.js", "/style.css": "style.css", "/health.js": "health.js"}
         if route not in assets:

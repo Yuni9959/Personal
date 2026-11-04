@@ -1,4 +1,4 @@
-import { signalLevel, overallSignal } from "./health.js?v=traffic-1";
+import { signalLevel, overallSignal } from "./health.js?v=traffic-2";
 const button = document.querySelector("#refresh");
 const localMessage = document.querySelector("#localMessage");
 let readings = [];
@@ -33,6 +33,8 @@ function element(tag, value, cls) {
 }
 function card(target, title, status, details, stages = [], severity) {
   const level = signalLevel(status, severity);
+  // The home screen shares the same checks, without the detailed job cards.
+  if (!target) return { title, level };
   const node = element("article", undefined, "card");
   node.append(element("h3", title), element("span", status, "badge " + ({red:"bad",yellow:"warning",green:"good"}[level])));
   const list = element("dl");
@@ -55,22 +57,24 @@ async function json(url, timeout = 25000) {
 }
 async function local() {
   const target = document.querySelector("#jobs");
-  target.replaceChildren();
+  target?.replaceChildren();
+  localMessage.hidden = !target;
   localMessage.textContent = "Windows 예약 작업과 최신 기록을 읽는 중…";
   try {
     const data = await json("http://127.0.0.1:8768/status");
     if (!Array.isArray(data.jobs) || !data.jobs.length || !data.checkedAt) throw new Error("잘못된 응답");
     const age = Date.now() - Date.parse(data.checkedAt);
     if (!Number.isFinite(age) || age < -300000 || age > 90000) throw new Error("PC 확인 기록이 오래됐습니다");
-    const signals = data.jobs.map(job => card(target, job.title, job.status, [
+    const signals = data.jobs.map(job => ({...card(target, job.title, job.status, [
       ["마지막 실행", time(job.lastRun)], ["다음 예약", time(job.nextRun)],
       ["Windows 상태 / 종료코드", (job.state || "없음") + " / " + (job.result ?? "없음")],
       ["진행 기록 시각", time(job.observedAt)],
       ...(job.details || []).map(([key, value]) => [key, /시각|분석 기록/.test(key) ? time(value) : translate(value)])
-    ], job.stages, job.severity));
+    ], job.stages, job.severity), reason: job.reason}));
     localMessage.textContent = "PC 확인 시각: " + time(data.checkedAt) + " · 실행 성공은 전체 자료의 최신성 보장이 아닙니다.";
     return signals;
   } catch (error) {
+    localMessage.hidden = false;
     localMessage.textContent = "PC 상태 확인 불가 · " + error.message + ". 이 PC에서 상태 조회 프로그램 실행 여부와 브라우저의 로컬 네트워크 접근 허용을 확인하세요.";
     const link = element("a", "PC 상태 화면 직접 열기");
     link.href = "http://127.0.0.1:8768/"; localMessage.append(" ", link);
@@ -79,7 +83,7 @@ async function local() {
 }
 async function cloud() {
   const target = document.querySelector("#cloud");
-  target.replaceChildren();
+  target?.replaceChildren();
   const checks = [
     (async () => {
       try {
@@ -110,7 +114,7 @@ async function cloud() {
         ]);
         const link = element("a", "실행 기록 보기");
         link.href = "https://github.com/Yuni9959/Personal/actions/workflows/daily-briefing.yml";
-        target.lastElementChild.append(link);
+        target?.lastElementChild.append(link);
         return signal;
       } catch (e) { return {...card(target, "클라우드 수집 · 주간 기준", "확인 불가", [["조회 오류", e.message]]), unavailable:true}; }
     })()

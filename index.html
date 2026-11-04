@@ -9,7 +9,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" href="./icons/icon-192.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./hub.css?v=2.9.0-three-column-grid.1" />
+  <link rel="stylesheet" href="./hub.css?v=automation-hub-1" />
   <link rel="stylesheet" href="./pwa-update.css" />
 </head>
 <body>
@@ -33,7 +33,23 @@
     </header>
 
     <main>
-      <nav aria-label="Personal Tap 메뉴" style="display:flex;gap:16px;margin:12px 0 24px"><a href="./" aria-current="page">My Apps</a><a href="./apps/automation-status/">자동화 상태</a></nav>
+      <nav class="hub-navigation" aria-label="Personal Tap 메뉴">
+        <a class="apps-tab" href="./" aria-current="page">My Apps</a>
+        <section id="healthPanel" class="automation-overview" data-level="yellow" aria-label="자동화 상태">
+          <div class="automation-topline">
+            <a class="automation-link" href="./apps/automation-status/">자동화 상태 <span aria-hidden="true">↗</span></a>
+            <div class="automation-signal" role="status" aria-live="polite">
+              <span class="traffic-light" aria-hidden="true"><i class="lamp red"></i><i class="lamp yellow"></i><i class="lamp green"></i></span>
+              <strong id="healthLabel">점검 필요</strong>
+            </div>
+            <button id="refresh" type="button">확인하기</button>
+          </div>
+          <p id="healthReason">현재 상태를 확인하고 있습니다.</p>
+          <p id="healthTime">마지막 확인: 기록 없음</p>
+          <p id="localMessage" hidden></p>
+          <p id="summary" class="sr-only" role="status" aria-live="polite">확인 준비 중</p>
+        </section>
+      </nav>
       <section class="section-block app-launcher" aria-labelledby="appsTitle">
         <div class="section-heading">
           <div>
@@ -55,6 +71,7 @@
   <noscript>이 페이지는 JavaScript가 필요합니다.</noscript>
   <script src="./apps.js"></script>
   <script type="module" src="./hub.js"></script>
+  <script type="module" src="./apps/automation-status/app.js?v=traffic-2"></script>
   <script src="./pwa-update.js"></script>
 </body>
 </html>

@@ -575,6 +575,23 @@ async function run() {
 
     const baseUrl = `http://127.0.0.1:${serverPort}`;
     await checkAutomationStatus({ client, navigate, evaluate, waitForCondition, baseUrl, assert });
+    await client.send("Page.addScriptToEvaluateOnNewDocument", { source: `
+      if (location.pathname === "/") {
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async (url, options) => {
+          if (String(url).includes("127.0.0.1:8768/status")) return new Response(JSON.stringify({
+            checkedAt: new Date().toISOString(), jobs: [{title:"수집",status:"최근 실행 성공"}]
+          }));
+          if (String(url).includes("/api/ai-trend")) return new Response(JSON.stringify({
+            delayed:false,serverNow:new Date().toISOString(),entry:{id:"fixture"}
+          }));
+          if (String(url).includes("api.github.com")) return new Response(JSON.stringify({
+            workflow_runs:[{created_at:new Date().toISOString(),status:"completed",conclusion:"success"}]
+          }));
+          return nativeFetch(url, options);
+        };
+      }
+    ` });
     await client.send("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 1250,
