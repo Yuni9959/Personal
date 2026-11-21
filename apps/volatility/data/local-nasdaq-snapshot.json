@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "mode": "local-archive",
-  "generatedAt": "2026-11-20T23:30:25.532Z",
+  "generatedAt": "2026-11-21T11:30:16.965Z",
   "provider": {
     "name": "사용자 관리 로컬 Nasdaq 보관 데이터",
     "requestedSymbol": "NQ=F",
@@ -11,7 +11,7 @@
     "fallback": true,
     "localArchive": true,
     "sourceFile": "nasdaq_5m.csv",
-    "sourceSha256": "8bd2ccdc25c2a22cf3bd54cc9346637cf1a468a495c5a0bdff32c09003777dc9",
+    "sourceSha256": "9a2f0b683872663c02d747b598b1455056dbdea2946d951574941cc7a152bbda",
     "sourceEventAt": "2026-11-20T21:55:00.000Z",
     "sourceRowCount": 108612,
     "barQuality": "one-interior-missing-bucket",
@@ -41,20 +41,20 @@
     "open": 26600,
     "high": 26603.5,
     "low": 24976.5,
-    "current": 25291,
+    "current": 25126.5,
     "latestBarAt": "2026-11-20T21:55:00.000Z",
-    "atr5m14": 86.072451,
+    "atr5m14": 96.804594,
     "atrLastCompletedBarAt": "2026-11-20T21:55:00.000Z"
   },
   "indicators": {
     "timeframe": "5m",
     "sourceBarAt": "2026-11-20T21:55:00.000Z",
     "historyBarCount": 108612,
-    "ema50": 25390.932571,
-    "ema200": 25888.340807,
+    "ema50": 25384.48159,
+    "ema200": 25886.703991,
     "emaRegime": "bearish",
-    "rsi14": 49.148664,
-    "atrPercentile20d": 95.434783,
+    "rsi14": 38.467786,
+    "atrPercentile20d": 98.115942,
     "atrPercentileSampleCount": 5520
   },
   "chart5m": [
@@ -9714,9 +9714,9 @@
     {
       "at": "2026-11-20T21:55:00.000Z",
       "high": 25311.25,
-      "low": 25276.75,
-      "close": 25291,
-      "atr14": 86.072454
+      "low": 25126.5,
+      "close": 25126.5,
+      "atr14": 96.804597
     }
   ],
   "limitations": [
