@@ -1,393 +1,355 @@
 {
   "schemaVersion": 2,
   "date": "2026-11-21",
-  "generatedAt": "2026-11-20T23:58:18.502Z",
+  "generatedAt": "2026-11-21T08:00:18.814Z",
   "cards": [
     {
-      "id": "0d485e0dfc8d69ca",
-      "category": "news",
-      "title": "Global stock markets slump as Anthropic's record IPO fails to stem AI sell-off",
-      "source": "Hacker News · Show HN",
-      "sourceKind": "community",
-      "channel": "information",
-      "discoveryUrl": "https://news.ycombinator.com/item?id=50574383",
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 64.5,
-        "components": {
-          "freshness": 62.3,
-          "communityAttention": 17.5,
-          "repeatPenalty": -15.3
-        },
-        "badge": "커뮤니티 소식",
-        "reasons": [
-          "커뮤니티 게시 11시간 경과",
-          "Hacker News · Show HN 발견 경로",
-          "Hacker News 191점 · 댓글 225개"
-        ],
-        "signals": [
-          {
-            "label": "커뮤니티 게시 11시간 경과",
-            "url": "https://www.theguardian.com/business/2026/nov/20/global-stock-markets-slump-anthropic-ipo-ai-sell-off"
-          },
-          {
-            "label": "Hacker News · Show HN 발견 경로",
-            "url": "https://news.ycombinator.com/item?id=50574383"
-          },
-          {
-            "label": "Hacker News 191점 · 댓글 225개",
-            "url": "https://news.ycombinator.com/item?id=50574383"
-          }
-        ],
-        "growth": null,
-        "family": "AI 기업 상장과 증시",
-        "owner": "Hacker News · Show HN",
-        "repeated": true,
-        "independentCommunity": true
-      },
-      "name": null,
-      "topics": [],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": null,
-      "stars": null,
-      "likes": null,
-      "url": "https://www.theguardian.com/business/2026/nov/20/global-stock-markets-slump-anthropic-ipo-ai-sell-off",
-      "publishedAt": "2026-11-20T13:29:59.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "The Guardian은 Claude 개발사 Anthropic이 상장 첫날 17% 올랐지만 이튿날 장중 최대 12% 하락했고, Nasdaq Composite는 2026년 상승분을 반납했다고 보도했다. AI 기업과 반도체주를 살피는 독자에게 상장 직후 주가 흐름과 시장이 AI 투자 수익성에 제기한 질문을 짚어준다.",
-      "tags": [
-        "AI 기업 상장과 증시"
-      ],
-      "stats": [],
-      "signalLabel": "커뮤니티 소식",
-      "slides": [
-        {
-          "title": "상장 첫날 올랐던 주가가 이튿날 공모가에 근접",
-          "body": "The Guardian에 따르면 Claude를 개발한 Anthropic은 미국 증시에 주당 83달러로 상장했다. 거래 첫날 주가는 한때 공모가보다 약 40% 올랐고, 17% 상승으로 거래를 마쳤다. 이튿날에는 장중 최대 12% 떨어져 85.12달러까지 밀렸다. 같은 날 Nasdaq Composite는 2026년 상승분을 반납했다. 보도는 기록적인 규모의 상장에도 AI 관련주 매도세가 이어졌다고 전했다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "시장 분석가들이 짚은 AI 투자 수익성",
-          "body": "제공된 자료는 Anthropic 상장을 다룬 The Guardian 보도와 Hacker News 게시 지표로, 제작사의 공식 발표와 Claude 기능 설명은 미확인이다. 보도에서 Capital.com의 Daniela Hathorn은 공모에서 AI 투자 수요가 드러났지만 높은 기업가치와 수익성, 투자 지출을 지속할 수 있을지에 대한 우려가 남았다고 평가했다. IG의 Chris Beauchamp는 공모주를 사려는 투자자가 자금을 마련하는 과정에서 다른 기술주에 매도 압력이 생겼을 가능성을 제시했다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 원문에서 밝힌 내용"
-        },
-        {
-          "title": "공모주와 반도체주를 살피는 두 가지 활용 예시",
-          "body": "활용 예시 1. 공모주를 살피는 개인 투자자는 공모가 83달러, 첫날 상승률 17%, 이튿날 장중 가격 85.12달러를 시간순으로 놓고 공모가 대비 상승폭이 얼마나 줄었는지 파악할 수 있다.\n활용 예시 2. 반도체 업종을 담당하는 분석가는 보도 시점의 SanDisk 14%, Micron 12%, TSMC 약 6% 하락을 나란히 놓고, 매도세가 미국 메모리 업체와 대만 반도체 업체에 걸쳐 나타났음을 정리할 수 있다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "Hacker News 댓글 200개, 내용은 미확인",
-          "body": "2026년 11월 20일 20시 00분 UTC에 수집된 Hacker News 게시물 한 건에서 177점과 댓글 200개가 관측됐다. 자료에는 댓글 본문이 없어 어떤 평가가 나왔는지, 작성자가 Anthropic 관계자인지, 토론이 열려 있는지는 미확인이다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. The Guardian에 인용된 분석가의 발언은 증시와 투자 심리에 대한 견해이며, Anthropic의 공식 벤치마크는 제공 자료에 없다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "시장 상황을 읽는 데 활용할 수 있는 범위",
-          "body": "이 자료는 상장 첫 이틀의 가격 변동과 같은 시기 주요 지수 및 반도체주의 움직임을 파악하려는 투자자와 업계 독자에게 적합하다. 이튿날 주가와 일부 지수 수치는 장중 관측치이며, 상장이 다른 종목의 하락을 일으켰는지와 AI 투자 지출이 장기적으로 어떤 수익을 낼지는 미확인이다. Claude 도입에 필요한 실행 환경, 라이선스, API 비용, 설치 요건과 사용 제약도 제공 자료에서 확인되지 않는다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Anthropic 상장 이튿날 급락, AI주 매도세 이어져",
-      "topic": "AI 기업 상장과 증시",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
-          "url": "https://www.theguardian.com/business/2026/nov/20/global-stock-markets-slump-anthropic-ipo-ai-sell-off",
-          "kind": "reporting"
-        },
-        {
-          "id": "s2",
-          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
-          "url": "https://news.ycombinator.com/item?id=50574383",
-          "kind": "community"
-        }
-      ],
-      "reviewedAt": "2026-11-20T20:00:52.158Z"
-    },
-    {
-      "id": "3381c1b46b2b81fa",
-      "category": "news",
-      "title": "Frostbite: A new CPU architecture discovered, designed and verified by AI",
-      "source": "Hacker News · Show HN",
-      "sourceKind": "community",
-      "channel": "information",
-      "discoveryUrl": "https://news.ycombinator.com/item?id=50572503",
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 64.1,
-        "components": {
-          "freshness": 59.3,
-          "communityAttention": 20,
-          "repeatPenalty": -15.3
-        },
-        "badge": "커뮤니티 소식",
-        "reasons": [
-          "커뮤니티 게시 14시간 경과",
-          "Hacker News · Show HN 발견 경로",
-          "Hacker News 610점 · 댓글 319개"
-        ],
-        "signals": [
-          {
-            "label": "커뮤니티 게시 14시간 경과",
-            "url": "https://architectlabs.com/blog/frostbite"
-          },
-          {
-            "label": "Hacker News · Show HN 발견 경로",
-            "url": "https://news.ycombinator.com/item?id=50572503"
-          },
-          {
-            "label": "Hacker News 610점 · 댓글 319개",
-            "url": "https://news.ycombinator.com/item?id=50572503"
-          }
-        ],
-        "growth": null,
-        "family": "CPU 아키텍처",
-        "owner": "Hacker News · Show HN",
-        "repeated": true,
-        "independentCommunity": true
-      },
-      "name": null,
-      "topics": [],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": null,
-      "stars": null,
-      "likes": null,
-      "url": "https://architectlabs.com/blog/frostbite",
-      "publishedAt": "2026-11-20T10:01:41.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Frostbite는 프로그램을 의존성이 드러나는 그래프로 표현하고, 실행 가능한 작업을 여러 타일에 나눠 처리하는 범용 CPU 설계다. AI 에이전트가 컴파일러부터 칩 레이아웃까지 함께 조정한 사례로, CPU 설계자와 컴파일러 연구자가 병렬 실행 방식과 전력 효율의 관계를 살펴보는 데 유용하다.",
-      "tags": [
-        "CPU 아키텍처"
-      ],
-      "stats": [],
-      "signalLabel": "커뮤니티 소식",
-      "slides": [
-        {
-          "title": "그래프에서 실행할 작업을 찾는 CPU",
-          "body": "Frostbite는 프로그램에서 동시에 실행할 수 있는 작업을 하드웨어가 쉽게 찾도록 설계한 범용 CPU다. Vine 코드를 Ivy로 컴파일하면 연산과 의존성이 상호작용 넷이라는 그래프로 표현된다. 일반적인 CPU가 명령어 사이의 의존성을 실행 중에 파악하는 데 비해, Frostbite는 그래프에 명시된 연결을 따라 입력이 준비된 작업을 실행한다. 각 타일은 자기 작업을 먼저 처리하고, 대기열이 비면 여유 작업이 있는 이웃 타일에서 가져온다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "컴파일러부터 칩 레이아웃까지 함께 설계",
-          "body": "Architect Labs는 AI 에이전트가 컴파일러, 명령어 집합, RTL, 검증과 최종 GDS 레이아웃을 함께 수정했다고 설명한다. 자체 명세 언어 ASL을 기준으로 시스템 모델과 RTL의 동작을 맞추고, Lean으로 명세 충족 여부를 검증하는 데 활용했다. 제작자는 면적이 비슷한 듀얼 이슈 순차 실행 CPU 코어와 비교했을 때, 25개 작업의 와트당 성능 기하평균이 4.59배였다고 설명한다. 설계 최적화에서 제외한 15개 작업만 따로 보면 3.83배였다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 원문에서 밝힌 내용"
-        },
-        {
-          "title": "탐색 문제와 압축 해제에 적용한 사례",
-          "body": "자료에 나온 첫 사례는 알고리즘 연구자가 5×5 체스판에 퀸 다섯 개를 놓는 탐색을 분석하는 상황에 해당한다. 일부 퀸이 놓인 보드 상태가 들어오면 타일들이 다음 배치 후보를 나눠 탐색한다. 제작자가 제시한 그래프에는 상호작용 3,183회와 임계 경로 262단계가 기록됐다. 두 번째는 압축 처리 개발자에게 관련 있는 LZ4 압축 해제다. LZ4로 압축된 데이터를 입력받아 원본을 복원하는 작업을 설계 최적화에서 제외한 평가 목록에 넣었다. 이 자료에서 확인되는 성능 수치는 작업 묶음 단위다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "커뮤니티 반응과 성능 검증",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 11월 20일 수집 시점에 Hacker News의 Show HN 게시물 한 건은 게시 약 10시간 만에 544점과 댓글 291개를 기록했다. 제공 자료에는 댓글 본문이나 이슈 기록이 없어 외부 사용자가 지적한 장단점, 재현 여부, 문제의 열림·해결 상태는 미확인이다. 와트당 성능 수치는 제작자가 선정한 작업과 비교 코어를 사용해 얻은 자체 벤치마크다. 게시물 점수와 댓글 수는 당시 커뮤니티의 관심을 보여준다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "도입 판단은 제작 전 설계 결과까지",
-          "body": "공개 자료의 실행 흐름은 Vine 코드를 Ivy로 컴파일해 Frostbite 타일에서 처리하는 방식이다. 제작자는 7 nm 공정의 최종 GDS에서 500 MHz 타이밍을 달성했다고 설명한다. 전력 수치는 칩 제작 전 추정치이며 실물 칩의 가동과 전력 측정은 미확인이다. 라이선스, 공개 저장소, 설치 절차, 지원 운영체제와 API 제공 여부 및 비용도 미확인이다. 현 단계에서는 기존 서비스에 투입할 CPU를 고르는 팀보다 그래프 기반 병렬 실행과 하드웨어·소프트웨어 공동 설계를 연구하는 팀에 적합한 참고 사례다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "AI가 설계한 CPU, 코드의 병렬 작업을 나눠 실행",
-      "topic": "CPU 아키텍처",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
-          "url": "https://architectlabs.com/blog/frostbite",
-          "kind": "reporting"
-        },
-        {
-          "id": "s2",
-          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
-          "url": "https://news.ycombinator.com/item?id=50572503",
-          "kind": "community"
-        }
-      ],
-      "reviewedAt": "2026-11-20T20:01:17.392Z"
-    },
-    {
-      "id": "f181c6548f4fe620",
-      "category": "news",
-      "title": "Google Vids now lets you reuse your media in video generation",
-      "source": "Google Workspace Updates",
+      "id": "1e52228e1c5c3f80",
+      "category": "model",
+      "title": "thinkingmachines/Inkling-2-Mini",
+      "source": "Hugging Face",
       "sourceKind": "official",
       "channel": "information",
-      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/11/google-vids-now-lets-you-reuse-your-media-in-video-generation.html",
-      "primaryUrl": "https://docs.google.com/videos/create?usp=blog",
+      "discoveryUrl": null,
+      "primaryUrl": null,
       "releaseDate": null,
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 51,
+        "score": 78.5,
         "components": {
-          "freshness": 66.3,
+          "nativeTrend": 42,
+          "freshness": 13.2,
+          "measuredVelocity": 20,
+          "totalAttention": 3.2,
           "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "repeatPenalty": 0
         },
-        "badge": "새 공식 발표",
+        "badge": "단기 관심 증가",
         "reasons": [
-          "공식 발표 6시간 경과"
+          "Hugging Face 트렌딩 1위 관측",
+          "좋아요 +527개 / 8시간",
+          "공개 5일 이내 모델"
         ],
         "signals": [
           {
-            "label": "공식 발표 6시간 경과",
-            "url": "https://workspaceupdates.googleblog.com/2026/11/google-vids-now-lets-you-reuse-your-media-in-video-generation.html"
+            "label": "Hugging Face 트렌딩 1위 관측",
+            "url": "https://huggingface.co/models?sort=trending"
+          },
+          {
+            "label": "좋아요 +527개 / 8시간",
+            "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini"
+          },
+          {
+            "label": "공개 5일 이내 모델",
+            "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini"
           }
         ],
-        "growth": null,
+        "growth": {
+          "metric": "likes",
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 464,
+          "current": 991,
+          "delta": 527,
+          "hours": 8,
+          "perHour": 65.6
+        },
         "family": "비전·멀티모달",
-        "owner": "Google Workspace Updates",
-        "repeated": true,
+        "owner": "thinkingmachines",
+        "repeated": false,
         "independentCommunity": false
       },
       "name": null,
-      "topics": [],
+      "topics": [
+        "transformers",
+        "safetensors",
+        "inkling2_loop",
+        "text-generation",
+        "conversational",
+        "image-text-to-text",
+        "moe",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "8-bit",
+        "modelopt",
+        "region:us"
+      ],
       "discoveryTopic": null,
-      "pipelineTag": null,
+      "pipelineTag": "image-text-to-text",
       "pushedAt": null,
       "stars": null,
-      "likes": null,
-      "url": "https://workspaceupdates.googleblog.com/2026/11/google-vids-now-lets-you-reuse-your-media-in-video-generation.html",
-      "publishedAt": "2026-11-20T17:59:59.965Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Google Vids는 Gemini Omni로 영상을 만들 때 사용한 이미지·영상·오디오를 프로젝트의 ‘Assets’에 모아 둡니다. 같은 프로젝트에서 새 클립을 만들 때 생성 화면에서 최근 자료를 다시 선택할 수 있어, 공통 소재로 여러 클립을 만드는 팀과 개인의 반복 업로드를 줄여 줍니다.",
+      "likes": 991,
+      "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini",
+      "publishedAt": "2026-11-17T00:26:57.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Inkling 2 Mini는 Thinking Machines Lab이 가중치를 공개한 범용 멀티모달 모델입니다. 이미지와 텍스트를 함께 받아 글로 답합니다. 코딩 보조 도구나 문서 질의응답 기능을 만드는 개발자는 지원 장비에서 직접 실행하거나 Tinker API로 연동할 수 있습니다.",
       "tags": [
-        "AI 영상 생성"
+        "멀티모달 언어 모델"
       ],
-      "stats": [],
-      "signalLabel": "새 공식 발표",
+      "stats": [
+        {
+          "label": "Downloads",
+          "value": 136
+        },
+        {
+          "label": "Likes",
+          "value": 991
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
       "slides": [
         {
-          "title": "같은 프로젝트의 미디어를 다시 꺼내 쓰기",
-          "body": "Google Vids에서 같은 제품 사진이나 영상 자료로 여러 클립을 만들면, 생성할 때마다 같은 파일을 다시 준비하는 일이 생깁니다. 이제 Gemini Omni로 영상을 생성할 때 사용한 미디어는 프로젝트의 ‘Assets’에 저장됩니다. 다음 클립을 만들 때는 생성 화면에서 최근 자료를 골라 입력으로 쓸 수 있습니다. 차이는 파일을 보관하는 위치와 다시 쓰는 위치가 같은 생성 작업 흐름 안에 있다는 점입니다.",
+          "title": "무엇인가",
+          "body": "Inkling 2 Mini는 화면 캡처나 문서 이미지에 관한 질문을 처리하고, 코딩이나 일반 대화에도 쓸 수 있는 범용 모델입니다. 텍스트 전용 모델과 달리 이미지에서 추출한 특징을 텍스트와 같은 표현 공간에 넣고 함께 처리해 답을 글로 생성합니다. 내부에서는 토큰마다 일부 전문가만 선택하는 MoE 구조를 쓰고, 중간 12개 층을 같은 가중치로 세 번 통과시킵니다.",
           "evidenceIds": [
-            "s1"
+            "s1",
+            "s2"
           ],
           "eyebrow": "01 / 무엇인가요"
         },
         {
-          "title": "Google이 강조한 생성 화면과 배포 일정",
-          "body": "제작자인 Google은 ‘Assets’가 이미지·영상·오디오의 여러 형식을 지원하며, 최근에 쓴 자료를 AI 영상 생성 화면에서 바로 고를 수 있다고 설명합니다. Google에 따르면 기능은 기본으로 제공되며 관리자 제어와 사용자 설정은 따로 없습니다. Rapid Release 도메인은 2026년 11월 17일부터 최대 15일에 걸쳐 점진 배포하며, Scheduled Release 도메인은 12월 2일부터 1~3일에 걸쳐 전체 배포할 예정이라고 안내했습니다.",
+          "title": "제작자의 소개",
+          "body": "제작자는 최대 100만 토큰의 문맥을 지원하며, 도구를 쓰는 에이전트, 코딩 보조, 검색 결과를 활용하는 질의응답에 쓸 수 있다고 설명합니다. 제작자는 비교표에서 bash만 사용한 SWEBench Verified 점수가 79.2%, mini-swe-agent v2.4.6을 연결한 DeepSWE v1.1 점수가 48.2%라고 보고했습니다. 두 수치는 서로 다른 과제와 실행 설정에서 나온 결과입니다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "02 / 제작자의 설명"
         },
         {
-          "title": "제품 소개와 수업 영상에 쓰는 두 가지 방법",
-          "body": "활용 예시 1. 마케팅 담당자가 제품 사진으로 소개 클립을 만든 뒤 같은 프로젝트의 ‘Assets’에서 그 사진을 다시 골라 후속 홍보 클립의 생성 입력으로 씁니다. 두 클립의 제작에 동일한 제품 사진을 활용할 수 있습니다.\n활용 예시 2. 교사가 실험 시연 영상을 넣어 도입 클립을 만든 뒤, 같은 프로젝트에서 저장된 시연 영상을 다시 선택해 수업 정리용 클립을 생성합니다. 원본 파일을 한 번 준비해 두 클립의 입력으로 쓰는 방식입니다.",
+          "title": "실제 활용",
+          "body": "활용 예시 1. 프런트엔드 개발자가 화면이 깨진 스크린샷과 관련 CSS를 넣고 원인을 묻습니다. 모델은 화면에서 보이는 증상과 코드의 단서를 연결해 의심되는 규칙과 수정 후보를 글로 정리합니다.\n활용 예시 2. 사내 지원 담당자가 제품 설명서의 표 이미지와 직원의 질문을 함께 넣습니다. 모델은 이미지에 보이는 관련 항목을 찾아 질문에 답하는 문안을 작성합니다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "03 / 어디에 쓰나요"
         },
         {
-          "title": "공식 발표로 확인할 수 있는 범위",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 자료는 2026년 11월 20일자 Google 공식 발표 1건입니다. 외부 사용자가 남긴 이슈·댓글·토론이 없어 사용자 표본과 게시일, 문제의 열림·해결 상태는 확인할 수 없습니다. Google은 최근 자료를 생성 화면에서 빠르게 고를 수 있다는 점을 강조했으며, 발표문에는 공식 벤치마크도 제시되지 않았습니다. 작업 시간 절감과 생성 결과의 품질에 관한 외부 검증은 미확인입니다.",
+          "title": "평가와 반응",
+          "body": "2026년 11월 21일 Hugging Face 토론 4건의 제목 기준으로, 지역 접근 불가와 응답 문구 반복이 각각 보고됐고 sm_120에서 dflash 추측 디코딩 지원을 묻는 글도 있었습니다. 세 건은 수집 당시 열려 있었습니다. 샘플링 설정 문의는 닫혔지만 답변 내용은 미확인입니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 벤치마크 수치는 제작자 모델 카드에 실린 결과입니다.",
           "evidenceIds": [
-            "s1"
+            "s1",
+            "s3",
+            "s4",
+            "s5",
+            "s6"
           ],
           "eyebrow": "04 / 평가와 반응"
         },
         {
-          "title": "계정 자격과 프로젝트 범위가 도입 기준",
-          "body": "실행 환경은 Google Vids의 Gemini Omni 영상 생성 화면입니다. Google은 개인 Google 계정, Google AI Pro·Ultra, 일부 Workspace Business·Enterprise·Education 요금제 등을 대상에 포함했습니다. AI Expanded Access 추가 라이선스에는 더 높은 Omni 사용 한도가 적용됩니다. 별도 설치 요건, API 제공 여부와 비용, 세부 지원 파일 형식은 발표문에서 확인되지 않습니다. 확인된 재사용 범위는 같은 프로젝트이므로, 한 프로젝트에서 공통 소재로 여러 클립을 만드는 사용자에게 적합합니다.",
+          "title": "도입 판단",
+          "body": "Apache 2.0으로 공개된 체크포인트는 약 20GB입니다. 제작자는 로컬 추론 환경으로 NVIDIA DGX Spark 1대와 메모리 32GB 이상 Apple silicon을 안내하며, 기타 GPU에는 VRAM 32GB 이상을 권장합니다. 로컬에서는 vLLM이나 SGLang을 쓸 수 있고, Tinker API 연동에는 tml-renderers 설치를 안내합니다. API 요금과 최대 문맥에서의 실제 메모리 사용량은 미확인입니다. 지원 장비로 이미지 질의응답이나 코딩 보조 기능을 시험할 개발팀에 적합합니다.",
           "evidenceIds": [
-            "s1"
+            "s1",
+            "s2"
           ],
           "eyebrow": "05 / 도입 전 확인"
         }
       ],
       "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Google Vids에서 기존 미디어로 새 영상 만들기",
-      "topic": "AI 영상 생성",
+      "headline": "이미지와 텍스트를 읽고 답하는 Inkling 2 Mini",
+      "topic": "멀티모달 언어 모델",
       "evidence": [
         {
           "id": "s1",
-          "label": "발표 원문",
-          "url": "https://workspaceupdates.googleblog.com/2026/11/google-vids-now-lets-you-reuse-your-media-in-video-generation.html",
+          "label": "모델 제작자 설명",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/blob/main/README.md",
           "kind": "creator"
+        },
+        {
+          "id": "s2",
+          "label": "모델 공개 정보",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini",
+          "kind": "official"
+        },
+        {
+          "id": "s3",
+          "label": "모델 토론 #10",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/10",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "모델 토론 #9",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/9",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "모델 토론 #8",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/8",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "모델 토론 #7",
+          "url": "https://huggingface.co/thinkingmachines/Inkling-2-Mini/discussions/7",
+          "kind": "user-report"
         }
       ],
-      "reviewedAt": "2026-11-20T20:01:40.754Z"
+      "reviewedAt": "2026-11-21T08:00:51.106Z"
     },
     {
-      "id": "c98d8b161490da4c",
+      "id": "266efb82a5bf9057",
       "category": "news",
-      "title": "Google Workspace Studio support for Data Regions is now generally available",
-      "source": "Google Workspace Updates",
-      "sourceKind": "official",
+      "title": "Restricting AI agents in mobile operating systems platforms from capturing data",
+      "source": "Hacker News · Show HN",
+      "sourceKind": "community",
       "channel": "information",
-      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/11/google-workspace-studio-support-for-Data-Regions-is-now-generally-available.html",
-      "primaryUrl": "https://support.google.com/a/answer/14310028",
+      "discoveryUrl": "https://news.ycombinator.com/item?id=50572348",
+      "primaryUrl": null,
       "releaseDate": null,
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 49.2,
+        "score": 72.8,
         "components": {
-          "freshness": 64.4,
-          "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "freshness": 52.8,
+          "communityAttention": 20,
+          "repeatPenalty": 0
         },
-        "badge": "새 공식 발표",
+        "badge": "커뮤니티 소식",
         "reasons": [
-          "공식 발표 9시간 경과"
+          "커뮤니티 게시 23시간 경과",
+          "Hacker News · Show HN 발견 경로",
+          "Hacker News 546점 · 댓글 318개"
         ],
         "signals": [
           {
-            "label": "공식 발표 9시간 경과",
-            "url": "https://workspaceupdates.googleblog.com/2026/11/google-workspace-studio-support-for-Data-Regions-is-now-generally-available.html"
+            "label": "커뮤니티 게시 23시간 경과",
+            "url": "https://signal.org/blog/protecting-your-privacy"
+          },
+          {
+            "label": "Hacker News · Show HN 발견 경로",
+            "url": "https://news.ycombinator.com/item?id=50572348"
+          },
+          {
+            "label": "Hacker News 546점 · 댓글 318개",
+            "url": "https://news.ycombinator.com/item?id=50572348"
           }
         ],
         "growth": null,
-        "family": "워크플로 데이터 거주성",
-        "owner": "Google Workspace Updates",
-        "repeated": true,
+        "family": "에이전트·개발",
+        "owner": "Hacker News · Show HN",
+        "repeated": false,
+        "independentCommunity": true
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://signal.org/blog/protecting-your-privacy",
+      "publishedAt": "2026-11-20T09:42:16.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Signal은 운영체제에 내장된 AI가 대화 화면을 읽고 저장할 가능성을 줄이기 위해 iOS 27과 일부 Android 환경에 화면 캡처 제한을 적용한다고 밝혔다. 민감한 대화를 나누는 사용자는 어떤 환경에서 보호가 작동하는지, 캡처가 필요할 때 설정을 바꾸면 어떤 노출 가능성이 생기는지 파악할 수 있다.",
+      "tags": [
+        "운영체제 AI 개인정보 보호"
+      ],
+      "stats": [],
+      "signalLabel": "커뮤니티 소식",
+      "slides": [
+        {
+          "title": "암호화된 대화도 화면에 뜨면 읽힐 수 있다",
+          "body": "운영체제에 내장된 AI는 질문에 답하거나 작업을 수행하기 위해 화면에 표시된 정보를 읽을 수 있다. Signal 메시지는 전송 중 암호화되지만, 앱에 표시된 뒤 화면이 캡처되면 그 내용의 저장과 처리는 Signal의 통제 범위를 벗어난다. Signal은 iOS 27에서 앱의 스크린샷을 제한하고, Android에서는 AI 어시스턴트의 화면 접근 시도를 감지할 수 있을 때 화면 보호를 켜는 방식으로 대응한다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "Signal이 밝힌 iOS와 Android의 대응 방식",
+          "body": "제공된 게시 원문에서 Signal의 Meredith Whittaker는 Windows 11에서 Microsoft Recall의 대화 화면 저장을 막기 위해 적용했던 스크린샷 차단과 비슷한 조치를 모바일로 확대한다고 설명한다. iOS 27에서는 앱 안의 스크린샷을 막고, Android에서는 AI 어시스턴트가 화면에 접근하려는 시도가 감지되면 ‘Screen security’를 자동으로 켠다고 밝혔다. 스크린샷이 필요한 사람은 Signal 설정에서 보호를 끌 수 있다고 덧붙였다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "상담 대화와 업무 메시지에 적용하면",
+          "body": "활용 예시 1. iOS 27에서 상담사가 민감한 상담 메시지를 Signal로 읽을 때 Siri AI가 화면을 캡처하려 하면, 앱의 스크린샷 제한으로 해당 캡처를 막는 것이 목적이다. 활용 예시 2. 지원되는 Android 기기에서 현장 담당자가 Signal로 받은 업무 메시지를 열고 AI 어시스턴트가 현재 화면을 읽으려 하면, Signal이 접근 시도를 감지해 ‘Screen security’를 자동으로 켠다. 두 예시는 발표에 나온 동작을 사용자 상황에 적용한 것이다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "Hacker News의 관심과 검증 범위",
+          "body": "2026년 11월 21일 08:00 UTC 관측 시점에 Hacker News 게시물은 게시 후 약 23시간이 지났고, 546점과 댓글 318개가 집계됐다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공 자료에는 댓글 본문이나 재현 결과가 없어 사용자들이 확인한 장점이나 문제, 이슈의 열림·해결 상태를 판단할 수 없다. 기기별 감지 제약은 Signal이 게시 원문에서 밝힌 내용이며, 공식 벤치마크와 외부 검증 결과도 자료에 제시되지 않았다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "어떤 기기에서 보호를 기대할 수 있나",
+          "body": "적용 범위는 iOS 27과 AI 어시스턴트의 화면 접근을 감지할 수 있는 Android 환경이다. macOS 27에서는 앱 차원의 스크린샷 차단을 구현하지 못해 Signal은 Siri 설정의 ‘Excluded Apps’에 Signal을 추가하도록 안내한다. 화면 캡처 제한은 파일시스템을 통한 접근까지 막지는 못하며, 보호를 끄면 대화 상대의 메시지도 노출될 수 있다. 일부 Android의 구체적인 지원 목록, 최소 앱 버전, 별도 설치 필요 여부, 기능 라이선스와 API 비용은 미확인이다. 적용 환경에서 민감한 대화를 자주 나누고 화면 캡처가 드문 사용자에게 적합하다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "Signal, 모바일 AI의 대화 화면 캡처 차단",
+      "topic": "운영체제 AI 개인정보 보호",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://signal.org/blog/protecting-your-privacy",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://news.ycombinator.com/item?id=50572348",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:01:17.403Z"
+    },
+    {
+      "id": "47d25ef673cbb993",
+      "category": "news",
+      "title": "NYU's Tristan Buckmaster and Anthropic's Levent Alpöge publish an AI-aided proof of Navier-Stokes blowup, saying it closes a loophole in OpenAI's solution (Pete",
+      "source": "Techmeme",
+      "sourceKind": "reporting",
+      "channel": "information",
+      "discoveryUrl": "https://www.techmeme.com/261121/p4#a261121p4",
+      "primaryUrl": "https://www.scientificamerican.com/article/ai-just-solved-the-real-navier-stokes-problem/",
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 70.5,
+        "components": {
+          "freshness": 70.5,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "보도·종합 소식",
+        "reasons": [
+          "보도·종합 소식 2시간 경과",
+          "Techmeme 발견 경로"
+        ],
+        "signals": [
+          {
+            "label": "보도·종합 소식 2시간 경과",
+            "url": "https://www.scientificamerican.com/article/ai-just-solved-the-real-navier-stokes-problem"
+          },
+          {
+            "label": "Techmeme 발견 경로",
+            "url": "https://www.techmeme.com/261121/p4#a261121p4"
+          }
+        ],
+        "growth": null,
+        "family": "AI 보조 수학 증명",
+        "owner": "Techmeme",
+        "repeated": false,
         "independentCommunity": false
       },
       "name": null,
@@ -397,51 +359,52 @@
       "pushedAt": null,
       "stars": null,
       "likes": null,
-      "url": "https://workspaceupdates.googleblog.com/2026/11/google-workspace-studio-support-for-Data-Regions-is-now-generally-available.html",
-      "publishedAt": "2026-11-20T15:57:23.791Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Google Workspace Studio의 Data Regions 지원이 정식 제공된다. 관리자는 미국·EU 중 지정한 지역에 자동화 데이터를 저장하고, 지원 요금제에서는 처리 위치도 제한할 수 있다. 데이터 거주성 요건이 있는 조직은 이 정책을 적용하면서 사용할 수 있는 자동화 기능의 범위를 정할 수 있다.",
+      "url": "https://www.scientificamerican.com/article/ai-just-solved-the-real-navier-stokes-problem",
+      "publishedAt": "2026-11-21T06:30:00.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Tristan Buckmaster와 Levent Alpöge가 AI의 도움을 받아 나비에–스토크스 방정식에 특이점이 생기는 조건을 다룬 증명을 공개했다. 두 저자는 OpenAI의 앞선 증명에서 논란이 된 외력 조건의 허점을 메웠다고 주장한다. 수학 연구자와 AI 연구자는 이 사례를 통해 증명에 쓰인 가정이 결과의 해석을 어떻게 바꾸는지 살펴볼 수 있다.",
       "tags": [
-        "워크플로 데이터 거주성"
+        "AI 보조 수학 증명"
       ],
       "stats": [],
-      "signalLabel": "새 공식 발표",
+      "signalLabel": "보도·종합 소식",
       "slides": [
         {
-          "title": "자동화 데이터의 저장·처리 지역을 지정한다",
-          "body": "Google Workspace Studio는 여러 Workspace 앱을 연결해 반복 업무를 자동화한다. 이번 업데이트로 Studio의 핵심 실행·저장 시스템이 관리자가 지정한 미국 또는 EU의 Data Regions 정책을 따르게 됐다. 일반적인 앱 간 자동화에서 다루는 실행 조건과 작업 순서에 더해, Studio 관리자는 지원 범위 안에서 데이터가 저장되고 처리되는 지역도 정할 수 있다. 처리 위치 제어는 요금제에 따라 달라진다.",
+          "title": "무엇인가",
+          "body": "나비에–스토크스 방정식은 액체나 기체의 흐름을 기술한다. 이 연구가 다루는 질문은 처음에 매끄러운 흐름이 유한한 시간 안에 매끄러움을 잃는 특이점에 이를 수 있느냐다. Scientific American에 따르면 OpenAI의 9월 증명은 흐름을 매우 정교하게 휘젓는 외력을 설정해 특이점을 만들었다. Tristan Buckmaster와 Levent Alpöge는 AI의 도움을 받아 그 외력 설정에서 비롯된 허점을 메웠다고 주장했다. 보도에는 AI가 증명의 어느 단계에 쓰였는지 나오지 않는다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "01 / 무엇인가요"
         },
         {
-          "title": "Google이 밝힌 연동 범위와 관리자 제어",
-          "body": "Google은 Gmail, Google Drive, Google Docs, Google Sheets, Google Calendar, Google Meet, Google Chat 연동을 포함한 핵심 시스템에 지역 정책이 적용된다고 설명한다. 관리자는 Admin console의 Data Regions 고급 설정에서 도메인·조직 단위·그룹별로 여러 지역에서 처리될 수 있는 기능을 허용할지 정할 수 있다. Google은 보안 관리자가 Security Investigation Tool에서 지역 정책 준수 여부를 추적하고 확인할 수 있다고도 설명한다.",
+          "title": "저자가 공개한 내용",
+          "body": "Scientific American의 2026년 11월 20일 보도에 따르면, Buckmaster는 이날 Mastodon에 AI의 도움을 받은 증명 원고를 올렸다. 두 저자는 새 증명이 OpenAI의 앞선 결과에서 논란이 된 외력 조건의 허점을 메웠다고 설명한다. Buckmaster는 공개가 늦어져 다시 선수를 빼앗길 수 있다는 우려 때문에 원고를 충분히 다듬기 전에 올렸다고 밝혔다. 보도 시점에는 결과를 뒷받침하는 인증 자료가 공개되기 전이었고, 저자들은 곧 공개할 예정이라고 했다.",
           "evidenceIds": [
             "s1"
           ],
-          "eyebrow": "02 / 제작자의 설명"
+          "eyebrow": "02 / 원문에서 밝힌 내용"
         },
         {
-          "title": "행정 알림과 조직별 정책 적용에 쓰는 법",
-          "body": "활용 예시 1. EU 내 저장·처리가 필요한 금융사 운영팀이 Google Sheets의 내부 검토 현황을 입력으로 삼아 Gmail로 담당자에게 알림을 보낸다. 지원 요금제와 EU 정책을 적용한 핵심 연동으로 반복 안내를 자동화하는 구성이다.\n활용 예시 2. 글로벌 기업 관리자가 규제 대상 조직 단위를 선택해 비지역 기능을 끈다. 해당 조직에는 정책상 허용되는 단계만 제공되고, 비지역 기능이 허용된 다른 팀은 기존 기능을 계속 사용할 수 있다.",
+          "title": "실제 활용",
+          "body": "활용 예시 1. 편미분방정식 연구자가 OpenAI의 9월 증명과 새 원고를 나란히 읽고, 각 증명에서 외력에 요구하는 조건과 결론을 대조한다. 그러면 앞선 증명의 어떤 가정을 새 원고가 해결했다고 주장하는지 정리할 수 있다. 활용 예시 2. 유체역학 세미나 진행자가 보도와 공개 원고를 바탕으로, 앞선 증명이 문제의 문구를 충족했다는 보도 내용과 외력 설정이 비현실적이라는 지적을 함께 검토한다. 이를 토대로 두 증명이 가정하는 유체 흐름의 차이를 토론할 질문을 만들 수 있다.",
           "evidenceIds": [
             "s1"
           ],
           "eyebrow": "03 / 어디에 쓰나요"
         },
         {
-          "title": "공식 발표로 확인되는 범위",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 근거는 2026년 11월 20일 Google의 공식 발표 1건이다. 발표에 담긴 연동 범위와 제한 시 화면 동작은 제작자가 설명한 제품 사양이다. 공식 벤치마크 결과와 외부 이슈·댓글·토론 표본은 제공 자료에서 확인되지 않았다. 따라서 실제 운영에서 보고된 장점이나 문제, 개별 이슈의 발생일과 열림·해결 상태는 판단할 수 없다.",
+          "title": "평가와 반응",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. Scientific American의 2026년 11월 20일 보도는 여러 전문가가 OpenAI의 9월 증명에 쓰인 정교한 외력 설정에 의문을 제기했다고 전한다. 이는 앞선 증명에 대한 반응이다. 새 원고에 대한 독립 검토의 표본, 개별 검토 결과, 쟁점의 해결 상태는 제공 자료에서 확인되지 않는다. 저자의 발표는 증명에 관한 주장이고, 11월 21일 Techmeme 기록은 기사 발견 경로다. 공식 벤치마크도 제공 자료에 없다.",
           "evidenceIds": [
-            "s1"
+            "s1",
+            "s2"
           ],
           "eyebrow": "04 / 평가와 반응"
         },
         {
-          "title": "요금제와 자동화 단계부터 따져야 한다",
-          "body": "Google Workspace 관리 콘솔에서 설정하며 사용자 설정은 없다. Business Standard·Plus, Enterprise Standard, Education Standard·Plus는 지역 내 저장을 지원하고, Enterprise Plus와 Frontline Plus는 처리도 지원한다. 관련 추가 기능이 명시돼 있으며 라이선스 세부 조건과 API 비용은 미확인이다. 제한을 켜면 Google Forms·Webhook 연동 등이 실행 시 차단된다. 생성형 AI를 쓰려면 Studio와 Gemini 양쪽에서 비지역 처리를 허용해야 한다. 지역 내 처리가 필수라면 이를 지원하는 환경에서 핵심 연동 위주로 운영하는 팀에 적합하다.",
+          "title": "도입 판단",
+          "body": "공개 원고는 유체역학이나 편미분방정식 연구자가 두 증명의 가정을 비교하거나 세미나에서 쟁점을 검토하는 데 쓸 수 있다. AI 보조 과정을 재현하는 데 필요한 모델명, 실행 환경, 설치 절차, 라이선스, API 사용 여부와 비용은 자료에서 확인되지 않는다. 보도 시점에는 인증 자료가 미공개였으며, arXiv 등록 여부와 동료심사 상태도 미확인이다. arXiv에 원고가 등록되더라도 등록 자체로 동료심사 통과 여부를 판단할 수 없다.",
           "evidenceIds": [
             "s1"
           ],
@@ -449,17 +412,910 @@
         }
       ],
       "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Google Workspace Studio, 자동화 데이터 지역 지정",
-      "topic": "워크플로 데이터 거주성",
+      "headline": "AI로 나비에–스토크스 특이점 증명의 허점을 메우다",
+      "topic": "AI 보조 수학 증명",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://www.scientificamerican.com/article/ai-just-solved-the-real-navier-stokes-problem",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://www.techmeme.com/261121/p4#a261121p4",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:01:42.651Z"
+    },
+    {
+      "id": "e9385cf147367263",
+      "category": "news",
+      "title": "Ubisoft launches Motherbrain, a subsidiary focused on developing \"smart NPCs with memory and AI game masters that manage large-scale systemic worlds\" (Sophie Mc",
+      "source": "Techmeme",
+      "sourceKind": "reporting",
+      "channel": "information",
+      "discoveryUrl": "https://www.techmeme.com/261121/p1#a261121p1",
+      "primaryUrl": "https://www.gamesindustry.biz/ubisoft-launches-motherbrain-a-new-subsidiary-focused-on-ai-driven-gameplay-innovation",
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 69.3,
+        "components": {
+          "freshness": 69.3,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "보도·종합 소식",
+        "reasons": [
+          "보도·종합 소식 3시간 경과",
+          "Techmeme 발견 경로"
+        ],
+        "signals": [
+          {
+            "label": "보도·종합 소식 3시간 경과",
+            "url": "https://www.gamesindustry.biz/ubisoft-launches-motherbrain-a-new-subsidiary-focused-on-ai-driven-gameplay-innovation"
+          },
+          {
+            "label": "Techmeme 발견 경로",
+            "url": "https://www.techmeme.com/261121/p1#a261121p1"
+          }
+        ],
+        "growth": null,
+        "family": "게임플레이 생성형 AI",
+        "owner": "Techmeme",
+        "repeated": false,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://www.gamesindustry.biz/ubisoft-launches-motherbrain-a-new-subsidiary-focused-on-ai-driven-gameplay-innovation",
+      "publishedAt": "2026-11-21T05:15:00.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Ubisoft의 새 자회사 Motherbrain은 플레이 중 벌어진 일을 기억하는 NPC와 대규모 게임 세계를 관리하는 AI 게임 마스터를 개발한다. 캐릭터의 반응을 이전 사건과 연결하거나 여러 규칙이 맞물리는 세계를 운영하려는 게임 제작자가 주목할 만한 시도다.",
+      "tags": [
+        "게임플레이 생성형 AI"
+      ],
+      "stats": [],
+      "signalLabel": "보도·종합 소식",
+      "slides": [
+        {
+          "title": "무엇인가",
+          "body": "Motherbrain은 Ubisoft가 게임플레이에 쓰이는 자체 생성형 AI를 개발하기 위해 설립한 자회사다. GamesIndustry.biz 보도에 따르면 현재 개발 방향은 두 가지다. NPC가 이전 일을 기억하게 하는 기능은 캐릭터 단위의 상호작용을, AI 게임 마스터는 여러 규칙이 맞물려 돌아가는 대규모 세계의 관리를 다룬다. 개발 범위가 캐릭터의 반응부터 세계 운영까지 이어진다는 점이 특징이다. 기억을 저장하는 방식과 게임 마스터의 개입 규칙은 보도에서 확인되지 않는다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "제작자의 소개",
+          "body": "GamesIndustry.biz가 인용한 Ubisoft의 상반기 실적 발표에 따르면 Motherbrain은 생성형 AI 프로젝트 Teammates를 만든 팀으로 구성됐다. Ubisoft는 기억 기능을 갖춘 NPC와 대규모 게임 세계를 관리하는 AI 게임 마스터에 집중한다고 설명했다. Ubisoft는 Creative House 생태계 안팎의 제작자를 지원하고 일부 기술 기업과 협력한다는 목표도 밝혔다. CEO Yves Guillemot는 플레이어가 더 몰입할 수 있는 경험을 만드는 데 창작자를 지원하겠다고 설명했다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "실제 활용",
+          "body": "활용 예시 1. 퀘스트 디자이너는 플레이어가 이전에 NPC를 도왔다는 사건을 입력으로 삼는 장면을 설계할 수 있다. NPC가 그 일을 기억한다면 다음 만남의 반응에 이전 선택이 반영된다.\n활용 예시 2. 오픈월드 시스템 디자이너는 여러 지역에서 사건이 동시에 벌어진 상태를 입력으로 삼고, AI 게임 마스터가 세계 차원에서 사건 진행을 관리하는 상황을 구상할 수 있다. 두 예시는 공개된 개발 방향에서 추론했으며 실제 시연 여부는 미확인이다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "평가와 반응",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 11월 21일 수집 자료는 GamesIndustry.biz 기사 1건과 Techmeme 발견 기록 1건이다. 기사에는 Ubisoft의 발표 내용과 Teammates 팀의 플레이테스트 착수 사실이 실렸지만 참가자 반응이나 공식 벤치마크 수치는 제시되지 않았다. Techmeme 기록에는 관측 시점과 발견 경로가 담겨 있다. 확인 가능한 이슈·댓글·토론 표본이 없어 사용자들이 겪은 장점이나 문제, 해결 상태는 미확인이다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "도입 판단",
+          "body": "공개 보도에서 확인되는 실행 이력은 전신 프로젝트인 Teammates가 플레이테스트에 들어갔다는 점까지다. Motherbrain 기술의 지원 엔진과 플랫폼, 실행 환경, 설치 방법, 외부 API 제공 여부와 비용, 라이선스 조건은 미확인이다. Ubisoft는 사내외 제작자 지원과 일부 기술 기업과의 협력을 목표로 밝혔으며, 외부 제작자의 접근 조건도 공개 자료에서 확인되지 않는다. 현재는 NPC의 행동에 이전 사건을 반영하거나 대규모 게임 세계의 운영을 연구하는 제작팀이 개발 동향을 살펴볼 단계다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "기억하는 NPC와 게임 마스터를 개발하는 Motherbrain",
+      "topic": "게임플레이 생성형 AI",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://www.gamesindustry.biz/ubisoft-launches-motherbrain-a-new-subsidiary-focused-on-ai-driven-gameplay-innovation",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://www.techmeme.com/261121/p1#a261121p1",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:02:07.282Z"
+    },
+    {
+      "id": "a395eb0d3cd90d01",
+      "category": "news",
+      "title": "Show HN: SaturnSQL Context, telling AI tools what the database means",
+      "source": "Hacker News · Show HN",
+      "sourceKind": "community",
+      "channel": "information",
+      "discoveryUrl": "https://news.ycombinator.com/item?id=50583881",
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 68.2,
+        "components": {
+          "freshness": 64,
+          "communityAttention": 4.2,
+          "repeatPenalty": 0
+        },
+        "badge": "커뮤니티 소식",
+        "reasons": [
+          "커뮤니티 게시 9시간 경과",
+          "Hacker News · Show HN 발견 경로",
+          "Hacker News 3점 · 댓글 1개"
+        ],
+        "signals": [
+          {
+            "label": "커뮤니티 게시 9시간 경과",
+            "url": "https://saturnsql.com/context-layer"
+          },
+          {
+            "label": "Hacker News · Show HN 발견 경로",
+            "url": "https://news.ycombinator.com/item?id=50583881"
+          },
+          {
+            "label": "Hacker News 3점 · 댓글 1개",
+            "url": "https://news.ycombinator.com/item?id=50583881"
+          }
+        ],
+        "growth": null,
+        "family": "AI SQL용 데이터 문맥 관리",
+        "owner": "Hacker News · Show HN",
+        "repeated": false,
+        "independentCommunity": true
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://saturnsql.com/context-layer",
+      "publishedAt": "2026-11-20T23:31:55.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "SaturnSQL Context는 금액 단위, 최신 테이블, 업무 용어의 정의를 저장해 Claude나 Cursor 같은 MCP 클라이언트에 전달합니다. 여러 AI 도구로 SQL을 작성하는 데이터팀이 같은 설명을 재사용하고, 오래된 테이블이나 잘못된 단위를 선택하는 실수를 줄이는 데 쓰입니다.",
+      "tags": [
+        "AI SQL용 데이터 문맥 관리"
+      ],
+      "stats": [],
+      "signalLabel": "커뮤니티 소식",
+      "slides": [
+        {
+          "title": "무엇인가",
+          "body": "데이터베이스 스키마에는 열 이름과 자료형이 나오지만, 금액이 센트 단위인지 어느 주문 테이블이 최신인지는 드러나지 않을 수 있습니다. SaturnSQL Context는 팀이 작성한 지침, 업무 용어의 정의, 테이블·열 설명과 동의어를 저장하고, 질문에 맞는 내용을 MCP 서버로 전달합니다. 시맨틱 레이어는 사전에 모델링한 지표를 정해진 방식으로 계산합니다. 여기서는 AI가 전달받은 설명을 바탕으로 SQL을 직접 작성하므로 같은 질문에도 쿼리와 결과가 달라질 수 있습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "제작자가 강조한 기능",
+          "body": "제품 페이지에 따르면 제작자는 Claude, ChatGPT, Cursor 등에서 같은 팀 설명을 읽을 수 있고, 지원 데이터베이스의 기존 테이블·열 주석도 함께 전달된다고 설명합니다. 팀이 별도로 쓴 설명이 있으면 원본 주석은 그대로 두고 팀 설명을 우선 적용합니다. 쓰기 권한이 있는 사용자는 AI와 대화하면서 설명을 저장할 수 있으며, 변경 기록에는 사용자 이름이 남습니다. 제작자는 Pro에 포함된 Guard의 숨김·마스킹 규칙이 AI에 전달되는 문맥에도 적용된다고 설명합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 원문에서 밝힌 내용"
+        },
+        {
+          "title": "실제 업무에 적용하는 두 가지 예시",
+          "body": "제품 페이지의 시연을 바탕으로 한 활용 예시입니다.\n① 매출 분석가가 AI에 ‘활성 고객별 매출’을 요청합니다. AI는 최근 90일 내 구매한 고객을 활성 고객으로 보는 정의와 최신 테이블인 `orders_v2`, 세전 센트 단위라는 설명을 읽고 이를 반영한 SQL을 작성합니다.\n② 연결 소유자가 AI에 ‘`orders_v2.total`은 부가세를 제외한 센트 단위’라고 알려줍니다. AI가 `set_description`으로 저장하면 다른 팀원이 다음 질문을 할 때도 해당 열 설명을 받을 수 있습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "평가와 반응",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 11월 21일 관측 시점에 Hacker News의 Show HN 게시물은 게시 약 9시간이 지났고 3점과 댓글 1개가 표시됐습니다. 제공 자료에는 댓글 본문과 작성자 정보가 없어 외부 사용자가 겪은 장점이나 문제를 확인할 수 없습니다. 이슈의 열림·해결 상태도 미확인입니다. 제품 페이지에는 기능 설명과 시연이 담겨 있으며, 공식 벤치마크 결과와 외부에서 검증한 SQL 정확도는 제공 자료에 없습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "도입 판단",
+          "body": "SaturnSQL MCP 서버와 MCP 클라이언트가 필요합니다. 주석을 읽을 수 있는 DB는 PostgreSQL, Redshift, MySQL, SQL Server, Oracle, BigQuery, ClickHouse이며 Snowflake와 Databricks는 미지원입니다. Starter는 월 €19/인부터이며, 팀 문맥을 작성하는 Pro는 월 €29/인에 14일 체험을 제공합니다. 저장에는 연결 소유자 또는 관리자 권한과 쓰기 범위가 있는 API 키나 로그인이 필요합니다. 제품 라이선스, 별도 API 과금, 상세 설치 요건은 미확인입니다. 여러 AI 도구에 업무 정의를 공유하는 팀에 적합하며, 테이블 관계와 데이터 계보는 다루지 않고 지표값의 일치도 보장하지 않습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "AI가 SQL을 쓸 때 테이블과 지표의 뜻을 알려주는 도구",
+      "topic": "AI SQL용 데이터 문맥 관리",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
+          "url": "https://saturnsql.com/context-layer",
+          "kind": "reporting"
+        },
+        {
+          "id": "s2",
+          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
+          "url": "https://news.ycombinator.com/item?id=50583881",
+          "kind": "community"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:02:58.890Z"
+    },
+    {
+      "id": "3b9ccf30e91cbd98",
+      "category": "news",
+      "title": "Google Workspace Weekly Recap - November 20, 2026",
+      "source": "Google Workspace Updates",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": "https://workspaceupdates.googleblog.com/2026/11/weekly-recap-11-20-2026.html",
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 62.1,
+        "components": {
+          "freshness": 62.1,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "새 공식 발표",
+        "reasons": [
+          "공식 발표 11시간 경과"
+        ],
+        "signals": [
+          {
+            "label": "공식 발표 11시간 경과",
+            "url": "https://workspaceupdates.googleblog.com/2026/11/weekly-recap-11-20-2026.html"
+          }
+        ],
+        "growth": null,
+        "family": "Google Workspace 협업 자동화",
+        "owner": "Google Workspace Updates",
+        "repeated": false,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": null,
+      "stars": null,
+      "likes": null,
+      "url": "https://workspaceupdates.googleblog.com/2026/11/weekly-recap-11-20-2026.html",
+      "publishedAt": "2026-11-20T21:21:00.382Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Google의 2026년 11월 20일 Workspace 주간 업데이트는 Apps Script의 Gemini 지원과 Google Drive의 AI 파일 분류 정식 제공을 소개합니다. 반복 업무를 줄이려는 실무자는 자연어로 스크립트를 만들 수 있고, 관리자는 자연어로 작성한 파일 분류 지침을 조직에 적용할 수 있습니다. Word 문서 비교와 암호화 문서 공동 편집 소식도 담겼습니다.",
+      "tags": [
+        "Google Workspace 협업 자동화"
+      ],
+      "stats": [],
+      "signalLabel": "새 공식 발표",
+      "slides": [
+        {
+          "title": "자연어로 업무 자동화와 파일 분류",
+          "body": "Google Workspace의 여러 서비스에 추가된 기능을 묶은 주간 업데이트입니다. Apps Script에서는 원하는 작업을 자연어로 설명해 스크립트를 만들거나 수정하고, 문제가 생기면 Gemini 측면 패널에서 도움을 받을 수 있습니다. Google Drive에서는 관리자가 자연어로 분류 지침을 작성해 파일에 적용할 수 있습니다. Google Docs의 문서 비교 도구는 Word(.docx) 파일을 변환하는 단계 없이 수정 내용을 검토할 수 있게 지원합니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "Google이 소개한 정식 기능과 베타",
+          "body": "Google은 Apps Script의 Gemini 측면 패널을 정식 제공하며, 코딩 경험이 없어도 자연어로 스크립트를 작성·수정하고 문제를 해결할 수 있다고 설명합니다. Google Drive의 Gemini 기반 파일 분류도 공개 베타를 거쳐 정식 제공하며, 자동 분류 결과를 관리자가 파악하는 데 도움이 되는 기능 두 가지를 추가했다고 밝혔습니다. 클라이언트 측 암호화가 적용된 Google Docs에서는 여러 사용자가 동시에 편집하고 댓글을 달 수 있는 기능을 베타로 소개했습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "문서 검토와 자료 정리에 쓰는 두 가지 예",
+          "body": "활용 예시 1. 계약서를 검토하는 실무자가 받은 Word(.docx) 수정본과 기존 Google Docs 문서를 문서 비교 도구에 넣어, 파일 형식을 변환하는 과정 없이 달라진 조항을 살펴봅니다.\n활용 예시 2. 여러 참고 자료를 정리하는 학생이 Gemini Notebook에 자료를 추가하고, 주제별로 탐색할 수 있는 학습 사이트를 만들어 달라고 요청합니다. 생성된 사이트를 새 탭에서 열어 탐색하거나 스터디 팀원에게 공유할 수 있습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "사용자 반응과 성능은 공개 자료에서 미확인",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 자료는 2026년 11월 20일자 Google 공식 주간 발표 1건입니다. 외부 사용자의 이슈·댓글·토론 기록이 없어 사용자 표본과 게시 날짜, 문제의 열림·해결 상태는 확인할 수 없습니다. Apps Script의 사용 편의성과 Google Pics의 Nano Banana 2.1 이미지 품질 개선은 Google의 설명입니다. 이 발표에는 공식 벤치마크 수치나 외부 재현 결과도 제시되지 않았습니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "사용할 서비스와 관리 권한부터 살펴볼 팀",
+          "body": "Apps Script의 Gemini는 측면 패널에서 사용하며, Google Drive의 파일 분류 지침은 관리자가 배포합니다. Google Calendar의 Gmail 작성 창 연동과 시간대 약어 표시는 웹 환경 기준입니다. 별도 설치 요건, 지원 요금제, 추가 라이선스 조건과 API 비용은 발표에서 확인되지 않습니다. 스크립트 수정이 잦은 팀이나 조직 차원에서 파일 분류 기준을 적용하려는 관리자가 검토할 만합니다. 암호화 문서의 실시간 공동 편집이 필요한 팀에는 베타 상태가 도입 판단의 변수입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "Gemini로 스크립트를 만들고 문서를 분류하는 Workspace",
+      "topic": "Google Workspace 협업 자동화",
       "evidence": [
         {
           "id": "s1",
           "label": "발표 원문",
-          "url": "https://workspaceupdates.googleblog.com/2026/11/google-workspace-studio-support-for-Data-Regions-is-now-generally-available.html",
+          "url": "https://workspaceupdates.googleblog.com/2026/11/weekly-recap-11-20-2026.html",
           "kind": "creator"
         }
       ],
-      "reviewedAt": "2026-11-20T20:02:04.407Z"
+      "reviewedAt": "2026-11-21T08:03:23.269Z"
+    },
+    {
+      "id": "7bbde4382a9fd7e8",
+      "category": "model",
+      "title": "unsloth/Inkling-2-Mini-GGUF",
+      "source": "Hugging Face",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 55.6,
+        "components": {
+          "nativeTrend": 15.9,
+          "freshness": 17,
+          "measuredVelocity": 20,
+          "totalAttention": 2.7,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "Hugging Face 트렌딩 7위 관측",
+          "좋아요 +157개 / 8시간",
+          "공개 1일 이내 모델"
+        ],
+        "signals": [
+          {
+            "label": "Hugging Face 트렌딩 7위 관측",
+            "url": "https://huggingface.co/models?sort=trending"
+          },
+          {
+            "label": "좋아요 +157개 / 8시간",
+            "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF"
+          },
+          {
+            "label": "공개 1일 이내 모델",
+            "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF"
+          }
+        ],
+        "growth": {
+          "metric": "likes",
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 171,
+          "current": 328,
+          "delta": 157,
+          "hours": 8,
+          "perHour": 19.5
+        },
+        "family": "비전·멀티모달",
+        "owner": "unsloth",
+        "repeated": false,
+        "independentCommunity": false
+      },
+      "name": null,
+      "topics": [
+        "gguf",
+        "conversational",
+        "image-text-to-text",
+        "moe",
+        "unsloth",
+        "base_model:thinkingmachines/Inkling-2-Mini",
+        "base_model:quantized:thinkingmachines/Inkling-2-Mini",
+        "license:apache-2.0",
+        "endpoints_compatible",
+        "region:us",
+        "imatrix"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": "image-text-to-text",
+      "pushedAt": null,
+      "stars": null,
+      "likes": 328,
+      "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF",
+      "publishedAt": "2026-11-20T13:09:48.000Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Unsloth는 이미지와 텍스트를 함께 받아 글로 답하는 Inkling 2 Mini를 여러 크기의 GGUF 파일로 배포합니다. 로컬에서 이미지 질의응답이나 코딩 보조 기능을 만들려는 개발자는 실행 도구에 맞는 파일을 고르고, 저장 공간과 양자화에 따른 출력 변화의 균형을 비교할 수 있습니다.",
+      "tags": [
+        "로컬 멀티모달 모델"
+      ],
+      "stats": [
+        {
+          "label": "Downloads",
+          "value": 0
+        },
+        {
+          "label": "Likes",
+          "value": 328
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "이미지와 글을 함께 읽는 모델",
+          "body": "unsloth/Inkling-2-Mini-GGUF는 Thinking Machines Lab의 Inkling 2 Mini를 로컬에서 실행할 수 있도록 Unsloth가 양자화해 배포한 모델입니다. 이미지 인코더가 사진이나 화면 캡처를 모델이 처리할 수 있는 형태로 바꾸면, 모델은 그 정보와 사용자의 질문을 함께 읽고 텍스트로 답합니다. 텍스트 전용 모델에 설명을 일일이 옮겨 적어야 하는 작업에서 화면 자체를 질문과 함께 전달할 수 있습니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "파일 크기와 다음 토큰 일치율을 공개",
+          "body": "Thinking Machines Lab은 원본 모델이 최대 100만 토큰의 문맥을 지원한다고 설명합니다. Unsloth는 자체 양자화 비교에서 22.87GB인 UD-Q8_K_XL을 기준으로, 7.76GB인 UD-IQ1_S는 89.4%, 16.61GB인 UD-Q4_K_M은 97.9%의 다음 토큰 일치율을 보였다고 설명합니다. 이 수치는 각 입력 지점에서 모델이 가장 유력하게 고른 다음 토큰이 기준 모델과 같았던 비율입니다.",
+          "evidenceIds": [
+            "s1"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "화면 진단과 문서 초안에 쓰는 두 가지 예",
+          "body": "활용 예시 1. 프런트엔드 개발자가 버튼이 잘린 화면 캡처와 관련 CSS를 넣고 원인 후보를 물으면, 모델이 화면과 코드를 함께 읽고 확인할 속성과 수정 방향을 글로 정리합니다. 활용 예시 2. 제품 문서 작성자가 설정 화면 캡처와 사용자 목표를 넣고 도움말을 요청하면, 모델이 화면에서 읽은 메뉴와 버튼 이름을 바탕으로 단계별 안내문 초안을 작성합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "로딩 실패 보고와 속도 공유 토론",
+          "body": "11월 21일 수집 시점의 Hugging Face 토론 4건 중 11월 20일에 올라온 #6은 제목 기준으로 모델 로딩 실패를 보고했고, 댓글 9개가 달린 열린 상태였습니다. 11월 21일의 #7은 속도 공유를 요청했고, 댓글 3개가 달린 열린 상태였습니다. 댓글 본문이 없어 실패 원인, 해결 여부, 실제 속도와 장점은 미확인입니다. #2는 Unsloth의 실행 안내이고 README의 양자화 수치는 Unsloth 자체 벤치마크입니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
+          "evidenceIds": [
+            "s1",
+            "s3",
+            "s4",
+            "s5",
+            "s6"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "실행 도구에 맞는 파일부터 선택",
+          "body": "라이선스는 Apache 2.0입니다. 최신 Unsloth Desktop에서 실행하거나, 메인라인 llama.cpp를 쓴다면 Mainline_Support의 파일을 선택합니다. 제작자는 원본 체크포인트 실행 환경으로 NVIDIA DGX Spark와 메모리 32GB 이상인 Apple silicon 기기를 안내합니다. GGUF별 실제 메모리 요구량과 Tinker API 요금은 제공 자료에서 미확인입니다. 저장 공간에 맞춰 파일을 고르고 이미지 질의응답을 로컬에서 시험하려는 개발자에게 적합합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "이미지와 글을 읽는 로컬 모델 Inkling 2 Mini",
+      "topic": "로컬 멀티모달 모델",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "모델 제작자 설명",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s2",
+          "label": "모델 공개 정보",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF",
+          "kind": "official"
+        },
+        {
+          "id": "s3",
+          "label": "모델 토론 #2",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/discussions/2",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "모델 토론 #7",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/discussions/7",
+          "kind": "user-report"
+        },
+        {
+          "id": "s5",
+          "label": "모델 토론 #6",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/discussions/6",
+          "kind": "user-report"
+        },
+        {
+          "id": "s6",
+          "label": "모델 토론 #5",
+          "url": "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF/discussions/5",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:04:13.778Z"
+    },
+    {
+      "id": "b88590c43555a909",
+      "category": "project",
+      "title": "mvanhorn/last30days-skill",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 52.7,
+        "components": {
+          "dailyAttention": 23,
+          "measuredVelocity": 19,
+          "freshness": 0,
+          "activity": 6.8,
+          "earlyDiscovery": 0,
+          "totalAttention": 3.9,
+          "curationPenalty": 0,
+          "communityAttention": 0,
+          "repeatPenalty": 0
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "GitHub 오늘 별 +681개",
+          "별 +175개 / 8시간 · 시간당 21.8개",
+          "최근 7일 내 코드 변경 관측"
+        ],
+        "signals": [
+          {
+            "label": "GitHub 오늘 별 +681개",
+            "url": "https://github.com/trending?since=daily"
+          },
+          {
+            "label": "별 +175개 / 8시간 · 시간당 21.8개",
+            "url": "https://github.com/mvanhorn/last30days-skill"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/mvanhorn/last30days-skill"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 71430,
+          "current": 71605,
+          "delta": 175,
+          "hours": 8,
+          "perHour": 21.8
+        },
+        "family": "에이전트·개발",
+        "owner": "mvanhorn",
+        "repeated": false,
+        "independentCommunity": false
+      },
+      "name": "mvanhorn/last30days-skill",
+      "topics": [
+        "ai-prompts",
+        "ai-skill",
+        "bluesky",
+        "claude",
+        "claude-code",
+        "clawhub",
+        "deep-research",
+        "hackernews",
+        "instagram",
+        "openclaw",
+        "polymarket",
+        "recency",
+        "reddit",
+        "research",
+        "social-media",
+        "tiktok",
+        "trends",
+        "twitter",
+        "web-search",
+        "youtube"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-11-20T05:45:47Z",
+      "stars": 71605,
+      "likes": null,
+      "url": "https://github.com/mvanhorn/last30days-skill",
+      "publishedAt": "2026-01-23T20:37:37Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "last30days-skill은 주제를 입력하면 Reddit, YouTube, GitHub 등에서 최근 30일 자료를 모아 출처가 달린 보고서로 정리하는 에이전트 스킬입니다. 미팅을 준비하거나 제품·시장 동향을 조사하는 사람이 플랫폼마다 흩어진 토론, 영상 자막, 공식 자료를 한 번에 훑는 데 유용합니다.",
+      "tags": [
+        "최신 동향 조사 에이전트"
+      ],
+      "stats": [
+        {
+          "label": "오늘",
+          "value": 681,
+          "suffix": " stars"
+        },
+        {
+          "label": "전체",
+          "value": 71605,
+          "suffix": " stars"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "무엇인가",
+          "body": "last30days-skill은 최근 30일 동안 한 주제에 관해 어떤 일이 있었고 사람들이 어디에 반응했는지 조사하는 에이전트 스킬입니다. 사용자가 주제를 입력하면 이용 가능한 플랫폼을 병렬로 검색하고, 에이전트가 결과를 선별해 출처가 달린 보고서로 묶습니다. 웹 검색 결과에 Reddit 추천 수, X 좋아요, YouTube 자막, Polymarket 확률처럼 플랫폼별로 얻을 수 있는 자료와 반응 지표를 함께 쓰는 점이 특징입니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "제작자가 강조한 기능",
+          "body": "제작자는 v4에서 기업명을 입력하면 해당 기업의 채용 페이지와 최근 미국 특허 출원을 읽고, 새 팀이나 아직 발표되지 않은 기능의 단서가 될 만한 항목을 골라낸다고 설명합니다. 보고서에는 관련 항목 아래에 게시물이나 영상 자막에서 가져온 인용문을 붙이고, 관련 Polymarket 시장이 있으면 확률과 변동 폭을 표시합니다. 제작자 설명에 따르면 Reddit, Hacker News, Polymarket, GitHub는 별도 설정 없이 사용할 수 있습니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "실제 활용",
+          "body": "README에 실린 미팅 준비 사례에서, 미팅을 앞둔 사람이 `/last30days Peter Steinberger`를 입력하면 GitHub 활동과 커뮤니티 토론을 모아 Codex 관련 근황과 LobsterOS 작업을 한 보고서에 담습니다. 기업 동향 조사 사례에서는 애널리스트가 `/last30days Apple`을 입력해 채용 공고와 미국 특허 출원 내용을 살펴볼 수 있습니다. README 예시에서는 거래 요청이 결제 시스템까지 이어지는지 테스트하는 직무와 방 사진에서 기기 상태를 바꾸는 특허 출원이 보고서에 담겼습니다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "평가와 반응",
+          "body": "2026년 11월 21일 수집 자료에 담긴 외부 GitHub 이슈 표본은 2건입니다. 11월 20일 등록된 #1543은 사용법을 묻는 질문에서 LinkedIn을 명시해도 검색 대상에서 빠진다고 보고했으며, 수집 시점에 열려 있었습니다. 11월 18일 등록된 #1534는 검색 상단에 뜬 사이트가 프로젝트와 관련 있는지 묻는 글입니다. 이슈는 닫혔고 제공된 본문에는 답변이 없습니다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. README 사례는 제작자 시연이며, 제공 자료에서 공식 벤치마크는 확인되지 않습니다.",
+          "evidenceIds": [
+            "s2",
+            "s3",
+            "s4"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "도입 판단",
+          "body": "저장소의 주 언어는 Python이고 라이선스는 MIT입니다. Claude Code에서는 마켓플레이스 플러그인으로, Codex·Cursor 등에서는 `npx skills add mvanhorn/last30days-skill -g`로 설치할 수 있습니다. Reddit과 arXiv는 API 키 없이 이용할 수 있지만 arXiv에는 전용 CLI가 필요합니다. 일부 소스는 인증이나 추가 도구가 필요하며 Amazon 검색에는 Bright Data 크레딧이 소모됩니다. 구체적인 API 요금과 최소 Python 버전은 미확인입니다. 지원 환경을 이미 쓰면서 최근 커뮤니티 반응을 반복 조사하는 사용자에게 적합합니다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "여러 플랫폼의 최근 30일 동향을 한 보고서로",
+      "topic": "최신 동향 조사 에이전트",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/mvanhorn/last30days-skill",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/mvanhorn/last30days-skill/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s3",
+          "label": "공개 이슈 #1543",
+          "url": "https://github.com/mvanhorn/last30days-skill/issues/1543",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "공개 이슈 #1534",
+          "url": "https://github.com/mvanhorn/last30days-skill/issues/1534",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-11-21T08:04:38.866Z"
+    },
+    {
+      "id": "b03e856411c0697d",
+      "category": "project",
+      "title": "jingyaogong/minimind",
+      "source": "GitHub",
+      "sourceKind": "official",
+      "channel": "information",
+      "discoveryUrl": null,
+      "primaryUrl": null,
+      "releaseDate": null,
+      "datePrecision": null,
+      "selection": {
+        "version": "momentum-v2",
+        "score": 40.9,
+        "components": {
+          "dailyAttention": 23.7,
+          "measuredVelocity": 18.8,
+          "freshness": 0,
+          "activity": 5.4,
+          "earlyDiscovery": 0,
+          "totalAttention": 3.9,
+          "curationPenalty": 0,
+          "communityAttention": 0,
+          "repeatPenalty": -10.9
+        },
+        "badge": "단기 관심 증가",
+        "reasons": [
+          "GitHub 오늘 별 +847개",
+          "별 +169개 / 8시간 · 시간당 21개",
+          "최근 7일 내 코드 변경 관측"
+        ],
+        "signals": [
+          {
+            "label": "GitHub 오늘 별 +847개",
+            "url": "https://github.com/trending?since=daily"
+          },
+          {
+            "label": "별 +169개 / 8시간 · 시간당 21개",
+            "url": "https://github.com/jingyaogong/minimind"
+          },
+          {
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/jingyaogong/minimind"
+          }
+        ],
+        "growth": {
+          "metric": "stars",
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 67675,
+          "current": 67844,
+          "delta": 169,
+          "hours": 8,
+          "perHour": 21
+        },
+        "family": "학습·데이터",
+        "owner": "jingyaogong",
+        "repeated": true,
+        "independentCommunity": false
+      },
+      "name": "jingyaogong/minimind",
+      "topics": [
+        "artificial-intelligence",
+        "large-language-model"
+      ],
+      "discoveryTopic": null,
+      "pipelineTag": null,
+      "pushedAt": "2026-11-18T15:09:40Z",
+      "stars": 67844,
+      "likes": null,
+      "url": "https://github.com/jingyaogong/minimind",
+      "publishedAt": "2024-07-27T04:34:12Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "MiniMind는 소형 언어 모델의 구조와 학습 코드를 공개한 PyTorch 프로젝트다. 공개 데이터로 사전학습과 지도 미세조정을 실행하고, 완성한 가중치를 대화로 시험할 수 있다. 학습 단계마다 어떤 데이터가 들어가고 어떤 가중치가 나오는지 코드로 살펴보고 싶은 학생과 개발자에게 유용하다.",
+      "tags": [
+        "소형 언어 모델 학습"
+      ],
+      "stats": [
+        {
+          "label": "오늘",
+          "value": 847,
+          "suffix": " stars"
+        },
+        {
+          "label": "전체",
+          "value": 67844,
+          "suffix": " stars"
+        }
+      ],
+      "signalLabel": "단기 관심 증가",
+      "slides": [
+        {
+          "title": "무엇인가",
+          "body": "MiniMind는 개인 장비에서 언어 모델의 내부 구조를 살펴보고 초기 가중치부터 직접 훈련할 수 있도록 만든 프로젝트다. 토크나이저가 텍스트를 토큰으로 바꾸면, 모델은 사전학습에서 다음 토큰을 예측하고 지도 미세조정에서 대화 형식을 익힌다. 고수준 학습 도구에서는 라이브러리 호출 뒤에 있는 모델 구조와 핵심 학습 로직을 여기서는 PyTorch 코드에서 단계별로 읽고 수정할 수 있다.",
+          "evidenceIds": [
+            "s1",
+            "s2"
+          ],
+          "eyebrow": "01 / 무엇인가요"
+        },
+        {
+          "title": "제작자의 소개",
+          "body": "제작자는 `minimind-3`의 파라미터가 약 6,400만 개이며, 저장소에서 Dense와 MoE 구조, LoRA, DPO, 강화학습, 도구 호출, 모델 증류 코드를 제공한다고 설명한다. README의 ‘2시간’은 제작자가 NVIDIA RTX 3090 한 장으로 지도 미세조정(SFT) 1 epoch를 실행한 시간이고, ‘3위안’은 해당 시간의 GPU 임대비다. 사전학습을 포함한 전체 소요 시간과 비용은 제시된 수치에서 확인할 수 없다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "02 / 제작자의 설명"
+        },
+        {
+          "title": "실제 활용",
+          "body": "활용 예시 1. 언어 모델을 공부하는 학생이 공개 `pretrain_t2t_mini.jsonl`과 `sft_t2t_mini.jsonl`로 사전학습과 지도 미세조정을 차례로 실행한다. 생성된 가중치를 `eval_llm.py`로 불러와 질문을 입력하고 대화 응답을 살펴본다.\n활용 예시 2. 채팅 UI 개발자가 공개 `minimind-3` 가중치를 OpenAI API 호환 서버에서 구동하고 Open-WebUI에 연결한다. 메시지를 보내 서버가 반환한 모델 응답이 채팅 화면에 표시되는지 점검할 수 있다.",
+          "evidenceIds": [
+            "s2"
+          ],
+          "eyebrow": "03 / 어디에 쓰나요"
+        },
+        {
+          "title": "평가와 반응",
+          "body": "2026년 11월 20일 외부 사용자 이슈 2건은 수집 당시 모두 열린 상태였고 댓글은 각각 0개였다. #947은 Ubuntu 24.04와 Python 3.12에서 pyarrow 26.0.1과 NumPy 1.26.4가 충돌해 `datasets`를 불러오지 못했다고 보고했다. 작성자는 pyarrow 17.0.0으로 바꾼 뒤 불러오기에 성공했다고 덧붙였다. #951은 Apple Silicon 실행 가능 여부를 묻는 글이었다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. SFT 소요 시간은 제작자 측 측정치다.",
+          "evidenceIds": [
+            "s2",
+            "s3",
+            "s4"
+          ],
+          "eyebrow": "04 / 평가와 반응"
+        },
+        {
+          "title": "도입 판단",
+          "body": "저장소는 Apache-2.0이며, SFT 데이터 출처에는 CC-BY-NC-2.0 등 별도 조건이 언급된다. 제작자의 참고 환경은 Ubuntu 20.04, CUDA 12.2, Python 3.10.16이다. 저장소를 복제하고 `requirements.txt`의 의존성을 설치한 뒤, 추론용 가중치나 학습용 JSONL을 내려받는다. 자체 호스팅 API의 호출 단가와 운영비는 미확인이다. CPU·MPS는 속도와 호환성 차이가 크고 Apple Silicon 실행 결과도 확인되지 않았다. CUDA 환경에서 학습 흐름을 실습하려는 사용자에게 적합하다.",
+          "evidenceIds": [
+            "s1",
+            "s2",
+            "s3",
+            "s4"
+          ],
+          "eyebrow": "05 / 도입 전 확인"
+        }
+      ],
+      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
+      "headline": "MiniMind로 초소형 언어 모델을 처음부터 훈련하기",
+      "topic": "소형 언어 모델 학습",
+      "evidence": [
+        {
+          "id": "s1",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/jingyaogong/minimind",
+          "kind": "official"
+        },
+        {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/jingyaogong/minimind/blob/master/README.md",
+          "kind": "creator"
+        },
+        {
+          "id": "s3",
+          "label": "공개 이슈 #951",
+          "url": "https://github.com/jingyaogong/minimind/issues/951",
+          "kind": "user-report"
+        },
+        {
+          "id": "s4",
+          "label": "공개 이슈 #947",
+          "url": "https://github.com/jingyaogong/minimind/issues/947",
+          "kind": "user-report"
+        }
+      ],
+      "reviewedAt": "2026-11-20T20:05:31.673Z"
     },
     {
       "id": "5419a8b213cd4f4a",
@@ -474,28 +1330,28 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 48.2,
+        "score": 39.8,
         "components": {
-          "nativeTrend": 29.7,
-          "freshness": 9.8,
+          "nativeTrend": 17.1,
+          "freshness": 9.6,
           "measuredVelocity": 20,
           "totalAttention": 4,
           "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "repeatPenalty": -10.9
         },
         "badge": "단기 관심 증가",
         "reasons": [
-          "Hugging Face 트렌딩 2위 관측",
-          "좋아요 +460개 / 4시간",
+          "Hugging Face 트렌딩 6위 관측",
+          "좋아요 +378개 / 8시간",
           "공개 9일 이내 모델"
         ],
         "signals": [
           {
-            "label": "Hugging Face 트렌딩 2위 관측",
+            "label": "Hugging Face 트렌딩 6위 관측",
             "url": "https://huggingface.co/models?sort=trending"
           },
           {
-            "label": "좋아요 +460개 / 4시간",
+            "label": "좋아요 +378개 / 8시간",
             "url": "https://huggingface.co/higurashi-ai/Haru-4B"
           },
           {
@@ -505,13 +1361,13 @@
         ],
         "growth": {
           "metric": "likes",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 4869,
-          "current": 5329,
-          "delta": 460,
-          "hours": 4,
-          "perHour": 116
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 5329,
+          "current": 5707,
+          "delta": 378,
+          "hours": 8,
+          "perHour": 47.1
         },
         "family": "음성·오디오",
         "owner": "higurashi-ai",
@@ -542,10 +1398,10 @@
       "pipelineTag": "audio-to-audio",
       "pushedAt": null,
       "stars": null,
-      "likes": 5329,
+      "likes": 5707,
       "url": "https://huggingface.co/higurashi-ai/Haru-4B",
       "publishedAt": "2026-11-12T11:05:59.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
       "summary": "Haru-4B는 사용자 음성을 받으면서 자신의 음성과 텍스트를 동시에 생성하는 연구용 기반 모델이다. 짧은 음성 샘플로 목소리를, 텍스트 카드로 캐릭터를 설정할 수 있어 한국어를 포함한 다국어 음성 대화나 캐릭터 데모를 실험하는 연구자와 개발자에게 유용하다.",
       "tags": [
         "실시간 음성 대화 모델"
@@ -557,7 +1413,7 @@
         },
         {
           "label": "Likes",
-          "value": 5329
+          "value": 5707
         }
       ],
       "signalLabel": "단기 관심 증가",
@@ -653,661 +1509,6 @@
       "reviewedAt": "2026-11-20T20:02:28.582Z"
     },
     {
-      "id": "05870a7b5a7e3cff",
-      "category": "project",
-      "title": "elementalsouls/Claude-BugHunter",
-      "source": "GitHub",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 47.5,
-        "components": {
-          "dailyAttention": 26.1,
-          "measuredVelocity": 25.7,
-          "freshness": 0,
-          "activity": 7.6,
-          "earlyDiscovery": 0,
-          "totalAttention": 3.3,
-          "curationPenalty": 0,
-          "communityAttention": 0,
-          "repeatPenalty": -15.3
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "GitHub 오늘 별 +1,660개",
-          "별 +272개 / 4시간 · 시간당 68.6개",
-          "최근 7일 내 코드 변경 관측"
-        ],
-        "signals": [
-          {
-            "label": "GitHub 오늘 별 +1,660개",
-            "url": "https://github.com/trending?since=daily"
-          },
-          {
-            "label": "별 +272개 / 4시간 · 시간당 68.6개",
-            "url": "https://github.com/elementalsouls/claude-bughunter"
-          },
-          {
-            "label": "최근 7일 내 코드 변경 관측",
-            "url": "https://github.com/elementalsouls/claude-bughunter"
-          }
-        ],
-        "growth": {
-          "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 13938,
-          "current": 14210,
-          "delta": 272,
-          "hours": 4,
-          "perHour": 68.6
-        },
-        "family": "AI 애플리케이션 보안",
-        "owner": "elementalsouls",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": "elementalsouls/Claude-BugHunter",
-      "topics": [
-        "ai-security",
-        "anthropic",
-        "application-security",
-        "bug-bounty",
-        "bugbounty",
-        "bugcrowd",
-        "claude",
-        "claude-code",
-        "claude-skills",
-        "ethical-hacking",
-        "hackerone",
-        "offensive-security",
-        "pentesting",
-        "red-team",
-        "security-tools",
-        "web-security"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": "2026-11-20T15:53:40Z",
-      "stars": 14210,
-      "likes": null,
-      "url": "https://github.com/elementalsouls/claude-bughunter",
-      "publishedAt": "2026-05-05T11:22:32Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Claude-BugHunter는 공개 취약점 보고서에서 정리한 지식과 보고 절차를 Claude Code에 추가하는 스킬 모음이다. 자체 웹앱을 점검하는 개발팀이나 보안 담당자가 점검 결과를 분류하고, 제출 전 확인 사항과 민감정보가 담긴 증거를 검토하는 데 활용할 수 있다.",
-      "tags": [
-        "AI 애플리케이션 보안"
-      ],
-      "stats": [
-        {
-          "label": "오늘",
-          "value": 1660,
-          "suffix": " stars"
-        },
-        {
-          "label": "전체",
-          "value": 14210,
-          "suffix": " stars"
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "공개 보고서에서 뽑은 지식을 주제별로 불러온다",
-          "body": "Claude-BugHunter는 웹앱과 API 등 인터넷에 노출된 시스템의 취약점 조사와 외부 레드팀 업무를 위해 만든 스킬 모음이다. 점검 내용을 자연어로 설명하면 Claude Code가 주제에 맞는 스킬을 불러오는 방식이다. 제작자는 범용 보안 프롬프트를 쓰거나 공개 보고서를 매번 찾아 읽을 때 생기는 반복 작업을 줄이기 위해, 취약점 유형별 지식과 결과 분류, 증거 관리, 보고서 작성 절차를 한데 묶었다고 설명한다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "제작자가 강조한 유형별 자료와 제출 전 검토",
-          "body": "제작자는 README에서 스킬 83개와 슬래시 명령 15개를 제공하며, 주요 취약점 유형 24개에 걸쳐 공개 보고서 패턴 681개를 정리했고 그중 433개는 개별 출처를 확인할 수 있다고 설명한다. 저장소 소개의 스킬 수는 82개로 README와 다르다. 제작자는 제출 전 7개 질문으로 점검 범위와 인정되는 영향 등을 검토하고, 보고에 쓰는 증거에서 개인정보를 가리는 절차도 담았다고 설명한다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "자체 코드 검토와 증거 정리에 쓰는 두 가지 예",
-          "body": "활용 예시 1. 웹앱 개발자가 팀이 소유한 저장소의 변경 코드와 검토 범위를 입력하면, Claude Code가 관련 보안 지침을 불러와 수정이 필요한 코드와 개선 방향을 정리할 수 있다. 활용 예시 2. 보안 담당자가 이미 확인한 발견 사항과 증거 메모를 제공하면, 보고 스킬을 활용해 영향과 근거를 초안으로 정리하고 스크린샷이나 메모에서 공유 전에 가려야 할 개인정보를 검토할 수 있다. 두 예시는 README 기능에서 도출했다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "외부 이슈에서 확인된 보고서와 Windows 문제",
-          "body": "2026년 11월 20일 등록된 외부 작성자 이슈 4건 중 #195는 구체적 사용 조건이 없는 호평으로 수집 시점에 열려 있었다. #190은 보고 초안에 OS 로그인 이름이 들어가고 초안을 다시 읽을 때 재현 단계가 누락된다고 제보했다. #189는 Windows에서 로그 인코딩 오류로 실행이 중단된다고 제보했다. 두 건 모두 닫혔으며 수정 여부는 미확인이다. #188은 템플릿 문구가 반복돼 구체적 문제를 파악하기 어려웠다. 제작자의 실전 사용 설명은 자체 경험이다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
-          "evidenceIds": [
-            "s2",
-            "s3",
-            "s4",
-            "s5",
-            "s6"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "환경과 보고서 검토 부담을 고려한 도입 판단",
-          "body": "README는 Claude Code 플러그인 방식과 macOS·Linux의 Bash 또는 Windows의 PowerShell을 이용한 복사 설치 방식을 소개한다. Codex CLI 등에서도 스킬 지식은 불러올 수 있으며 슬래시 명령과 실행 엔진은 Claude Code 전용이다. 저장소 코드는 MIT, 방법론과 문서 등은 CC BY 4.0으로 안내된다. HackerOne 비공개 프로그램과 본인 보고서 조회용 API 인증은 선택 사항이며 모델·API 사용 비용은 미확인이다. 내부 Active Directory 점검은 범위에서 제외된다. 자체 코드 검토와 증거 정리에 활용하고 공유 전 초안을 검토할 수 있는 팀에 적합하다.",
-          "evidenceIds": [
-            "s1",
-            "s2",
-            "s4",
-            "s5"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Claude Code에 보안 점검과 보고 기능을 더하는 스킬",
-      "topic": "AI 애플리케이션 보안",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "저장소 공식 정보",
-          "url": "https://github.com/elementalsouls/claude-bughunter",
-          "kind": "official"
-        },
-        {
-          "id": "s2",
-          "label": "제작자 README",
-          "url": "https://github.com/elementalsouls/Claude-BugHunter/blob/main/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s3",
-          "label": "공개 이슈 #195",
-          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/195",
-          "kind": "user-report"
-        },
-        {
-          "id": "s4",
-          "label": "공개 이슈 #190",
-          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/190",
-          "kind": "user-report"
-        },
-        {
-          "id": "s5",
-          "label": "공개 이슈 #189",
-          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/189",
-          "kind": "user-report"
-        },
-        {
-          "id": "s6",
-          "label": "공개 이슈 #188",
-          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/188",
-          "kind": "user-report"
-        }
-      ],
-      "reviewedAt": "2026-11-20T20:03:48.748Z"
-    },
-    {
-      "id": "e9dbf459bd01dca3",
-      "category": "project",
-      "title": "firecrawl/firecrawl",
-      "source": "GitHub",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 46.3,
-        "components": {
-          "dailyAttention": 25.1,
-          "measuredVelocity": 21.9,
-          "freshness": 0,
-          "activity": 8,
-          "earlyDiscovery": 0,
-          "totalAttention": 4,
-          "curationPenalty": 0,
-          "communityAttention": 0,
-          "repeatPenalty": -12.6
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "GitHub 오늘 별 +1,226개",
-          "별 +143개 / 4시간 · 시간당 36개",
-          "최근 7일 내 코드 변경 관측"
-        ],
-        "signals": [
-          {
-            "label": "GitHub 오늘 별 +1,226개",
-            "url": "https://github.com/trending?since=daily"
-          },
-          {
-            "label": "별 +143개 / 4시간 · 시간당 36개",
-            "url": "https://github.com/firecrawl/firecrawl"
-          },
-          {
-            "label": "최근 7일 내 코드 변경 관측",
-            "url": "https://github.com/firecrawl/firecrawl"
-          }
-        ],
-        "growth": {
-          "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 205102,
-          "current": 205245,
-          "delta": 143,
-          "hours": 4,
-          "perHour": 36
-        },
-        "family": "에이전트·개발",
-        "owner": "firecrawl",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": "firecrawl/firecrawl",
-      "topics": [
-        "ai",
-        "ai-agents",
-        "ai-crawler",
-        "ai-scraping",
-        "ai-search",
-        "crawler",
-        "data-extraction",
-        "html-to-markdown",
-        "llm",
-        "markdown",
-        "scraper",
-        "scraping",
-        "web-crawler",
-        "web-data",
-        "web-data-extraction",
-        "web-scraper",
-        "web-scraping",
-        "web-search",
-        "webscraping"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": "2026-11-20T23:31:41Z",
-      "stars": 205245,
-      "likes": null,
-      "url": "https://github.com/firecrawl/firecrawl",
-      "publishedAt": "2024-04-15T21:02:29Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Firecrawl은 웹페이지를 수집해 Markdown이나 구조화된 JSON으로 반환하는 도구다. AI 에이전트 개발자와 문서 관리자는 사이트 문서를 페이지별로 가져오거나, Cloud에서 웹 검색과 데이터 추출을 한 API에 연결해 후속 작업에 필요한 자료를 모을 수 있다.",
-      "tags": [
-        "AI 에이전트용 웹 데이터 수집"
-      ],
-      "stats": [
-        {
-          "label": "오늘",
-          "value": 1226,
-          "suffix": " stars"
-        },
-        {
-          "label": "전체",
-          "value": 205245,
-          "suffix": " stars"
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "무엇인가",
-          "body": "Firecrawl은 AI 에이전트가 웹페이지를 읽을 수 있도록 페이지 내용을 가져와 Markdown, HTML, 링크 등으로 돌려준다. URL 하나를 넣어 페이지를 가져오거나 사이트를 크롤링해 여러 페이지를 모을 수 있다. 페이지 추출부터 사이트 탐색, 에이전트용 MCP 연결까지 한 도구에서 제공하는 게 특징이다. Local은 사용자 컴퓨터에서 실행하고, Cloud는 웹 검색과 구조화된 JSON 추출을 추가로 제공한다. 서버 전체를 자체 인프라에 배포하는 방식도 있다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "제작자가 강조한 기능",
-          "body": "제작자는 Firecrawl Cloud가 JavaScript 의존도가 높은 페이지를 포함해 웹의 96%를 커버하며, 수백만 페이지를 대상으로 한 95백분위 지연 시간(P95)이 3.4초라고 설명한다. README는 Markdown, 구조화된 JSON, 스크린샷을 출력 형식으로 소개한다. 제작자는 Alexandria를 통해 단일 API에서 550개 이상의 데이터 제공처에 접근할 수 있다고 설명한다. Cloud의 Interact는 프롬프트나 코드로 페이지에서 클릭과 이동을 수행한다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "실제 활용",
-          "body": "README 사용 예시 ① 문서 관리자가 Firecrawl 문서 사이트의 시작 URL을 Local에 넣고 최대 50페이지를 크롤링하면, 수집된 페이지가 각각 Markdown 파일로 저장된다. 문서 내용을 페이지 단위로 검토할 때 쓸 수 있다. ② 시장조사 담당자가 Cloud의 Agent에 Notion 요금제를 찾아 달라는 문장을 입력하면, Agent가 웹에서 관련 페이지를 찾아 내용을 수집한다. README의 예시 응답에는 요금제 요약과 출처 목록이 담긴다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "평가와 반응",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 2026년 11월 20일 수집 자료에는 저장소 메타데이터와 제작자 README가 담겨 있다. 개별 이슈·댓글·토론 표본이 없어 외부 사용자가 경험한 장점이나 문제, 제보 날짜, 이슈의 열림·해결 상태를 확인할 수 없다. 웹 커버리지 96%와 P95 3.4초는 제작자가 README에서 제시한 성능 수치이며, 독립 재현 결과는 제공 자료에서 미확인이다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "도입 판단",
-          "body": "저장소 라이선스는 AGPL-3.0이다. Local은 Rust와 C 컴파일러가 필요하고, MCP 서버에는 Node.js 22 이상이 필요하다. JavaScript 렌더링에는 Chrome 또는 Chromium을 쓰며, 브라우저가 필요한 페이지는 브라우저 미설치 시 경고가 반환된다. 로컬 API는 키 없이 쓸 수 있지만, 기본 설정에서 불러오지 못한 단일 페이지는 Cloud로 넘어갈 수 있다. 로컬 처리만 필요하면 FIRECRAWL_CLOUD=off를 설정할 수 있다. 제작자 안내 기준 Cloud Keyless는 월 1,000크레딧까지 무료이며 유료 단가는 미확인이다. 문서 수집 중심이면 Local이, 검색과 구조화된 JSON 추출까지 필요하면 Cloud가 적합하다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "웹페이지를 AI가 읽을 데이터로 바꾸는 Firecrawl",
-      "topic": "AI 에이전트용 웹 데이터 수집",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "저장소 공식 정보",
-          "url": "https://github.com/firecrawl/firecrawl",
-          "kind": "official"
-        },
-        {
-          "id": "s2",
-          "label": "제작자 README",
-          "url": "https://github.com/firecrawl/firecrawl/blob/main/README.md",
-          "kind": "creator"
-        }
-      ],
-      "reviewedAt": "2026-11-20T08:04:42.049Z"
-    },
-    {
-      "id": "6db12e7d3e6f36e3",
-      "category": "news",
-      "title": "[AINews] Anthropic successfully completes largest IPO in history, valued at $1.5T",
-      "source": "AI News / Latent Space",
-      "sourceKind": "reporting",
-      "channel": "information",
-      "discoveryUrl": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t/",
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 44.4,
-        "components": {
-          "freshness": 57,
-          "communityAttention": 0,
-          "repeatPenalty": -12.6
-        },
-        "badge": "보도·종합 소식",
-        "reasons": [
-          "보도·종합 소식 17시간 경과",
-          "AI News / Latent Space 발견 경로"
-        ],
-        "signals": [
-          {
-            "label": "보도·종합 소식 17시간 경과",
-            "url": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t"
-          },
-          {
-            "label": "AI News / Latent Space 발견 경로",
-            "url": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t/"
-          }
-        ],
-        "growth": null,
-        "family": "AI 기업 상장",
-        "owner": "AI News / Latent Space",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": null,
-      "topics": [],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": null,
-      "stars": null,
-      "likes": null,
-      "url": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t",
-      "publishedAt": "2026-11-20T07:12:24.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "AI News / Latent Space는 Anthropic이 나스닥 기업공개로 813억 달러를 조달해 역대 최대 공모 기록을 세웠다고 보도했다. AI 업계와 기업 도입 담당자가 상장으로 확보한 자금의 용도, 창업자의 의결권, 모델 훈련과 배포에 관한 안전 방침을 함께 파악할 수 있는 소식이다.",
-      "tags": [
-        "AI 기업 상장"
-      ],
-      "stats": [],
-      "signalLabel": "보도·종합 소식",
-      "slides": [
-        {
-          "title": "Anthropic의 나스닥 상장",
-          "body": "AI News / Latent Space에 따르면 Anthropic은 나스닥에 $ANT로 상장해 공모로 813억 달러를 조달했다. 주당 83달러에 공모한 주식은 첫날 111.50달러에 거래를 시작했고 97.17달러에 마감했다. 공모는 회사가 자금을 확보하는 절차이고, 상장 후 거래 가격은 투자자들 사이에서 형성된다. 보도는 이번 공모 규모가 SpaceX의 750억 달러를 넘어섰다고 전했다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "창업자가 밝힌 훈련과 배포 방침",
-          "body": "보도가 인용한 상장 발언에서 Dario Amodei는 AI 시스템이 안전하고 인간의 통제 아래 있다고 확신할 수 있을 때까지 훈련과 배포 속도를 조절하겠다고 밝혔다. 그는 AI가 과학과 의료의 발전을 앞당길 가능성을 제시하면서 현재 성과는 초기 단계라고 설명했다. 보도에 따르면 Dario와 Daniela의 Class F 주식에는 대부분의 주주 안건에서 의결권 50.1%가 부여된다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 원문에서 밝힌 내용"
-        },
-        {
-          "title": "상장 소식을 업무에 활용하는 두 가지 방법",
-          "body": "활용 예시 1. AI 인프라 분석가는 공모액과 데이터센터 임차 계획을 함께 살펴보고, 조달 자금이 쓰일 분야를 투자 검토 메모에 정리할 수 있다. 활용 예시 2. Claude 도입을 검토하는 기업 담당자는 보도에 인용된 창업자의 안전 방침을 바탕으로 훈련과 배포 속도가 조정될 수 있다는 점을 공급업체 검토 문서에 기록할 수 있다. 두 예시는 보도 내용을 업무에 적용하는 방법이다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "상장 직후 반응과 모델 평가",
-          "body": "2026년 11월 18~19일자 보도는 X 계정 544개와 Reddit 커뮤니티 12곳을 살폈다고 밝혔다. 인용된 반응 가운데 Perplexity CEO는 Opus 5.5를 높이 평가했고, Clem Delangue는 공개 연구와 오픈소스 AI 확대를 바랐다. 표본 규모는 뉴스레터 전체의 조사 범위이며, 관련 이슈의 열림·해결 상태는 미확인이다. Code Arena WebDev 순위는 보도가 인용한 외부 벤치마크다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "Claude 도입 판단에 쓸 수 있는 정보",
-          "body": "이 보도는 상장 자금의 주요 용도로 데이터센터 임차를 들고, 안전성에 따라 훈련과 배포 속도를 조절한다는 경영진 방침을 전한다. 공급업체의 자금 사용 계획과 배포 방침을 검토하는 기업 담당자에게 참고가 된다. Claude를 실제로 도입하는 데 필요한 실행 환경, 라이선스, API 요금, 설치 절차와 제약은 이 기사에서 미확인이다. 기사에 소개된 코딩 순위는 Code Arena WebDev 과제에 한정된다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "Anthropic, 나스닥 상장으로 813억 달러 조달",
-      "topic": "AI 기업 상장",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "보도·게시 원문 · 제작자 공식 발표와 구분",
-          "url": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t",
-          "kind": "reporting"
-        },
-        {
-          "id": "s2",
-          "label": "발견 경로와 관측 지표 · 독립 품질 평가 아님",
-          "url": "https://latent.space/p/ainews-anthropic-successfully-completes-largest-ipo-in-history-valued-at-1-5t/",
-          "kind": "community"
-        }
-      ],
-      "reviewedAt": "2026-11-20T08:02:22.401Z"
-    },
-    {
-      "id": "b03e856411c0697d",
-      "category": "project",
-      "title": "jingyaogong/minimind",
-      "source": "GitHub",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 33.6,
-        "components": {
-          "dailyAttention": 23.7,
-          "measuredVelocity": 15.6,
-          "freshness": 0,
-          "activity": 5.7,
-          "earlyDiscovery": 0,
-          "totalAttention": 3.9,
-          "curationPenalty": 0,
-          "communityAttention": 0,
-          "repeatPenalty": -15.3
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "GitHub 오늘 별 +841개",
-          "별 +48개 / 4시간 · 시간당 12.1개",
-          "최근 7일 내 코드 변경 관측"
-        ],
-        "signals": [
-          {
-            "label": "GitHub 오늘 별 +841개",
-            "url": "https://github.com/trending?since=daily"
-          },
-          {
-            "label": "별 +48개 / 4시간 · 시간당 12.1개",
-            "url": "https://github.com/jingyaogong/minimind"
-          },
-          {
-            "label": "최근 7일 내 코드 변경 관측",
-            "url": "https://github.com/jingyaogong/minimind"
-          }
-        ],
-        "growth": {
-          "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 67627,
-          "current": 67675,
-          "delta": 48,
-          "hours": 4,
-          "perHour": 12.1
-        },
-        "family": "학습·데이터",
-        "owner": "jingyaogong",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": "jingyaogong/minimind",
-      "topics": [
-        "artificial-intelligence",
-        "large-language-model"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": null,
-      "pushedAt": "2026-11-18T15:09:40Z",
-      "stars": 67675,
-      "likes": null,
-      "url": "https://github.com/jingyaogong/minimind",
-      "publishedAt": "2024-07-27T04:34:12Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "MiniMind는 소형 언어 모델의 구조와 학습 코드를 공개한 PyTorch 프로젝트다. 공개 데이터로 사전학습과 지도 미세조정을 실행하고, 완성한 가중치를 대화로 시험할 수 있다. 학습 단계마다 어떤 데이터가 들어가고 어떤 가중치가 나오는지 코드로 살펴보고 싶은 학생과 개발자에게 유용하다.",
-      "tags": [
-        "소형 언어 모델 학습"
-      ],
-      "stats": [
-        {
-          "label": "오늘",
-          "value": 841,
-          "suffix": " stars"
-        },
-        {
-          "label": "전체",
-          "value": 67675,
-          "suffix": " stars"
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "무엇인가",
-          "body": "MiniMind는 개인 장비에서 언어 모델의 내부 구조를 살펴보고 초기 가중치부터 직접 훈련할 수 있도록 만든 프로젝트다. 토크나이저가 텍스트를 토큰으로 바꾸면, 모델은 사전학습에서 다음 토큰을 예측하고 지도 미세조정에서 대화 형식을 익힌다. 고수준 학습 도구에서는 라이브러리 호출 뒤에 있는 모델 구조와 핵심 학습 로직을 여기서는 PyTorch 코드에서 단계별로 읽고 수정할 수 있다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "제작자의 소개",
-          "body": "제작자는 `minimind-3`의 파라미터가 약 6,400만 개이며, 저장소에서 Dense와 MoE 구조, LoRA, DPO, 강화학습, 도구 호출, 모델 증류 코드를 제공한다고 설명한다. README의 ‘2시간’은 제작자가 NVIDIA RTX 3090 한 장으로 지도 미세조정(SFT) 1 epoch를 실행한 시간이고, ‘3위안’은 해당 시간의 GPU 임대비다. 사전학습을 포함한 전체 소요 시간과 비용은 제시된 수치에서 확인할 수 없다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "실제 활용",
-          "body": "활용 예시 1. 언어 모델을 공부하는 학생이 공개 `pretrain_t2t_mini.jsonl`과 `sft_t2t_mini.jsonl`로 사전학습과 지도 미세조정을 차례로 실행한다. 생성된 가중치를 `eval_llm.py`로 불러와 질문을 입력하고 대화 응답을 살펴본다.\n활용 예시 2. 채팅 UI 개발자가 공개 `minimind-3` 가중치를 OpenAI API 호환 서버에서 구동하고 Open-WebUI에 연결한다. 메시지를 보내 서버가 반환한 모델 응답이 채팅 화면에 표시되는지 점검할 수 있다.",
-          "evidenceIds": [
-            "s2"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "평가와 반응",
-          "body": "2026년 11월 20일 외부 사용자 이슈 2건은 수집 당시 모두 열린 상태였고 댓글은 각각 0개였다. #947은 Ubuntu 24.04와 Python 3.12에서 pyarrow 26.0.1과 NumPy 1.26.4가 충돌해 `datasets`를 불러오지 못했다고 보고했다. 작성자는 pyarrow 17.0.0으로 바꾼 뒤 불러오기에 성공했다고 덧붙였다. #951은 Apple Silicon 실행 가능 여부를 묻는 글이었다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. SFT 소요 시간은 제작자 측 측정치다.",
-          "evidenceIds": [
-            "s2",
-            "s3",
-            "s4"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "도입 판단",
-          "body": "저장소는 Apache-2.0이며, SFT 데이터 출처에는 CC-BY-NC-2.0 등 별도 조건이 언급된다. 제작자의 참고 환경은 Ubuntu 20.04, CUDA 12.2, Python 3.10.16이다. 저장소를 복제하고 `requirements.txt`의 의존성을 설치한 뒤, 추론용 가중치나 학습용 JSONL을 내려받는다. 자체 호스팅 API의 호출 단가와 운영비는 미확인이다. CPU·MPS는 속도와 호환성 차이가 크고 Apple Silicon 실행 결과도 확인되지 않았다. CUDA 환경에서 학습 흐름을 실습하려는 사용자에게 적합하다.",
-          "evidenceIds": [
-            "s1",
-            "s2",
-            "s3",
-            "s4"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "MiniMind로 초소형 언어 모델을 처음부터 훈련하기",
-      "topic": "소형 언어 모델 학습",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "저장소 공식 정보",
-          "url": "https://github.com/jingyaogong/minimind",
-          "kind": "official"
-        },
-        {
-          "id": "s2",
-          "label": "제작자 README",
-          "url": "https://github.com/jingyaogong/minimind/blob/master/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s3",
-          "label": "공개 이슈 #951",
-          "url": "https://github.com/jingyaogong/minimind/issues/951",
-          "kind": "user-report"
-        },
-        {
-          "id": "s4",
-          "label": "공개 이슈 #947",
-          "url": "https://github.com/jingyaogong/minimind/issues/947",
-          "kind": "user-report"
-        }
-      ],
-      "reviewedAt": "2026-11-20T20:05:31.673Z"
-    },
-    {
       "id": "09d670b9861b2003",
       "category": "project",
       "title": "Tracer-Cloud/opensre",
@@ -1320,31 +1521,31 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 33.3,
+        "score": 39.3,
         "components": {
           "dailyAttention": 21.6,
-          "measuredVelocity": 16.7,
+          "measuredVelocity": 17.3,
           "freshness": 0,
-          "activity": 7,
+          "activity": 8,
           "earlyDiscovery": 0,
           "totalAttention": 3.3,
           "curationPenalty": 0,
           "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "repeatPenalty": -10.9
         },
         "badge": "단기 관심 증가",
         "reasons": [
-          "GitHub 오늘 별 +465개",
-          "별 +58개 / 4시간 · 시간당 14.6개",
+          "GitHub 오늘 별 +466개",
+          "별 +131개 / 8시간 · 시간당 16.3개",
           "최근 7일 내 코드 변경 관측"
         ],
         "signals": [
           {
-            "label": "GitHub 오늘 별 +465개",
+            "label": "GitHub 오늘 별 +466개",
             "url": "https://github.com/trending?since=daily"
           },
           {
-            "label": "별 +58개 / 4시간 · 시간당 14.6개",
+            "label": "별 +131개 / 8시간 · 시간당 16.3개",
             "url": "https://github.com/tracer-cloud/opensre"
           },
           {
@@ -1354,13 +1555,13 @@
         ],
         "growth": {
           "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 13535,
-          "current": 13593,
-          "delta": 58,
-          "hours": 4,
-          "perHour": 14.6
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 13593,
+          "current": 13724,
+          "delta": 131,
+          "hours": 8,
+          "perHour": 16.3
         },
         "family": "CI/CD 장애 분석",
         "owner": "tracer-cloud",
@@ -1387,12 +1588,12 @@
       ],
       "discoveryTopic": null,
       "pipelineTag": null,
-      "pushedAt": "2026-11-20T00:57:26Z",
-      "stars": 13593,
+      "pushedAt": "2026-11-21T07:48:38Z",
+      "stars": 13724,
       "likes": null,
       "url": "https://github.com/tracer-cloud/opensre",
       "publishedAt": "2026-01-13T00:04:47Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
       "summary": "OpenSRE는 실패한 CI 실행의 로그와 최근 커밋, 배포 기록, 모니터링 데이터를 함께 살펴보고 검토할 수정안을 제시하는 오픈소스 CLI 에이전트입니다. 빌드 실패를 조사하는 개발팀과 운영 알림에 대응하는 SRE 팀이 원인 후보와 판단 근거를 한곳에서 파악하는 데 쓸 수 있습니다.",
       "tags": [
         "CI/CD 장애 분석"
@@ -1400,12 +1601,12 @@
       "stats": [
         {
           "label": "오늘",
-          "value": 465,
+          "value": 466,
           "suffix": " stars"
         },
         {
           "label": "전체",
-          "value": 13593,
+          "value": 13724,
           "suffix": " stars"
         }
       ],
@@ -1494,22 +1695,22 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 32.2,
+        "score": 36.9,
         "components": {
           "dailyAttention": 20.3,
-          "measuredVelocity": 16.3,
+          "measuredVelocity": 17,
           "freshness": 0,
-          "activity": 7.7,
+          "activity": 7.4,
           "earlyDiscovery": 0,
           "totalAttention": 3.2,
           "curationPenalty": 0,
           "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "repeatPenalty": -10.9
         },
         "badge": "단기 관심 증가",
         "reasons": [
           "GitHub 오늘 별 +315개",
-          "별 +54개 / 4시간 · 시간당 13.6개",
+          "별 +124개 / 8시간 · 시간당 15.4개",
           "최근 7일 내 코드 변경 관측"
         ],
         "signals": [
@@ -1518,7 +1719,7 @@
             "url": "https://github.com/trending?since=daily"
           },
           {
-            "label": "별 +54개 / 4시간 · 시간당 13.6개",
+            "label": "별 +124개 / 8시간 · 시간당 15.4개",
             "url": "https://github.com/google-labs-code/stitch-skills"
           },
           {
@@ -1528,13 +1729,13 @@
         ],
         "growth": {
           "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 10967,
-          "current": 11021,
-          "delta": 54,
-          "hours": 4,
-          "perHour": 13.6
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 11021,
+          "current": 11145,
+          "delta": 124,
+          "hours": 8,
+          "perHour": 15.4
         },
         "family": "UI 디자인·코드 변환",
         "owner": "google-labs-code",
@@ -1546,11 +1747,11 @@
       "discoveryTopic": null,
       "pipelineTag": null,
       "pushedAt": "2026-11-20T18:08:01Z",
-      "stars": 11021,
+      "stars": 11145,
       "likes": null,
       "url": "https://github.com/google-labs-code/stitch-skills",
       "publishedAt": "2026-01-16T17:17:17Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
       "summary": "Stitch Skills는 Codex, Claude Code, Cursor 같은 코딩 에이전트에서 Google Stitch를 쓰기 위한 스킬 모음이다. 화면 설명이나 기존 프런트엔드 코드를 Stitch 디자인으로 옮기고, 완성한 화면을 React 컴포넌트로 가져오는 등 디자인과 구현을 오가는 팀에 유용하다.",
       "tags": [
         "UI 디자인·코드 변환"
@@ -1563,7 +1764,7 @@
         },
         {
           "label": "전체",
-          "value": 11021,
+          "value": 11145,
           "suffix": " stars"
         }
       ],
@@ -1660,9 +1861,9 @@
       "reviewedAt": "2026-11-20T20:05:06.284Z"
     },
     {
-      "id": "374d489ad56f9cd1",
+      "id": "7da0d49bc4a01ce9",
       "category": "project",
-      "title": "HKUDS/CLI-Anything",
+      "title": "dayfile/dayfile",
       "source": "GitHub",
       "sourceKind": "official",
       "channel": "information",
@@ -1672,169 +1873,160 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 39.5,
+        "score": 27.6,
         "components": {
-          "dailyAttention": 23.4,
-          "measuredVelocity": 20.2,
-          "freshness": 0,
-          "activity": 7.4,
-          "earlyDiscovery": 0,
-          "totalAttention": 3.8,
+          "dailyAttention": 0,
+          "measuredVelocity": 0.6,
+          "freshness": 16,
+          "activity": 7.5,
+          "earlyDiscovery": 7.2,
+          "totalAttention": 0.2,
           "curationPenalty": 0,
-          "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "communityAttention": 5.1,
+          "repeatPenalty": -9
         },
         "badge": "단기 관심 증가",
         "reasons": [
-          "GitHub 오늘 별 +774개",
-          "별 +106개 / 4시간 · 시간당 26.7개",
-          "최근 7일 내 코드 변경 관측"
+          "별 +1개 / 8시간 · 시간당 0.1개",
+          "공개 4일 이내 신규 프로젝트",
+          "최근 7일 내 코드 변경 관측",
+          "Hacker News 4점 · 댓글 2개"
         ],
         "signals": [
           {
-            "label": "GitHub 오늘 별 +774개",
-            "url": "https://github.com/trending?since=daily"
+            "label": "별 +1개 / 8시간 · 시간당 0.1개",
+            "url": "https://github.com/dayfile/dayfile"
           },
           {
-            "label": "별 +106개 / 4시간 · 시간당 26.7개",
-            "url": "https://github.com/hkuds/cli-anything"
+            "label": "공개 4일 이내 신규 프로젝트",
+            "url": "https://github.com/dayfile/dayfile"
           },
           {
             "label": "최근 7일 내 코드 변경 관측",
-            "url": "https://github.com/hkuds/cli-anything"
+            "url": "https://github.com/dayfile/dayfile"
+          },
+          {
+            "label": "Hacker News 4점 · 댓글 2개",
+            "url": "https://news.ycombinator.com/item?id=50561824"
           }
         ],
         "growth": {
           "metric": "stars",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 61257,
-          "current": 61363,
-          "delta": 106,
-          "hours": 4,
-          "perHour": 26.7
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 0,
+          "current": 1,
+          "delta": 1,
+          "hours": 8,
+          "perHour": 0.1
         },
-        "family": "에이전트·개발",
-        "owner": "hkuds",
+        "family": "개인 이벤트 기록",
+        "owner": "dayfile",
         "repeated": true,
-        "independentCommunity": false
+        "independentCommunity": true
       },
-      "name": "HKUDS/CLI-Anything",
+      "name": "dayfile/dayfile",
       "topics": [],
       "discoveryTopic": null,
       "pipelineTag": null,
-      "pushedAt": "2026-11-20T10:05:15Z",
-      "stars": 61363,
+      "pushedAt": "2026-11-20T21:46:35Z",
+      "stars": 1,
       "likes": null,
-      "url": "https://github.com/hkuds/cli-anything",
-      "publishedAt": "2026-03-08T13:52:57Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "CLI-Anything은 AI 에이전트가 GIMP나 Blender 같은 기존 앱을 텍스트 명령으로 조작할 수 있게 연결하는 오픈소스 프로젝트입니다. 개발자와 자동화 담당자는 CLI-Hub에서 앱별 명령줄 도구를 설치하거나 필요한 도구를 새로 만들고, JSON으로 받은 결과를 후속 작업에 넘길 수 있습니다.",
+      "url": "https://github.com/dayfile/dayfile",
+      "publishedAt": "2026-11-18T04:22:16Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "dayfile은 스크립트, 앱, AI 에이전트가 보낸 이벤트를 SQLite에 쌓고, 태그·상태·기간에 따라 골라 피드로 보여주는 개인용 도구입니다. 여러 자동화를 관리하는 개발자나 운영자는 백업 완료 기록과 미처리 할 일을 한곳에서 볼 수 있고, AI 비서에는 MCP를 통해 필요한 읽기·쓰기 권한만 줄 수 있습니다.",
       "tags": [
-        "AI 에이전트용 소프트웨어 자동화"
+        "개인 이벤트 기록"
       ],
       "stats": [
         {
-          "label": "오늘",
-          "value": 774,
-          "suffix": " stars"
+          "label": "Stars",
+          "value": 1
         },
         {
-          "label": "전체",
-          "value": 61363,
-          "suffix": " stars"
+          "label": "Python",
+          "value": 0,
+          "suffix": " forks"
         }
       ],
       "signalLabel": "단기 관심 증가",
       "slides": [
         {
-          "title": "무엇인가",
-          "body": "사람이 메뉴와 버튼으로 다루던 앱의 기능을 AI 에이전트가 호출할 수 있는 명령줄 인터페이스(CLI)로 노출합니다. 에이전트는 `--help`에서 명령과 옵션을 찾고, 구조화된 JSON 출력을 읽어 다음 작업에 넘길 수 있습니다. 앱마다 따로 연동 코드를 작성하는 수고를 줄이도록, CLI-Hub에서 이미 만들어진 도구를 찾는 경로와 대상 앱에 맞는 도구를 새로 생성하는 경로를 함께 제공합니다.",
+          "title": "흩어진 작업 결과를 한곳에 기록",
+          "body": "스크립트나 웹훅, 기기가 HTTP로 이벤트를 보내면 dayfile은 이를 SQLite에 추가합니다. 할 일을 닫거나 기록을 철회할 때도 원본은 보존하고, 원본을 가리키는 새 이벤트로 현재 상태를 계산합니다. 같은 기록에서 태그·상태·기간별 JSON Feed나 Atom 피드를 만들고, 읽기 토큰에 따라 공개 범위를 달리할 수 있습니다. 입력 데이터의 변환은 보내는 쪽이 맡고, dayfile은 전달받은 이벤트의 기록과 조회를 맡습니다.",
           "evidenceIds": [
             "s2"
           ],
           "eyebrow": "01 / 무엇인가요"
         },
         {
-          "title": "제작자의 소개",
-          "body": "제작자는 README에서 새 CLI를 만드는 7단계 생성 절차와, 기존 CLI를 검색·설치·업데이트·실행할 수 있는 CLI-Hub를 두 가지 출발점으로 소개합니다. 생성된 CLI에는 에이전트가 사용법을 찾을 수 있도록 `SKILL.md`가 포함된다고 설명합니다. 제작자는 CAD 모델과 3D 장면, 자막 등을 만드는 데모를 소개하며 단위 테스트와 종단 간 테스트를 포함해 2,461개 테스트가 통과했다고 보고합니다.",
+          "title": "제작자가 소개한 자동 감시와 MCP 연동",
+          "body": "제작자는 소스별로 보고 주기를 정해 두면, 예정된 보고가 끊겼을 때 dayfile이 미해결 할 일을 자동으로 추가한다고 설명합니다. 이벤트가 보이기 시작하는 시점과 만료 시점도 설정할 수 있습니다. README에 따르면 JSON API는 롱 폴링과 SSE 실시간 스트림을 제공하며, Claude 같은 AI 비서는 MCP로 기록을 조회하거나 추가하고 할 일을 닫을 수 있습니다. AI 비서가 할 수 있는 작업은 발급받은 토큰의 권한을 따릅니다.",
           "evidenceIds": [
             "s2"
           ],
           "eyebrow": "02 / 제작자의 설명"
         },
         {
-          "title": "실제 활용",
-          "body": "활용 예시 ① 행정 담당자가 `.hwpx` 서식과 항목별 값을 에이전트에 주면, 등록 제안 상태인 `hwp-cli`로 표의 항목명에 맞춰 값을 채운 뒤 실제 한컴 한글을 통해 PDF를 내보내는 흐름을 구성할 수 있습니다. 활용 예시 ② QA 담당자가 macOS의 Safari에서 테스트 페이지를 연 뒤 `list_tabs`를 호출하면, Safari CLI의 JSON 출력을 스크립트로 받아 현재 열린 탭 목록을 후속 점검에 사용할 수 있습니다.",
+          "title": "백업 보고 감시와 할 일 처리에 활용",
+          "body": "활용 예시 1. 백업 운영자가 매일 완료 이벤트를 보내는 스크립트를 연결하고 보고 주기를 정합니다. 예정된 보고가 들어오지 않으면 dayfile이 미해결 할 일을 만들어, 운영자가 피드에서 점검 대상을 찾을 수 있습니다.\n활용 예시 2. 개인 개발자가 CLI로 `buy milk`를 `todo` 태그와 함께 기록합니다. 읽기·쓰기 권한을 받은 Claude는 MCP로 열린 할 일을 조회하고, 사용자가 완료했다고 알려 주면 종료 이벤트를 남깁니다. 그러면 해당 항목은 열린 할 일만 보여주는 피드에서 빠집니다.",
           "evidenceIds": [
-            "s3",
-            "s5"
+            "s2"
           ],
           "eyebrow": "03 / 어디에 쓰나요"
         },
         {
-          "title": "평가와 반응",
-          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 날짜 미확인인 Hacker News 댓글 1건에서 Safari CLI 제작자는 실제 Safari의 탭 목록 조회 10회에서 중앙값이 지속 연결 MCP 119ms, 호출마다 프로세스를 띄운 CLI 3,023ms였다고 보고했습니다. 같은 작성자의 계산에서 호출당 도구 정의는 MCP 7,986토큰, CLI 95토큰이었습니다. CLI-Anything README의 테스트 집계는 프로젝트 측 보고입니다. 2026년 11월 20일 열린 #678은 댓글 0개의 한컴 한글 CLI 기여 신청입니다.",
+          "title": "외부 평가를 판단할 근거는 제한적",
+          "body": "독립적인 사용자 평가를 충분히 확보하지 못했습니다. 제공된 Hacker News 댓글은 1건이며 작성자 역할과 게시 날짜는 자료에서 확인되지 않습니다. 댓글 작성자는 단일 SQLite 파일과 토큰별 피드를 장점으로 들고, Graylog에 비해 처리 규모와 수집·대응 범위가 작다고 설명합니다. 이는 댓글 작성자의 설명이며, 측정 결과나 공식 벤치마크는 제시되지 않았습니다. 2026년 11월 20일 수집 시점에 GitHub에는 열린 이슈가 1건 있었으며, 제목과 내용, 이후 해결 여부는 미확인입니다.",
           "evidenceIds": [
+            "s1",
             "s2",
-            "s3",
-            "s5"
+            "s3"
           ],
           "eyebrow": "04 / 평가와 반응"
         },
         {
-          "title": "도입 판단",
-          "body": "저장소 라이선스는 Apache-2.0이며 README는 Python 3.10 이상과 Click 8.0 이상을 명시합니다. CLI-Hub는 `pip install cli-anything-hub`로 설치하며, GIMP·Blender·LibreOffice 연동에는 해당 앱도 필요합니다. 프로젝트 공통 API 요금과 선택한 에이전트·외부 서비스의 실제 비용은 자료에서 확인되지 않습니다. 기존 앱을 스크립트에서 호출해 JSON 결과를 이어 쓰려는 팀에 적합합니다. Safari처럼 짧은 명령을 반복하는 작업에서는 호출마다 프로세스를 띄우는 지연이 도입 판단에 영향을 줍니다.",
+          "title": "무료 베타와 자체 호스팅의 도입 조건",
+          "body": "호스팅형은 GitHub 로그인으로 쓰는 무료 베타입니다. README에 따르면 과금 기능은 아직 구현되지 않았으며, API 별도 요금과 베타 이후 가격은 미확인입니다. 자체 호스팅에는 Python 3.11 이상이 필요합니다. `pip install dayfile`로 설치하고 Uvicorn으로 실행할 수 있으며, 상시 운영에는 Docker 또는 systemd 구성이 안내됩니다. MCP는 추가 패키지가 필요하고, 자체 호스팅용 Compose 구성에는 웹 앱이 포함되지 않습니다. AGPL-3.0-only에 따라 수정판을 네트워크로 제공하면 이용자에게 해당 소스 코드를 제공해야 합니다. 소수의 자동화 이벤트와 할 일을 한곳에서 보고 싶은 개인이나 소규모 운영 환경에 적합합니다.",
           "evidenceIds": [
             "s1",
             "s2",
-            "s5"
+            "s3"
           ],
           "eyebrow": "05 / 도입 전 확인"
         }
       ],
       "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "기존 앱을 AI 에이전트가 명령어로 다루게 하는 도구",
-      "topic": "AI 에이전트용 소프트웨어 자동화",
+      "headline": "스크립트와 AI 에이전트의 이벤트를 한곳에 모으는 dayfile",
+      "topic": "개인 이벤트 기록",
       "evidence": [
         {
           "id": "s1",
           "label": "저장소 공식 정보",
-          "url": "https://github.com/hkuds/cli-anything",
+          "url": "https://github.com/dayfile/dayfile",
           "kind": "official"
         },
         {
           "id": "s2",
           "label": "제작자 README",
-          "url": "https://github.com/HKUDS/CLI-Anything/blob/main/README.md",
+          "url": "https://github.com/dayfile/dayfile/blob/master/README.md",
           "kind": "creator"
         },
         {
           "id": "s3",
-          "label": "공개 이슈 #678",
-          "url": "https://github.com/HKUDS/CLI-Anything/issues/678",
-          "kind": "user-report"
-        },
-        {
-          "id": "s4",
-          "label": "공개 이슈 #672",
-          "url": "https://github.com/HKUDS/CLI-Anything/issues/672",
-          "kind": "user-report"
-        },
-        {
-          "id": "s5",
           "label": "Hacker News 댓글 표본",
-          "url": "https://news.ycombinator.com/item?id=47734881",
+          "url": "https://news.ycombinator.com/item?id=50563296",
           "kind": "community"
         }
       ],
-      "reviewedAt": "2026-11-20T20:03:18.971Z"
+      "reviewedAt": "2026-11-20T08:07:01.038Z"
     },
     {
-      "id": "dbede62d4d711d8c",
-      "category": "model",
-      "title": "harness-hub/Qwen3.8-27B-pi-adapted",
-      "source": "Hugging Face",
+      "id": "05870a7b5a7e3cff",
+      "category": "project",
+      "title": "elementalsouls/Claude-BugHunter",
+      "source": "GitHub",
       "sourceKind": "official",
       "channel": "information",
       "discoveryUrl": null,
@@ -1843,100 +2035,101 @@
       "datePrecision": null,
       "selection": {
         "version": "momentum-v2",
-        "score": 35,
+        "score": 52.3,
         "components": {
-          "nativeTrend": 24.2,
-          "freshness": 12.9,
-          "measuredVelocity": 10,
-          "totalAttention": 3.2,
+          "dailyAttention": 26,
+          "measuredVelocity": 26,
+          "freshness": 0,
+          "activity": 7.8,
+          "earlyDiscovery": 0,
+          "totalAttention": 3.3,
+          "curationPenalty": 0,
           "communityAttention": 0,
-          "repeatPenalty": -15.3
+          "repeatPenalty": -10.9
         },
         "badge": "단기 관심 증가",
         "reasons": [
-          "Hugging Face 트렌딩 3위 관측",
-          "좋아요 +9개 / 4시간",
-          "공개 5일 이내 모델"
+          "GitHub 오늘 별 +1,622개",
+          "별 +577개 / 8시간 · 시간당 71.8개",
+          "최근 7일 내 코드 변경 관측"
         ],
         "signals": [
           {
-            "label": "Hugging Face 트렌딩 3위 관측",
-            "url": "https://huggingface.co/models?sort=trending"
+            "label": "GitHub 오늘 별 +1,622개",
+            "url": "https://github.com/trending?since=daily"
           },
           {
-            "label": "좋아요 +9개 / 4시간",
-            "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted"
+            "label": "별 +577개 / 8시간 · 시간당 71.8개",
+            "url": "https://github.com/elementalsouls/claude-bughunter"
           },
           {
-            "label": "공개 5일 이내 모델",
-            "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted"
+            "label": "최근 7일 내 코드 변경 관측",
+            "url": "https://github.com/elementalsouls/claude-bughunter"
           }
         ],
         "growth": {
-          "metric": "likes",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 851,
-          "current": 860,
-          "delta": 9,
-          "hours": 4,
-          "perHour": 2.3
+          "metric": "stars",
+          "baselineAt": "2026-11-20T23:58:18.502Z",
+          "observedAt": "2026-11-21T08:00:18.814Z",
+          "baseline": 14210,
+          "current": 14787,
+          "delta": 577,
+          "hours": 8,
+          "perHour": 71.8
         },
-        "family": "비전·멀티모달",
-        "owner": "harness-hub",
+        "family": "에이전트·개발",
+        "owner": "elementalsouls",
         "repeated": true,
         "independentCommunity": false
       },
-      "name": null,
+      "name": "elementalsouls/Claude-BugHunter",
       "topics": [
-        "peft",
-        "safetensors",
-        "trl",
-        "grpo",
-        "async-grpo",
-        "lora",
-        "agents",
-        "harbor",
-        "openenv",
-        "pi",
-        "image-text-to-text",
-        "conversational",
-        "dataset:harness-hub/scale800-harbor",
-        "dataset:harness-hub/harness-adapters",
-        "dataset:harness-hub/termgrade-train-harbor",
-        "dataset:ai-and/termgrade-environments",
-        "base_model:Qwen/Qwen3.8-27B",
-        "base_model:adapter:Qwen/Qwen3.8-27B",
-        "license:apache-2.0",
-        "region:us"
+        "ai-security",
+        "anthropic",
+        "application-security",
+        "bug-bounty",
+        "bugbounty",
+        "bugcrowd",
+        "claude",
+        "claude-code",
+        "claude-skills",
+        "ethical-hacking",
+        "hackerone",
+        "offensive-security",
+        "pentesting",
+        "red-team",
+        "security-tools",
+        "web-security"
       ],
       "discoveryTopic": null,
-      "pipelineTag": "image-text-to-text",
-      "pushedAt": null,
-      "stars": null,
-      "likes": 860,
-      "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted",
-      "publishedAt": "2026-11-16T06:52:31.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Qwen3.8-27B-pi-adapted는 코딩 에이전트 pi가 코드를 탐색하고 수정한 뒤 테스트하는 과정에 맞춰 강화학습한 LoRA 어댑터다. 제작자 평가에서는 추론 모드를 끈 상태에서도 기본 모델보다 더 많은 과제를 해결했다. 자체 서버에서 pi를 운영하며 작업당 모델 호출과 생성 토큰을 줄이려는 개발팀에 유용하다.",
+      "pipelineTag": null,
+      "pushedAt": "2026-11-21T04:24:41Z",
+      "stars": 14787,
+      "likes": null,
+      "url": "https://github.com/elementalsouls/claude-bughunter",
+      "publishedAt": "2026-05-05T11:22:32Z",
+      "discoveredAt": "2026-11-21T08:00:18.814Z",
+      "summary": "Claude-BugHunter는 공개 취약점 보고서에서 정리한 점검 지식과 보고서 작성 기능을 Claude Code에 더하는 스킬 묶음이다. 자체 서비스의 보안을 검토하는 개발자와 보안팀은 발견 사항의 근거를 정리하고, 점검 범위와 민감정보를 검토해 보고서 초안을 만드는 데 활용할 수 있다.",
       "tags": [
-        "코딩 에이전트"
+        "보안 점검 에이전트"
       ],
       "stats": [
         {
-          "label": "Downloads",
-          "value": 1874
+          "label": "오늘",
+          "value": 1622,
+          "suffix": " stars"
         },
         {
-          "label": "Likes",
-          "value": 860
+          "label": "전체",
+          "value": 14787,
+          "suffix": " stars"
         }
       ],
       "signalLabel": "단기 관심 증가",
       "slides": [
         {
           "title": "무엇인가",
-          "body": "코딩 에이전트는 저장소를 탐색하고 코드를 수정한 뒤 테스트 결과를 바탕으로 다음 행동을 정한다. 이 과정에서 검색과 실행을 반복하면 주어진 작업 예산을 소진할 수 있다. Qwen3.8-27B-pi-adapted는 Qwen/Qwen3.8-27B에 얹는 LoRA 어댑터로, pi에서 과제를 해결하는 과정 자체를 학습했다. 학습 보상에는 과제의 정답 여부와 도구 사용 효율이 함께 반영되며, 파일 탐색과 명령 실행은 pi가 맡는다.",
+          "body": "Claude-BugHunter는 웹 앱과 API의 보안 점검에서 발견 사항과 증거가 흩어지거나, 확인이 끝나기 전에 보고서 초안이 작성되는 문제를 다루는 프로젝트다. Claude Code에서 점검 내용을 자연어로 설명하면 주제에 맞는 스킬이 자동으로 로드된다. 하나의 범용 보안 프롬프트에 지침을 모으는 방식과 달리, 취약점 유형별 참고 지식과 보고 전 검토·작성 절차를 개별 스킬로 제공한다.",
           "evidenceIds": [
             "s1",
             "s2"
@@ -1944,26 +2137,27 @@
           "eyebrow": "01 / 무엇인가요"
         },
         {
-          "title": "제작자의 소개",
-          "body": "제작자는 pi에서 과제당 한 번, 최대 100단계, 텍스트 전용, 추론 모드 끔이라는 동일 조건으로 비교했을 때 SWE-bench Pro의 어려운 51개 과제에서 해결률이 39.2%에서 64.7%로, Terminal-Bench 2.1의 공통 채점 86개 과제에서 39.5%에서 55.8%로 올랐다고 설명한다. 네 설정이 모두 채점된 터미널 과제 83개에서는 추론을 끈 어댑터가 56.6%, 최고 추론 설정인 `xhigh`를 쓴 기본 모델이 54.2%였다고 설명한다.",
+          "title": "제작자가 강조한 기능",
+          "body": "제작자는 README에서 스킬 83개와 슬래시 명령 15개를 제공하며, 공개 보고서에서 추린 패턴 681개를 주요 취약점 유형 24개로 정리했다고 설명한다. 그중 433개에는 개별 출처를 달았다고 밝힌다. 제출 전에는 점검 범위와 근거를 살피는 7개 문항과 증거에 담긴 민감정보를 가리는 지침을 제공한다. 저장소 소개에는 스킬이 82개로 적혀 있어 두 공식 자료의 집계가 다르다.",
           "evidenceIds": [
-            "s1"
+            "s1",
+            "s2"
           ],
           "eyebrow": "02 / 제작자의 설명"
         },
         {
-          "title": "실제 활용",
-          "body": "제작자가 공개한 평가 사례에서 pi에 Ansible의 `human_to_bytes` 수정 과제를 주자, 어댑터는 함수 위치를 찾고 코드를 고친 뒤 테스트에서 드러난 마지막 실패 사례까지 도구 호출 8회로 해결했다. 두 번째는 README의 실행 명령을 바탕으로 한 활용 예시다. 저장소를 관리하는 개발자가 `tests/test_parser.py`가 실패하는 이유를 찾아 고쳐 달라고 입력하면, pi가 관련 코드를 찾아 수정하고 테스트를 다시 실행해 패치와 검증 결과를 남기는 데 쓸 수 있다.",
+          "title": "실제 업무에 적용하는 두 가지 예",
+          "body": "활용 예시 1. 사내 앱 보안 담당자가 점검 범위 문서와 발견 사항 메모를 입력하면, 제출 전 검토 스킬을 활용해 해당 자산이 승인 범위에 들어가는지, 영향 설명을 뒷받침할 근거가 있는지 살펴보고 보완할 항목을 정리할 수 있다.\n활용 예시 2. 보안 보고서 작성자가 발견 사항과 증거 화면을 입력하면, 증거 관리 지침에 따라 쿠키와 개인정보를 가릴 부분을 검토하고 고객에게 전달할 보고서 초안을 만들 수 있다.",
           "evidenceIds": [
-            "s1"
+            "s2"
           ],
           "eyebrow": "03 / 어디에 쓰나요"
         },
         {
-          "title": "평가와 반응",
-          "body": "2026년 11월 20일 수집 자료에는 Hugging Face 사용자 토론 4건이 있으며 모두 열린 상태였다. 제목 기준으로 11월 20일 게시된 #13은 체감 속도 향상을 MTP에 견줬고, 같은 날 #14는 TermGrade 학습 중 네트워크 접근을 다뤘다. 11월 19일의 #12는 문서 끝의 깨진 링크를 지적했다. 댓글 본문과 측정 조건이 제공되지 않아 독립적인 사용자 평가를 충분히 확보하지 못했습니다. 벤치마크 수치는 제작자가 자체 평가에서 보고한 결과다.",
+          "title": "공개 이슈에 나온 반응",
+          "body": "2026년 11월 20일(UTC)에 등록된 저장소 소속 표시가 없는 이슈 4건이 표본이다. 열린 #196은 범위가 불확실한 자산도 검토 단계에서 범위 안으로 표시됐다고 보고했다. 열린 #195에는 첫 사용에 대한 호평이 있었으나 작업 내용과 환경은 없었다. 닫힌 #190은 보고서에 OS 계정명이 들어가는 문제를, 닫힌 #189는 Windows 로그 인코딩 오류를 보고했다. 두 건의 수정 여부는 미확인이다. README의 현장 검증은 제작자 보고이며, 독립적인 사용자 평가를 충분히 확보하지 못했습니다.",
           "evidenceIds": [
-            "s1",
+            "s2",
             "s3",
             "s4",
             "s5",
@@ -1972,359 +2166,194 @@
           "eyebrow": "04 / 평가와 반응"
         },
         {
-          "title": "도입 판단",
-          "body": "어댑터는 Apache-2.0으로 공개됐으며 Qwen/Qwen3.8-27B가 필요하다. README의 pi 연동 구성은 Node.js 22.19 이상과 vLLM 서버를 사용하며, pi의 API 방식은 `openai-completions`로 지정한다. llama.cpp용 GGUF도 제공되지만 해당 형식의 성능은 재평가되지 않았다. 공개 점수는 텍스트 전용 구성에서 얻었으며 최소 GPU 메모리와 상용 API 요금은 자료에서 미확인이다. 자체 추론 서버를 운영하며 pi의 코드 수정과 터미널 작업을 최적화하려는 팀에 적합하다.",
+          "title": "도입 전에 따져볼 조건",
+          "body": "Claude Code 플러그인 또는 macOS·Linux의 Bash와 Windows의 PowerShell을 통한 복사 설치를 지원한다. 스킬은 OpenCode와 OpenAI Codex CLI 등에서도 읽을 수 있고, 번들 슬래시 명령은 Claude Code 전용이다. 코드는 MIT, 방법론과 문서는 CC BY 4.0이다. 비공개 HackerOne 프로그램 조회에는 선택적으로 API 자격 증명을 쓰며, 모델과 API 비용은 미확인이다. Windows 11에서 엔진 오류가 보고됐고 최신 버전의 수정 여부는 미확인이다. 자체 서비스의 점검 기록과 보고서 초안을 사람이 검토하는 팀에 적합하다.",
           "evidenceIds": [
             "s1",
-            "s2"
+            "s2",
+            "s5",
+            "s6"
           ],
           "eyebrow": "05 / 도입 전 확인"
         }
       ],
       "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "pi의 코드 수정과 터미널 작업에 맞춘 Qwen 어댑터",
-      "topic": "코딩 에이전트",
+      "headline": "Claude Code에 보안 점검과 보고 기능을 더하는 스킬 묶음",
+      "topic": "보안 점검 에이전트",
       "evidence": [
         {
           "id": "s1",
-          "label": "모델 제작자 설명",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted/blob/main/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s2",
-          "label": "모델 공개 정보",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted",
+          "label": "저장소 공식 정보",
+          "url": "https://github.com/elementalsouls/claude-bughunter",
           "kind": "official"
         },
         {
+          "id": "s2",
+          "label": "제작자 README",
+          "url": "https://github.com/elementalsouls/Claude-BugHunter/blob/main/README.md",
+          "kind": "creator"
+        },
+        {
           "id": "s3",
-          "label": "모델 토론 #15",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted/discussions/15",
+          "label": "공개 이슈 #196",
+          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/196",
           "kind": "user-report"
         },
         {
           "id": "s4",
-          "label": "모델 토론 #14",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted/discussions/14",
+          "label": "공개 이슈 #195",
+          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/195",
           "kind": "user-report"
         },
         {
           "id": "s5",
-          "label": "모델 토론 #13",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted/discussions/13",
+          "label": "공개 이슈 #190",
+          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/190",
           "kind": "user-report"
         },
         {
           "id": "s6",
-          "label": "모델 토론 #12",
-          "url": "https://huggingface.co/harness-hub/Qwen3.8-27B-pi-adapted/discussions/12",
+          "label": "공개 이슈 #189",
+          "url": "https://github.com/elementalsouls/Claude-BugHunter/issues/189",
           "kind": "user-report"
         }
       ],
-      "reviewedAt": "2026-11-20T20:04:13.403Z"
-    },
-    {
-      "id": "552aaf9e335058e0",
-      "category": "model",
-      "title": "inworld/voice-isolator",
-      "source": "Hugging Face",
-      "sourceKind": "official",
-      "channel": "information",
-      "discoveryUrl": null,
-      "primaryUrl": null,
-      "releaseDate": null,
-      "datePrecision": null,
-      "selection": {
-        "version": "momentum-v2",
-        "score": 24.1,
-        "components": {
-          "nativeTrend": 13.3,
-          "freshness": 11,
-          "measuredVelocity": 12.2,
-          "totalAttention": 2.9,
-          "communityAttention": 0,
-          "repeatPenalty": -15.3
-        },
-        "badge": "단기 관심 증가",
-        "reasons": [
-          "Hugging Face 트렌딩 10위 관측",
-          "좋아요 +13개 / 4시간",
-          "공개 7일 이내 모델"
-        ],
-        "signals": [
-          {
-            "label": "Hugging Face 트렌딩 10위 관측",
-            "url": "https://huggingface.co/models?sort=trending"
-          },
-          {
-            "label": "좋아요 +13개 / 4시간",
-            "url": "https://huggingface.co/inworld/voice-isolator"
-          },
-          {
-            "label": "공개 7일 이내 모델",
-            "url": "https://huggingface.co/inworld/voice-isolator"
-          }
-        ],
-        "growth": {
-          "metric": "likes",
-          "baselineAt": "2026-11-20T20:00:17.868Z",
-          "observedAt": "2026-11-20T23:58:18.502Z",
-          "baseline": 485,
-          "current": 498,
-          "delta": 13,
-          "hours": 4,
-          "perHour": 3.3
-        },
-        "family": "음성·오디오",
-        "owner": "inworld",
-        "repeated": true,
-        "independentCommunity": false
-      },
-      "name": null,
-      "topics": [
-        "inworld-voice-isolation",
-        "audio",
-        "speech",
-        "speech-enhancement",
-        "speech-denoising",
-        "noise-suppression",
-        "voice-isolation",
-        "48khz",
-        "full-band",
-        "streaming",
-        "realtime",
-        "audio-to-audio",
-        "license:apache-2.0",
-        "region:us"
-      ],
-      "discoveryTopic": null,
-      "pipelineTag": "audio-to-audio",
-      "pushedAt": null,
-      "stars": null,
-      "likes": 498,
-      "url": "https://huggingface.co/inworld/voice-isolator",
-      "publishedAt": "2026-11-14T02:14:35.000Z",
-      "discoveredAt": "2026-11-20T23:58:18.502Z",
-      "summary": "Inworld Voice Isolator는 잡음이나 음악이 섞인 오디오에서 전경 음성을 분리하는 48 kHz 모델이다. 녹음 파일을 정리하는 오프라인 모델과 들어오는 소리를 처리하는 스트리밍 모델을 제공해, 오디오 편집자와 음성 데이터 구축팀, 통화·방송 개발자가 각자의 작업에 맞춰 쓸 수 있다.",
-      "tags": [
-        "음성 분리·잡음 제거"
-      ],
-      "stats": [
-        {
-          "label": "Downloads",
-          "value": 0
-        },
-        {
-          "label": "Likes",
-          "value": 498
-        }
-      ],
-      "signalLabel": "단기 관심 증가",
-      "slides": [
-        {
-          "title": "녹음과 실시간 오디오에서 목소리 분리",
-          "body": "Voice Isolator는 음성과 배경음이 섞인 48 kHz 모노 오디오를 받아 전경 음성을 분리한다. 같은 계열의 두 모델 중 오프라인 버전은 각 프레임을 처리할 때 해당 8초 구간 전체를 참고하고, 스트리밍 버전은 오디오가 들어오는 순서대로 처리한다. 음원 복원 도구와 비교할 때 처리 범위는 잡음 억제까지다. 특정 화자를 지정하는 기능은 없으며, 비슷한 크기의 목소리가 겹치면 둘 다 남을 수 있다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "01 / 무엇인가요"
-        },
-        {
-          "title": "제작자가 강조한 두 가지 처리 방식",
-          "body": "제작자는 `voice-isolator-v1`이 긴 녹음을 8초씩 나눠 2초를 겹쳐 처리하고, 기본 CLI는 분리된 음성과 제거된 배경음을 각각 48 kHz WAV로 저장한다고 설명한다. `voice-isolator-v1-realtime`은 0·20·40 ms의 미래 오디오 참조 옵션을 지원하며, 20 ms 설정에서 알고리즘 지연은 63 ms라고 밝힌다. 실제 통화에서 체감하는 지연에는 장치와 전송 환경도 영향을 준다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "02 / 제작자의 설명"
-        },
-        {
-          "title": "파일 편집과 실시간 통화에 쓰는 법",
-          "body": "활용 예시 1. 인터뷰 편집자가 환풍기 소리가 섞인 녹음 파일을 오프라인 CLI에 넣는다. 분리된 음성 WAV를 편집에 쓰고, 별도로 저장된 배경음 WAV를 들어 어떤 소리가 제거됐는지 확인할 수 있다.\n활용 예시 2. 통화 앱 개발자가 주변 소음이 섞인 48 kHz 모노 마이크 입력을 스트리밍 세션에 조각 단위로 전달한다. 처리가 끝난 음성 샘플을 순서대로 받아 통화 송출 경로에 넘길 수 있다.",
-          "evidenceIds": [
-            "s1"
-          ],
-          "eyebrow": "03 / 어디에 쓰나요"
-        },
-        {
-          "title": "속도 문제 제기 1건과 제작사 벤치마크",
-          "body": "2026년 11월 19일 Hugging Face 토론에 실행 속도가 매우 느리다는 게시물 1건이 올라왔다. 제목 기준으로 확인한 문제이며, 수집 시점에 토론은 열린 상태였고 댓글은 3개였다. 제공된 자료로는 실행 환경, 원인, 해결 여부와 사용자가 체감한 장점을 확인하기 어렵다. 독립적인 사용자 평가를 충분히 확보하지 못했습니다. VIBE는 Inworld가 비공개 내부 평가 세트로 실시한 제작사 벤치마크다.",
-          "evidenceIds": [
-            "s1",
-            "s3"
-          ],
-          "eyebrow": "04 / 평가와 반응"
-        },
-        {
-          "title": "로컬 도입에 필요한 환경과 제약",
-          "body": "코드와 모델 가중치는 Apache-2.0이며, `pip install inworld-voice-isolation`로 설치하면 첫 실행 때 가중치를 내려받아 체크섬을 검증한다. 로컬 추론은 CUDA, Apple Silicon Mac의 MPS(PyTorch 2.6 이상), CPU에서 가능하다. 제작사의 시험 환경은 CPU와 A100·H100·B200·B300이며, 소형 GPU 성능과 호스팅 API 요금은 미확인이다. 잡음이 섞인 녹음을 정리하거나 48 kHz 모노 음성 경로에 잡음 제거를 붙이려는 팀에 적합하다.",
-          "evidenceIds": [
-            "s1",
-            "s2"
-          ],
-          "eyebrow": "05 / 도입 전 확인"
-        }
-      ],
-      "summaryMethod": "원문·공개 반응 근거를 사용한 AI 한국어 요약",
-      "headline": "녹음과 실시간 통화에서 목소리를 분리하는 모델",
-      "topic": "음성 분리·잡음 제거",
-      "evidence": [
-        {
-          "id": "s1",
-          "label": "모델 제작자 설명",
-          "url": "https://huggingface.co/inworld/voice-isolator/blob/main/README.md",
-          "kind": "creator"
-        },
-        {
-          "id": "s2",
-          "label": "모델 공개 정보",
-          "url": "https://huggingface.co/inworld/voice-isolator",
-          "kind": "official"
-        },
-        {
-          "id": "s3",
-          "label": "모델 토론 #1",
-          "url": "https://huggingface.co/inworld/voice-isolator/discussions/1",
-          "kind": "user-report"
-        }
-      ],
-      "reviewedAt": "2026-11-20T08:04:11.810Z"
+      "reviewedAt": "2026-11-21T08:03:49.346Z"
     }
   ],
   "sources": [
-    {
-      "name": "Reddit r/LocalLLaMA",
-      "url": "https://www.reddit.com/r/LocalLLaMA/new/.rss?limit=30",
-      "status": "error",
-      "detail": "HTTP 404",
-      "checkedAt": "2026-11-20T23:58:18.502Z"
-    },
-    {
-      "name": "Hugging Face Models",
-      "url": "https://huggingface.co/models?sort=trending",
-      "status": "ok",
-      "count": 12,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
-    },
     {
       "name": "Product Hunt",
       "url": "https://www.producthunt.com/feed",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
-    },
-    {
-      "name": "Hugging Face Blog",
-      "url": "https://huggingface.co/blog/feed.xml",
-      "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "OpenAI",
       "url": "https://openai.com/news/rss.xml",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "arXiv",
       "url": "https://rss.arxiv.org/atom/cs.AI+cs.LG+cs.CL+cs.CV",
       "status": "ok",
-      "count": 18,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "count": 0,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "Simon Willison",
-      "url": "https://simonwillison.net/atom/everything/",
+      "name": "Hugging Face Models",
+      "url": "https://huggingface.co/models?sort=trending",
+      "status": "ok",
+      "count": 12,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
+    },
+    {
+      "name": "Hugging Face Blog",
+      "url": "https://huggingface.co/blog/feed.xml",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "Gemini 변경 기록",
-      "url": "https://gemini.google/release-notes/",
-      "status": "ok",
-      "count": 1,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "name": "Reddit r/LocalLLaMA",
+      "url": "https://www.reddit.com/r/LocalLLaMA/new/.rss?limit=30",
+      "status": "error",
+      "detail": "HTTP 404",
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "Anthropic Engineering",
       "url": "https://www.anthropic.com/engineering",
       "status": "ok",
       "count": 0,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "Google Workspace Updates",
-      "url": "https://feeds.feedburner.com/GoogleAppsUpdates",
+      "name": "Gemini 변경 기록",
+      "url": "https://gemini.google/release-notes/",
       "status": "ok",
-      "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
-    },
-    {
-      "name": "Google AI",
-      "url": "https://blog.google/technology/ai/rss/",
-      "status": "ok",
-      "count": 5,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "count": 1,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "Techmeme",
       "url": "https://www.techmeme.com/feed.xml",
       "status": "ok",
       "count": 7,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "Hacker News · Show HN",
-      "url": "https://news.ycombinator.com/",
-      "status": "ok",
-      "count": 48,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
-    },
-    {
-      "name": "GeekNews",
-      "url": "https://news.hada.io/rss/news",
+      "name": "Simon Willison",
+      "url": "https://simonwillison.net/atom/everything/",
       "status": "ok",
       "count": 8,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
+    },
+    {
+      "name": "Google AI",
+      "url": "https://blog.google/technology/ai/rss/",
+      "status": "ok",
+      "count": 5,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "alphaXiv",
       "url": "https://www.alphaxiv.org/",
       "status": "ok",
       "count": 10,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "AI News / Latent Space",
-      "url": "https://latent.space/feeds/news.xml",
+      "name": "Google Workspace Updates",
+      "url": "https://feeds.feedburner.com/GoogleAppsUpdates",
       "status": "ok",
-      "count": 5,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "count": 8,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
+    },
+    {
+      "name": "GeekNews",
+      "url": "https://news.hada.io/rss/news",
+      "status": "ok",
+      "count": 8,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "RUTINELABO",
       "url": "https://rutinelabo.com/feed/",
       "status": "ok",
       "count": 2,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
-      "name": "GitHub Trending",
-      "url": "https://github.com/trending?since=daily",
+      "name": "AI News / Latent Space",
+      "url": "https://latent.space/feeds/news.xml",
       "status": "ok",
-      "count": 10,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "count": 6,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     },
     {
       "name": "GitHub New AI",
       "url": "https://github.com/topics/llm",
       "status": "ok",
       "count": 72,
-      "checkedAt": "2026-11-20T23:58:18.502Z"
+      "checkedAt": "2026-11-21T08:00:18.814Z"
+    },
+    {
+      "name": "GitHub Trending",
+      "url": "https://github.com/trending?since=daily",
+      "status": "ok",
+      "count": 10,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
+    },
+    {
+      "name": "Hacker News · Show HN",
+      "url": "https://news.ycombinator.com/",
+      "status": "ok",
+      "count": 49,
+      "checkedAt": "2026-11-21T08:00:18.814Z"
     }
   ],
   "selectionPolicy": "momentum-v2",
@@ -2345,6 +2374,10 @@
       {
         "at": "2026-11-20T20:00:17.868Z",
         "stars": 17445
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 17498
       }
     ],
     "https://huggingface.co/Lightricks/LTX-2.5": [
@@ -2367,6 +2400,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 12887
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 12837
       }
     ],
     "https://github.com/timoncool/speech-studio": [
@@ -2399,6 +2436,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 50
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 50
       }
     ],
     "https://huggingface.co/Qwen/Qwen3.8-27B": [
@@ -2421,6 +2462,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 20798
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 20826
       }
     ],
     "https://github.com/hamsanders/soundbox": [
@@ -2439,6 +2484,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 232
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 235
       }
     ],
     "https://github.com/pklavc/autotrader": [
@@ -2461,6 +2510,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 40
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 42
       }
     ],
     "https://github.com/kaifaty/gothicai": [
@@ -2482,6 +2535,10 @@
       },
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 15
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 15
       }
     ],
@@ -2545,6 +2602,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 1700
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 1691
       }
     ],
     "https://github.com/ccch1mneyyy/dsh-go": [
@@ -2573,6 +2634,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 31
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 31
       }
     ],
     "https://github.com/xin-yuxiao/awesome-ai-for-astronomy": [
@@ -2595,6 +2660,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 401
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 403
       }
     ],
     "https://github.com/pjmbatman/ml4sci": [
@@ -2635,6 +2704,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 1846
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 1868
       }
     ],
     "https://github.com/tarpetos/mimvox": [
@@ -2699,6 +2772,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 262
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 263
       }
     ],
     "https://huggingface.co/thinkingmachines/Inkling-2-Small": [
@@ -2741,6 +2818,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 11
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 11
       }
     ],
     "https://github.com/ntars/ondra": [
@@ -2758,6 +2839,10 @@
       },
       {
         "at": "2026-11-20T20:00:17.868Z",
+        "stars": 11
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 11
       }
     ],
@@ -2783,6 +2868,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 790
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 794
       }
     ],
     "https://github.com/elementalsouls/claude-bughunter": [
@@ -2805,6 +2894,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 14210
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 14787
       }
     ],
     "https://github.com/google-labs-code/stitch-skills": [
@@ -2827,6 +2920,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 11021
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 11145
       }
     ],
     "https://github.com/sirwinstontea/motiq": [
@@ -2855,6 +2952,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 18
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 19
       }
     ],
     "https://huggingface.co/higurashi-ai/Haru-4B": [
@@ -2877,6 +2978,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 5329
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 5707
       }
     ],
     "https://github.com/mdiri-ai/soduwork": [
@@ -2891,6 +2996,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 5966
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 6161
       }
     ],
     "https://github.com/mvanhorn/last30days-skill": [
@@ -2913,6 +3022,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 71430
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 71605
       }
     ],
     "https://github.com/opentodoapp/opentodo": [
@@ -2968,6 +3081,10 @@
       },
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 25
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 25
       }
     ],
@@ -3031,6 +3148,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 67675
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 67844
       }
     ],
     "https://huggingface.co/chatrlabs/Qwen-Image-2.1-Uncensored-Omni-Quantized": [
@@ -3071,6 +3192,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 14
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 14
       }
     ],
     "https://huggingface.co/sensenova/SenseNova-Loop-9B": [
@@ -3093,6 +3218,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 444
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 454
       }
     ],
     "https://github.com/mw00/project-maya": [
@@ -3135,6 +3264,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 860
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 830
       }
     ],
     "https://github.com/renakoni/voicebox": [
@@ -3201,6 +3334,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 543
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 558
       }
     ],
     "https://huggingface.co/meituan-longcat/LongCat-Video-Avatar-1.6": [
@@ -3229,6 +3366,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 61363
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 61599
       }
     ],
     "https://github.com/openvinotoolkit/openvino": [
@@ -3251,6 +3392,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 11782
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 11838
       }
     ],
     "https://github.com/88lookingupatthestars88/quolune": [
@@ -3277,6 +3422,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 31
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 31
       }
     ],
     "https://huggingface.co/apple/FastFrames-L": [
@@ -3299,6 +3448,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 488
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 492
       }
     ],
     "https://github.com/openpromoter/openpromoter": [
@@ -3333,6 +3486,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 0
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 1
       }
     ],
     "https://github.com/firecrawl/firecrawl": [
@@ -3355,6 +3512,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 205245
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 205548
       }
     ],
     "https://github.com/hexsyro/kaggle-dress-rehearsal": [
@@ -3391,6 +3552,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 158
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 152
       }
     ],
     "https://github.com/hasan6969macho-bit/vectorbt-avoria-analysis": [
@@ -3413,6 +3578,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 158
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 152
       }
     ],
     "https://github.com/yinkaiyu/chat-in-dsh": [
@@ -3451,6 +3620,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 498
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 510
       }
     ],
     "https://github.com/mjmirza/app-store-compliance": [
@@ -3473,6 +3646,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 2714
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 2939
       }
     ],
     "https://github.com/leonxlnx/sable": [
@@ -3501,6 +3678,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 69267
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 69463
       }
     ],
     "https://github.com/tuanpmt/vtts": [
@@ -3537,6 +3718,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 59
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 61
       }
     ],
     "https://github.com/tensorpass/aiconnect": [
@@ -3574,6 +3759,10 @@
       },
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 5
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 5
       }
     ],
@@ -3637,6 +3826,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 13593
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 13724
       }
     ],
     "https://github.com/joungminsung/openphoneuse": [
@@ -3713,6 +3906,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 13710
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 14057
       }
     ],
     "https://github.com/xtrcomsu/xt-forge": [
@@ -3739,6 +3936,10 @@
       {
         "at": "2026-11-20T08:00:18.313Z",
         "stars": 56
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 67
       }
     ],
     "https://github.com/logicplanes/kaeso": [
@@ -3823,6 +4024,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 16
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 16
       }
     ],
     "https://github.com/leetheguy/purple_flow": [
@@ -3869,11 +4074,19 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 29
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 29
       }
     ],
     "https://github.com/stanislav-petryashov/monido": [
       {
         "at": "2026-11-20T08:00:18.313Z",
+        "stars": 16
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 16
       }
     ],
@@ -3885,6 +4098,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 2770
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 2801
       }
     ],
     "https://github.com/cloveric/tarobird": [
@@ -3963,6 +4180,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 49
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 57
       }
     ],
     "https://github.com/poushali-02/seedreach": [
@@ -4009,11 +4230,19 @@
       {
         "at": "2026-11-20T08:00:18.313Z",
         "stars": 248
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 251
       }
     ],
     "https://github.com/amurgola/lumabrowser": [
       {
         "at": "2026-11-20T08:00:18.313Z",
+        "stars": 154
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 154
       }
     ],
@@ -4035,6 +4264,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 158
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 152
       }
     ],
     "https://github.com/svayatta/pratidhvani": [
@@ -4144,6 +4377,10 @@
       },
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 19
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 19
       }
     ],
@@ -4317,6 +4554,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 245
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 514
       }
     ],
     "https://github.com/rustingstudio/rustingstrata": [
@@ -4335,17 +4576,29 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 464
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 991
       }
     ],
     "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF": [
       {
         "at": "2026-11-20T23:58:18.502Z",
         "likes": 171
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "likes": 328
       }
     ],
     "https://github.com/danuzco/bayesian-modelling-notes": [
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 54
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 54
       }
     ],
@@ -4359,6 +4612,10 @@
       {
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 16
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 29
       }
     ],
     "https://github.com/simpsoka/zigzag": [
@@ -4382,6 +4639,10 @@
     "https://github.com/alexturkey/dubworld": [
       {
         "at": "2026-11-20T23:58:18.502Z",
+        "stars": 93
+      },
+      {
+        "at": "2026-11-21T08:00:18.814Z",
         "stars": 93
       }
     ],
@@ -4426,85 +4687,255 @@
         "at": "2026-11-20T23:58:18.502Z",
         "stars": 24
       }
+    ],
+    "https://github.com/kazim768/ai--manus2.0": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/lloweryfn-rgb/gemini-config-checker-": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 56
+      }
+    ],
+    "https://github.com/itprogamatikdedsec/ai--manus": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/itprogamatikdedsec/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 200
+      }
+    ],
+    "https://github.com/kazim768/ai--manus": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/kazim768/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/lloweryfn-rgb/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/python001-dev/ai--manus": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/python001-dev/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/sandypandymandy/ai--manus": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/sandypandymandy/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/stancaedy10-glitch/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 201
+      }
+    ],
+    "https://github.com/mohamedhamdytaha/manus--ai": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 179
+      }
+    ],
+    "https://github.com/musset-app/musset": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 5
+      }
+    ],
+    "https://github.com/caprichooms/capricore": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 301
+      }
+    ],
+    "https://github.com/agentic-system-lab/harness-relay": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 35
+      }
+    ],
+    "https://github.com/zeekk0/openamika": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 683
+      }
+    ],
+    "https://github.com/thenoumandev/zero-dollar-studio": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 18
+      }
+    ],
+    "https://github.com/zeekk0/opensakura": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 100
+      }
+    ],
+    "https://github.com/islandmed/sculptforge": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 751
+      }
+    ],
+    "https://github.com/srpadmanabhuni/agentest": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 16
+      }
+    ],
+    "https://github.com/jorgepb96/nodus-reader": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 12
+      }
+    ],
+    "https://github.com/kettuai/kettu": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 113
+      }
+    ],
+    "https://github.com/somastllc/nlp-for-machine-learning-bootcamp": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 119
+      }
+    ],
+    "https://github.com/open-net-worth-ai/open-net-worth": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 628
+      }
+    ],
+    "https://github.com/animan-ai/duckbuddy": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 97
+      }
+    ],
+    "https://github.com/starlinghq/starling": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 211
+      }
+    ],
+    "https://github.com/codepawl/crucible": [
+      {
+        "at": "2026-11-21T08:00:18.814Z",
+        "stars": 844
+      }
     ]
   },
   "repositoryMetrics": {
-    "dickoyudha-netizen/adobe-firefly-image-creator": 158,
-    "mvanhorn/last30days-skill": 71430,
-    "pgmergulhao75-dot/openbb-calvona-market-research": 158,
-    "hasan6969macho-bit/vectorbt-avoria-analysis": 158,
-    "cathrynlavery/diagram-design": 69267,
-    "elementalsouls/Claude-BugHunter": 14210,
-    "firecrawl/firecrawl": 205245,
-    "openvinotoolkit/openvino": 11782,
-    "mdiri-ai/SoduWork": 5966,
-    "HKUDS/CLI-Anything": 61363,
-    "BaaRai/ARTEX": 13710,
-    "FrigadeHQ/yogurt": 2770,
-    "mjmirza/app-store-compliance": 2714,
-    "jingyaogong/minimind": 67675,
-    "Tracer-Cloud/opensre": 13593,
-    "agentes-chat/agentes-chat": 1846,
-    "google-labs-code/stitch-skills": 11021,
+    "mvanhorn/last30days-skill": 71605,
+    "elementalsouls/Claude-BugHunter": 14787,
+    "cathrynlavery/diagram-design": 69463,
+    "firecrawl/firecrawl": 205548,
+    "HKUDS/CLI-Anything": 61599,
+    "openvinotoolkit/openvino": 11838,
+    "mjmirza/app-store-compliance": 2939,
+    "jingyaogong/minimind": 67844,
+    "Tracer-Cloud/opensre": 13724,
+    "mdiri-ai/SoduWork": 6161,
+    "BaaRai/ARTEX": 14057,
+    "google-labs-code/stitch-skills": 11145,
+    "FrigadeHQ/yogurt": 2801,
+    "dickoyudha-netizen/adobe-firefly-image-creator": 152,
+    "hasan6969macho-bit/vectorbt-avoria-analysis": 152,
+    "pgmergulhao75-dot/openbb-calvona-market-research": 152,
+    "agentes-chat/agentes-chat": 1868,
+    "kazim768/ai--manus2.0": 56,
+    "lloweryfn-rgb/Gemini-Config-Checker-": 56,
+    "n4ze3m/tiny-voca": 794,
     "arturomeneses100/deteccion-figuras-opencv": 29,
-    "n4ze3m/tiny-voca": 790,
-    "Renakoni/Voicebox": 204,
+    "stanislav-petryashov/monido": 16,
+    "aravpanwar/dsmai": 29,
+    "ATLURI0001/NeuroMirror": 61,
     "Danuzco/bayesian-modelling-notes": 54,
-    "tarpetos/mimvox": 148,
+    "dayfile/dayfile": 1,
+    "ITprogamatikDedSec/ai--manus": 201,
+    "ITprogamatikDedSec/manus--ai": 200,
+    "kazim768/ai--manus": 201,
+    "kazim768/manus--ai": 201,
+    "lloweryfn-rgb/manus--ai": 201,
+    "python001-dev/ai--manus": 201,
+    "python001-dev/manus--ai": 201,
+    "SandyPandyMandy/ai--manus": 201,
+    "SandyPandyMandy/manus--ai": 201,
+    "stancaedy10-glitch/manus--ai": 201,
+    "mohamedhamdytaha/manus--ai": 179,
     "celishq/openspot": 5,
-    "shumourena/chill-with-you-companion": 10,
-    "ATLURI0001/NeuroMirror": 59,
-    "aryamandarda/tamserve": 262,
-    "cloveric/tarobird": 140,
-    "DeskLabs-OpenSource/DeskVoice": 147,
-    "dannkkie/pure-sift": 11,
-    "dayfile/dayfile": 0,
-    "sunososobro-hub/tinglongwu": 167,
-    "lexifina/global-law": 2147,
-    "aravpanwar/dsmai": 16,
-    "SAOS-3624/see-on-phone": 18,
-    "Thibault-GILLARD/box2boxcam-football-vision": 49,
-    "oliverhees/paibot": 15,
+    "Musset-App/musset": 5,
+    "aryamandarda/tamserve": 263,
+    "tangency-labs/solidcraft": 17498,
+    "CapriChooms/CapriCore": 301,
+    "Agentic-System-Lab/harness-relay": 35,
+    "zeekk0/OpenAmika": 683,
     "Nitidio/nitid": 14,
+    "Thibault-GILLARD/box2boxcam-football-vision": 57,
     "kleinicke/fastforks": 31,
-    "OpenTodoApp/OpenTodo": 623,
-    "simpsoka/zigzag": 993,
-    "KenKaiii/Roamies": 392,
-    "Invariant0x/hornhoof": 84,
-    "RoBiN19666/midipult": 12,
     "XiaoMi/bsworld": 19,
-    "Kugelaudio/curb.js": 12,
-    "pjmbatman/ml4sci": 18,
-    "Dominic6018/ai-api-cost-tracker": 13,
-    "alexsergivan/kwant": 681,
-    "Sarthzk/internship-tracker": 158,
+    "ASU-NEM-Labs/open4dgs-core": 67,
+    "TheNoumanDev/zero-dollar-studio": 18,
+    "ntars/Ondra": 11,
+    "zeekk0/OpenSakura": 100,
+    "HamSanders/soundbox": 235,
     "alexturkey/dubworld": 93,
-    "prefix-tree/uberscene": 47,
-    "shinyobjectz/raea": 2822,
-    "drawthingsai/local-code-community": 171,
-    "aspectly-labs/Mikka": 88,
-    "ClickHouse/loom": 174,
-    "UCS-Care-Group/mailcraft": 840,
-    "olatunde85/3d-gen": 25,
+    "islandmed/SculptForge": 751,
+    "srpadmanabhuni/agentest": 16,
+    "jorgepb96/nodus-reader": 12,
+    "KettuAI/Kettu": 113,
+    "somastllc/nlp-for-machine-learning-bootcamp": 119,
+    "open-net-worth-ai/open-net-worth": 628,
+    "Animan-AI/DuckBuddy": 97,
+    "hehehai/AudioSmith": 251,
+    "starlinghq/starling": 211,
+    "codepawl/crucible": 844,
     "georgeguimaraes/transmuter": 25,
-    "HamSanders/soundbox": 232,
-    "leetheguy/purple_flow": 12,
-    "delexw/motion-graphics-agent": 113,
-    "pirateface/pirateface_cli": 31,
-    "kaifaty/GothicAI": 15,
-    "yanfei0725/dsh-qwen-paint": 45,
-    "ddd-ts-kit/ddd-ts-kit": 24,
+    "amurgola/LumaBrowser": 154,
     "kobaltgit/photocraft-companion": 50,
-    "PkLavc/Autotrader": 40,
-    "Xin-YuXiao/Awesome-AI-for-Astronomy": 401,
+    "kaifaty/GothicAI": 15,
+    "pirateface/pirateface_cli": 31,
+    "PkLavc/Autotrader": 42,
     "TheVicky1/Safai_OS": 16,
-    "NVIDIA/structured-data-models-client": 14,
+    "Xin-YuXiao/Awesome-AI-for-Astronomy": 403,
     "vinjivani777/awesome-free-ai": 11,
-    "mahmoudsajjadi/awesome-ai-coding-tools": 18
+    "mahmoudsajjadi/awesome-ai-coding-tools": 19
   },
   "editorial": "최근 관심 증가·공개 시점·개발 활동과 실제 커뮤니티 신호로 후보를 비교합니다. 누적 인기도의 영향은 낮추고 반복 노출·분야·제작자 쏠림을 완화합니다. GitHub·Hugging Face와 SNS·정보 소스, arXiv·alphaXiv 연구 채널을 확인합니다. 공식 발표·제품 소개·커뮤니티 글·보도·논문을 구분하며 논문 등록은 동료심사 통과를 뜻하지 않습니다. 본문을 확보한 한글 심층 카드만 발행하며 각 카드의 ‘선정 이유’에서 관측 근거를 확인할 수 있습니다. 선정 신호는 품질 평가가 아닙니다.",
-  "pendingCount": 13,
-  "candidateCount": 222,
+  "pendingCount": 7,
+  "candidateCount": 207,
   "exposureHistory": {
     "https://github.com/burakkylmz/ml-labs": {
       "lastFeaturedAt": "2026-11-14T13:28:12.991Z"
@@ -4624,16 +5055,16 @@
       "lastFeaturedAt": "2026-11-16T08:00:18.377Z"
     },
     "https://github.com/elementalsouls/claude-bughunter": {
-      "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://github.com/db-branch/db-branch": {
       "lastFeaturedAt": "2026-11-17T15:57:08.236Z"
     },
     "https://huggingface.co/higurashi-ai/Haru-4B": {
-      "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://github.com/google-labs-code/stitch-skills": {
-      "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://github.com/plannotator/sem-jiff": {
       "lastFeaturedAt": "2026-11-16T15:40:41.093Z"
@@ -4660,7 +5091,7 @@
       "lastFeaturedAt": "2026-11-18T00:56:44.178Z"
     },
     "https://github.com/mvanhorn/last30days-skill": {
-      "lastFeaturedAt": "2026-11-18T15:36:18.474Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://github.com/nvidia/skillevaluator": {
       "lastFeaturedAt": "2026-11-17T01:51:33.635Z"
@@ -4699,7 +5130,7 @@
       "lastFeaturedAt": "2026-11-18T15:36:18.474Z"
     },
     "https://github.com/jingyaogong/minimind": {
-      "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://nicolasbouliane.com/blog/death-by-ai": {
       "lastFeaturedAt": "2026-11-18T15:36:18.474Z"
@@ -4780,13 +5211,13 @@
       "lastFeaturedAt": "2026-11-20T15:24:19.074Z"
     },
     "https://github.com/tracer-cloud/opensre": {
-      "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://github.com/hexsyro/kaggle-dress-rehearsal": {
       "lastFeaturedAt": "2026-11-20T15:24:19.074Z"
     },
     "https://github.com/dayfile/dayfile": {
-      "lastFeaturedAt": "2026-11-20T15:24:19.074Z"
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     },
     "https://www.theguardian.com/business/2026/nov/20/global-stock-markets-slump-anthropic-ipo-ai-sell-off": {
       "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
@@ -4808,7 +5239,28 @@
     },
     "https://github.com/mjmirza/app-store-compliance": {
       "lastFeaturedAt": "2026-11-20T20:00:17.868Z"
+    },
+    "https://huggingface.co/thinkingmachines/Inkling-2-Mini": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://signal.org/blog/protecting-your-privacy": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://www.scientificamerican.com/article/ai-just-solved-the-real-navier-stokes-problem": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://www.gamesindustry.biz/ubisoft-launches-motherbrain-a-new-subsidiary-focused-on-ai-driven-gameplay-innovation": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://saturnsql.com/context-layer": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://workspaceupdates.googleblog.com/2026/11/weekly-recap-11-20-2026.html": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
+    },
+    "https://huggingface.co/unsloth/Inkling-2-Mini-GGUF": {
+      "lastFeaturedAt": "2026-11-21T08:00:18.814Z"
     }
   },
-  "lastCheckedAt": "2026-11-20T23:58:18.502Z"
+  "lastCheckedAt": "2026-11-21T08:00:18.814Z"
 }
